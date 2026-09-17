@@ -1,0 +1,4 @@
+split,rows,positives,purchase_rate,months
+train,6608,731,0.11062348668280872,"Feb, Mar, May, June, Jul, Aug"
+validation,997,201,0.20160481444332998,"Sep, Oct"
+test,4725,976,0.20656084656084656,"Nov, Dec"

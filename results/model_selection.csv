@@ -1,0 +1,10 @@
+model,parameters,validation_ap
+purchase_rate,{},0.20160481444332998
+logistic,"{""C"": 0.1}",0.2439054864435689
+logistic,"{""C"": 1.0}",0.24865106115627172
+random_forest,"{""min_samples_leaf"": 5}",0.3062642678490183
+random_forest,"{""min_samples_leaf"": 20}",0.30699681466742
+gradient_boosting,"{""max_leaf_nodes"": 7}",0.2892483831640243
+gradient_boosting,"{""max_leaf_nodes"": 15}",0.2786282254860972
+random_forest_with_page_values,"{""min_samples_leaf"": 5}",0.7070389962370677
+random_forest_with_page_values,"{""min_samples_leaf"": 20}",0.6904385569806499

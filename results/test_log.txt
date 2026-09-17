@@ -1,0 +1,12 @@
+test_chronological_disjoint_split (test_core.CoreTests.test_chronological_disjoint_split) ... ok
+test_constant_score_ap_equals_prevalence (test_core.CoreTests.test_constant_score_ap_equals_prevalence) ... ok
+test_forest_equation_and_unseen_categories (test_core.CoreTests.test_forest_equation_and_unseen_categories) ... ok
+test_imputer_is_fit_on_training_only (test_core.CoreTests.test_imputer_is_fit_on_training_only) ... ok
+test_invalid_schema_and_values_are_rejected (test_core.CoreTests.test_invalid_schema_and_values_are_rejected) ... ok
+test_no_target_or_suspect_feature_in_primary_input (test_core.CoreTests.test_no_target_or_suspect_feature_in_primary_input) ... ok
+test_threshold_uses_supplied_validation_labels (test_core.CoreTests.test_threshold_uses_supplied_validation_labels) ... ok
+
+----------------------------------------------------------------------
+Ran 7 tests in 0.830s
+
+OK

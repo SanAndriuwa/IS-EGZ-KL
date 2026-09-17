@@ -1,0 +1,21 @@
+{
+  "seed": 42,
+  "train_months": [
+    "Feb",
+    "Mar",
+    "May",
+    "June",
+    "Jul",
+    "Aug"
+  ],
+  "validation_months": [
+    "Sep",
+    "Oct"
+  ],
+  "test_months": [
+    "Nov",
+    "Dec"
+  ],
+  "missing_fraction": 0.1,
+  "bootstrap_repetitions": 500
+}

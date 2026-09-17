@@ -1,0 +1,11 @@
+source_row,Administrative,Administrative_Duration,Informational,Informational_Duration,ProductRelated,ProductRelated_Duration,BounceRates,ExitRates,PageValues,SpecialDay,Month,OperatingSystems,Browser,Region,TrafficType,VisitorType,Weekend,Revenue,probability,prediction,error
+10064,0,0.0,0,0.0,23,1215.666667,0.0,0.004761905,0.0,0.0,Dec,2,2,5,2,New_Visitor,False,0,0.45950705383054113,1,FP
+11145,0,0.0,0,0.0,17,935.25,0.0,0.009803922,0.0,0.0,Nov,2,2,1,2,New_Visitor,False,0,0.4551357933284197,1,FP
+10248,0,0.0,0,0.0,17,1293.083333,0.0,0.013333333,0.0,0.0,Dec,2,5,7,2,New_Visitor,False,0,0.45208615662347656,1,FP
+8174,0,0.0,0,0.0,33,2199.5,0.0,0.008080808,0.0,0.0,Dec,2,2,6,2,New_Visitor,False,0,0.4470401486959801,1,FP
+11002,0,0.0,0,0.0,35,2352.166667,0.0,0.006060606,0.0,0.0,Nov,2,2,6,2,New_Visitor,False,0,0.44227836498391754,1,FP
+10615,0,0.0,0,0.0,3,71.16666667,0.066666667,0.083333333,0.0,0.0,Nov,3,2,1,3,Returning_Visitor,False,1,0.0011352529821962987,0,FN
+7600,0,0.0,0,0.0,3,0.0,0.2,0.2,0.0,0.0,Nov,3,2,1,11,Returning_Visitor,False,1,0.005180290201053356,0,FN
+11798,0,0.0,0,0.0,6,81.75,0.0,0.066666667,0.0,0.0,Nov,2,2,1,3,Returning_Visitor,False,1,0.006038716106726433,0,FN
+9429,0,0.0,0,0.0,12,115.6666667,0.058333333,0.091666667,0.0,0.0,Nov,2,4,4,3,Returning_Visitor,False,1,0.008589084720287396,0,FN
+9544,0,0.0,0,0.0,4,46.25,0.0,0.1,0.0,0.0,Nov,1,1,1,2,Returning_Visitor,False,1,0.008930896872131975,0,FN

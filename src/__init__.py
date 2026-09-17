@@ -1,0 +1,1 @@
+"""Purchase intention experiment."""
