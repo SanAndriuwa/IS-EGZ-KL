@@ -32,6 +32,7 @@ Antra komanda veikia po eksperimento ir grąžina tikimybes naujoms sesijoms. D�
 
 | Failas | Paskirtis |
 |---|---|
+| [Kodo dokumentacija ir lankstumas](docs/KODO_DOKUMENTACIJA.md) | Funkcijos, konfigūracija, plėtimo pavyzdžiai ir ribos |
 | [Kolokviumo planas](docs/KOLOKVIUMO_PLANAS.md) | Problema, metodai, literatūra, formulės, moduliai ir AI planas |
 | [Eksperimento protokolas](docs/PROTOKOLAS.md) | Prieš mokymą nustatytas skaidymas, hipotezė ir bandymai |
 | [Galutinė ataskaita](docs/ATASKAITA.md) | Rezultatai, klaidos, interpretacija ir apribojimai |

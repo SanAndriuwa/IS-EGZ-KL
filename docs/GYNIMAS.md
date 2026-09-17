@@ -1,5 +1,7 @@
 # Pasiruošimas gynimui
 
+Kodo funkcijų ir lankstumo paaiškinimas: [Kodo dokumentacija ir lankstumas](KODO_DOKUMENTACIJA.md).
+
 ## Paaiškinimas savo žodžiais
 
 Programa vienai sesijai priskiria pirkimo tikimybę. Ji mokosi iš ankstesnių mėnesių, parametrus ir sprendimo slenkstį parenka kitais mėnesiais, o vertinama dar vėlesniais. Taip būsimo testo atsakymai nepadeda mokyti modelio. RF susideda iš 200 medžių. Kiekvienas medis pateikia pasiekto lapo pirkimų dalį; galutinė tikimybė yra šių dalių vidurkis. Parodykite `src/models.py::forest_probability_by_formula` ir atitinkamą formulę plane.
