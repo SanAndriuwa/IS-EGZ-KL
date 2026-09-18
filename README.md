@@ -37,6 +37,7 @@ Grafikus atkurkite be mokymo: `python -m src.plots --results results`.
 ## Kolokviumo pateikimas
 
 [Kolokviumo planas PDF](docs/KOLOKVIUMO_PLANAS.pdf) - savarankiškas įgyvendinimo planas pagal visus 10 kriterijų, be galutinių rezultatų.
+[Kolokviumo plano DOCX](docs/KOLOKVIUMO_PLANAS.docx) - redaguojama dokumento versija pagal pateikto VILNIUS TECH šablono stilius.
 [Vertinimas ir atlikti papildymai](docs/KOLOKVIUMO_VERTINIMAS.md) pateikti atskirai.
 PDF ir Markdown atkuriami komanda `python scripts/build_colloquium_pdf.py`;
 dokumentui generuoti reikia `reportlab`, `PyMuPDF`, `pdflatex` (standalone, amsmath, amssymb) ir Linux DejaVu Serif šriftų.
