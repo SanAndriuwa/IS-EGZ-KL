@@ -2,6 +2,24 @@
 
 Šis dokumentas paaiškina programos veikimą, pagrindinių funkcijų sutartis ir konkrečias plėtimo vietas. Dabartinė realizacija yra modulinis, konkrečiam UCI rinkiniui skirtas mokomasis eksperimentas. Ji leidžia keisti dalį bandymo sąlygų per konfigūraciją, tačiau nėra universali bet kokių duomenų ir modelių platforma.
 
+## Nuo ko pradėti naujokui
+
+Pirmiausia skaitykite [nuoseklų failų ir kintamųjų vadovą](PRADEDANCIOJO_VADOVAS.md).
+`experiment.py` yra pagrindinė eiga. Skirtingos atsakomybės perkeltos į atskirus
+failus: `preprocessing.py`, `training.py`, `analysis.py`, `plots.py`, `reporting.py`.
+
+| Papildoma funkcija | Įvestis | Išvestis / poveikis |
+|---|---|---|
+| `preprocessing.build_preprocessing(page_values)` | Ar reikia PageValues | Neišmokytas stulpelių paruošimas |
+| `training.train_and_select(...)` | Train ir validation, modelio vardas, sėkla | Pasirinkto modelio žodynas ir kandidatų rezultatų sąrašas |
+| `analysis.evaluate_missing(...)` | Test, išmokyti modeliai, vardai, trūkumo dalis, sėkla | Metrikų sąrašas ir trūkstamų langelių kaukė |
+| `analysis.analyze_forest(...)` | Test, išmokyti modeliai, prognozės, kartojimai, sėkla, katalogas | Formulės paklaida ir AP intervalas; įrašo klaidas bei pogrupius |
+| `plots.save_plots(...)` | Testo atsakymai, tikimybės, katalogas, modelių vardai | SVG ir PNG, modelių nemoko |
+| `reporting.save_splits(...)` | Imtys, konfigūracija, katalogas | Imčių dydžių ir eilučių priklausomybės CSV |
+| `reporting.save_tables(...)` | Metrikų eilutės, kandidatai, test, prognozės, katalogas | CSV ir metrikų DataFrame |
+| `reporting.save_manifest(...)` | Vykdymo sąlygos ir patikros skaičiai | `manifest.json` su versijomis ir kontrolinėmis sumomis |
+| `reporting.save_summary(...)` | Metrikos, AP skirtumas, intervalas, paklaida, katalogas | `RESULTS.md` |
+
 ## Kaip vyksta skaičiavimas
 
 Paleidus `python -m src.experiment`, programa perskaito konfigūraciją ir originalų CSV. Sesijos padalijamos pagal mėnesius. Kiekvienas modelio kandidatas gauna tik mokymo imtį; šiame etape išmokomi ir trūkstamų reikšmių užpildymo bei kodavimo parametrai. Validacijos AP parenka kandidatą, o validacijos F2 – sprendimo slenkstį. Užfiksuotu modeliu prognozuojamas galutinis testas. Tada atliekami papildomi bandymai ir rašomi rezultatai.
@@ -24,7 +42,7 @@ Paleidus `python -m src.predict`, mokymas nebevyksta. Įkeliamas išsaugotas mod
 | `experiment.run(config_path, output)` | Konfigūracijos ir rezultatų keliai | Rašo CSV, grafiką, vykdymo aprašą ir modelius; reikšmės negrąžina |
 | `predict.predict(input_path, model_path, output_path)` | Naujas CSV, modelio ir išvesties keliai | Prognozių DataFrame; tą pačią lentelę išsaugo CSV |
 
-Funkcijų pavadinimai čia pateikti su modulio vardu, pavyzdžiui, `data` reiškia `src/data.py`. Kode yra trumpi angliški docstring ir komentarai; išsamesnis metodų pagrindimas bei formulės – [kolokviumo plane](KOLOKVIUMO_PLANAS.md).
+Funkcijų pavadinimai čia pateikti su modulio vardu, pavyzdžiui, `data` reiškia `src/data.py`. Pagrindinės eigos, mokymo, modelių, analizės ir išvesties moduliuose yra lietuviški komentarai; išsamesnis metodų pagrindimas bei formulės – [kolokviumo plane](KOLOKVIUMO_PLANAS.md).
 
 ## Ką galima pakeisti be Python kodo redagavimo
 
@@ -70,24 +88,24 @@ Prognozei naudojamas pasirinkto modelio išsaugotas slenkstis. `predict` neturi 
 |---|---|---|
 | RF medžių skaičius | `models.build_model`: `n_estimators=200` | Taip |
 | Hiperparametrų paieškos tinklas | `models.candidates` | Taip, kandidatai parenkami iš naujo validacijoje |
-| Imputavimo ar standartizavimo būdas | `models.build_model`, `preprocessing` | Taip |
+| Imputavimo ar standartizavimo būdas | `preprocessing.build_preprocessing` | Taip |
 | Pagrindiniai požymiai | `data.NUMERIC`, `data.CATEGORICAL`, `prepare_features` | Taip |
 | Slenksčio kriterijus F2 → F1 | `evaluation.select_threshold`, `beta=2` → `beta=1` | Reikia iš naujo parinkti slenkstį validacijoje; dabartinė eksperimento komanda kartu permoko modelius |
 | Nauja vertinimo metrika | `evaluation.metrics` | Jau išsaugotoms prognozėms mokymas nebūtinas; pilna komanda jį pakartoja |
-| Kandidato parinkimo metrika AP → kita | `experiment.run`, `score = average_precision_score(...)` | Taip; taip pat keisti žymėjimus `validation_ap` ir interpretaciją |
+| Kandidato parinkimo metrika AP → kita | `training.train_and_select`, `score = average_precision_score(...)` | Taip; taip pat keisti žymėjimus `validation_ap` ir interpretaciją |
 | Naujas modelis | `models.py` ir keli sąrašai `experiment.py` | Taip |
 | Kitas mokymo rinkinys | `data.py`, `experiment.py`, požymių bei skaidymo taisyklės | Taip |
 
-Pakeitus tik slenksčio parinkimą į F1, `metrics()` ir toliau skaičiuos F2. Jei norima papildomai rodyti F1, jį reikia įtraukti į `metrics()` kaip atskirą lauką. Visas `metrics()` žodynas patenka į `metrics.csv`, bet Markdown lentelės stulpeliai `experiment.py` parenkami atskirai; naują metriką ten reikia pridėti atskirai.
+Pakeitus tik slenksčio parinkimą į F1, `metrics()` ir toliau skaičiuos F2. Jei norima papildomai rodyti F1, jį reikia įtraukti į `metrics()` kaip atskirą lauką. Visas `metrics()` žodynas patenka į `metrics.csv`, bet Markdown lentelės stulpeliai `reporting.save_summary` parenkami atskirai; naują metriką ten reikia pridėti atskirai.
 
 ## Kaip pridėti penktą modelį
 
 Pavyzdžiui, norint pridėti kitą scikit-learn suderinamą klasifikatorių:
 
-1. `src/models.py` importuoti klasifikatorių ir įtraukti jį į `build_model` žodyną `estimators`, suteikiant unikalų vardą.
+1. `src/models.py` importuoti klasifikatorių ir pridėti `elif` šaką `build_model` funkcijoje, suteikiant unikalų vardą.
 2. `candidates()` tuo pačiu vardu pridėti parametrų variantų sąrašą. Parametrai perduodami tiesiai klasifikatoriaus `set_params`, todėl čia nereikia `classifier__` prefikso.
-3. `src/experiment.py` modelio vardą pridėti į pagrindinį `specifications` sąrašą. Tai įtrauks mokymą, parinkimą, švaraus testo metrikas ir išsaugojimą.
-4. Tą patį vardą pridėti į atsparumo ciklo bei PR ir kalibracijos grafikų ciklo sąrašus. Šie sąrašai šiuo metu pakartoti, o ne valdomi vienu registru.
+3. `src/experiment.py` modelio vardą pridėti į `PRIMARY_MODELS` sąrašą. Tai įtrauks mokymą, parinkimą, švaraus testo metrikas ir išsaugojimą.
+4. Atsparumo bandymas ir grafikai gauna tą patį `PRIMARY_MODELS` sąrašą: jo kitur kartoti nereikia.
 5. Nuspręsti, ar naujas metodas keičia pagrindinę hipotezę. RF formulės patikra, klaidų pavyzdžiai, pogrupių analizė ir RF–logistinės regresijos bootstrap kode susieti su konkrečiais vardais. Jie automatiškai nepersijungs į naują modelį.
 6. Papildyti metodo literatūros pagrindimą, protokolą ir dokumentaciją, tada vykdyti bandymus.
 
@@ -107,7 +125,7 @@ Išsaugotame `joblib` objekte yra `model`, `threshold`, `include_page_values`, `
 
 - Eksperimentas skirtas dvejetainiam pirkimo tikslui ir konkrečiai sesijų schemai.
 - AP, F2, RF pagrindinis modelis ir modelių sąrašai nėra visiškai valdomi JSON konfigūracija.
-- Pakeitus skaidymo mėnesius grafiko pavadinimas vis dar bus „November and December“, kol jo nepakeisite kode. Rankinė ataskaita ir jos skaičiai taip pat neatsinaujina automatiškai.
+- Grafiko pavadinimas yra bendras „Final test“. Rankinė ataskaita ir jos skaičiai neatsinaujina automatiškai; konkrečius mėnesius rasite `split_summary.csv`.
 - Sintetinės trūkstamos reikšmės generuojamos tik skaitiniams požymiams. Visų stulpelių praradimas, kategorijų sugadinimas ir nuo klasės priklausantis trūkumas automatiškai netiriami.
 - Numatyti vietiniai CSV ir paketinis paleidimas. HTTP API, srautinis mokymas, automatinis permokymas, modelių registras ir gamybinė stebėsena neįgyvendinti.
 - `run()` tiesiogiai importuojant kaip Python funkciją nenumato `threadpool_limits` konteksto; vieno srauto ribojimas taikomas standartiniame `python -m src.experiment` paleidime.

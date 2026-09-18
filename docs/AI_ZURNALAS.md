@@ -4,7 +4,7 @@ Darbas parengtas su ChatGPT Codex pagal vartotojo užklausą: „Prašau atlikti
 
 ## Pagrindinės užklausos ir veiksmai
 
-Vartotojo užklausa buvo viena. Toliau AI ją išskaidė į dokumento perskaitymą, UCI duomenų gavimą, literatūros tikrinimą, eksperimento protokolą, programą, bandymus ir dokumentaciją. Paieškose naudotos užklausos „Breiman 2001 Random Forests doi“ ir „Friedman 2001 greedy function approximation gradient boosting machine doi“. Metodų ir metrikų realizacija tikrinta bibliotekos autorių dokumentacijoje; rezultatai gauti vykdant kodą, ne generuojant skaičius tekste.
+Pradinė vartotojo užklausa buvo viena; vėlesni papildymai užrašyti žemiau. Iš pradžių AI ją išskaidė į dokumento perskaitymą, UCI duomenų gavimą, literatūros tikrinimą, eksperimento protokolą, programą, bandymus ir dokumentaciją. Paieškose naudotos užklausos „Breiman 2001 Random Forests doi“ ir „Friedman 2001 greedy function approximation gradient boosting machine doi“. Metodų ir metrikų realizacija tikrinta bibliotekos autorių dokumentacijoje; rezultatai gauti vykdant kodą, ne generuojant skaičius tekste.
 
 ## Priimti ir atmesti sprendimai
 
@@ -34,3 +34,69 @@ Vartotojo užklausa buvo viena. Toliau AI ją išskaidė į dokumento perskaitym
 - Dokumentacijos skaičiai sutikrinti su `results/metrics.csv` ir klaidų pavyzdžiais. Neigiamas hipotezės rezultatas paliktas.
 
 AI parengtas kodas ir tekstas nėra savaiminis teisingumo įrodymas. Studentas turi peržiūrėti medžiagą, pakartoti eksperimentą savo aplinkoje ir gebėti paaiškinti formulę bei atlikti pakeitimą gynimo metu. Šis žurnalas nepriskiria studentui veiksmų, kurių jis dar neatliko.
+
+
+## 2026-09-18 — aiškesnis kodas ir atskiri moduliai
+
+### Vartotojo užklausos
+
+- Supaprastinti kodą panašiai kaip laboratoriniuose IS-Lab darbuose: aiškumas ir galimybė koreguoti svarbesni už optimizavimą.
+- Skirtingos paskirties funkcijas rašyti atskiruose failuose ir išsamiai paaiškinti jų veikimą.
+- Nepamiršti pildyti AI naudojimo žurnalo.
+
+### AI atlikti veiksmai ir sprendimų priežastys
+
+Peržiūrėtas dabartinis projektas ir `SanAndriuwa/IS-Lab2/testing4H.m`.
+Laboratoriniame pavyzdyje matomi atskiri parametrų, mokymo ir testavimo etapai;
+šį nuoseklumo principą pritaikėme Python projektui. Kiti laboratoriniai darbai
+šiame etape nebuvo išsamiai peržiūrėti.
+
+| Pakeitimas | Kodėl |
+|---|---|
+| `training.py` gauna `train_and_select` | Kandidatų mokymas ir pasirinkimas matomi vienoje vietoje, be grafikų kodo |
+| `preprocessing.py` atskirtas nuo `models.py` | Duomenų paruošimas nesusimaišo su klasifikatorių parametrais |
+| `analysis.py` | Atsparumas, RF formulė, klaidos ir pogrupiai atskirti nuo pagrindinės eigos |
+| `plots.py` su atskira komanda | Grafikų korekcijoms nereikia kartoti mokymo |
+| `reporting.py` | CSV, Markdown ir vykdymo aprašas atskirti nuo skaičiavimo |
+| `experiment.py` palikta nuosekli eiga | Galima skaityti etapus nuo viršaus žemyn |
+| Lietuviški komentarai ir pradedančiojo vadovas | Paaiškintos įvestys, išvestys, kintamieji ir korekcijų vietos |
+
+Išlaikyti sklearn klasifikatoriai, parametrų variantai, sėkla, imtys ir
+validacijos taisyklės. Neįgyvendintas naujas mokymo algoritmas. Pagalbiniai
+moduliai importuojami; atskiras komandinis paleidimas numatytas eksperimentui,
+prognozei ir grafikams. Sąmoningai nekurta universali įskiepių ar klasių sistema.
+
+### Aptiktos klaidos ir dokumentacijos neatitikimai
+
+- Pirmas pilno eksperimento paleidimas po išskaidymo aptiko trūkstamą
+  `metrics` importą `experiment.py` (`NameError`). Importas pridėtas. Septyni
+  esami vienetiniai testai šios visos programos sujungimo klaidos neaptiko,
+  todėl patikrintas ir pilnas paleidimas.
+- Senesnė dokumentacija teigė, kad modeliai parenkami `estimators` žodyne ir
+  jų sąrašai kartojami keliose vietose. Pataisyta pagal faktinį `if/elif`
+  kodą ir bendrą `PRIMARY_MODELS` sąrašą.
+- Pašalintas fiksuotas grafiko mėnesių pavadinimas: jis klaidintų pakeitus
+  skaidymo nustatymus. Konkretūs mėnesiai lieka `split_summary.csv`.
+
+### Ribos
+
+Modelių mokymas ir toliau vykdomas sklearn viduje. Kitam mokymo duomenų
+rinkiniui reikia pritaikyti `data.py`. RF ir logistinės regresijos analizė
+susieta su jų vardais. `--output` nepakeičia bendro `models/` katalogo.
+Notion turinys šiuo kodo pakeitimu automatiškai neatsinaujina.
+
+### Patikros rezultatai
+
+- Visi 7 automatiniai testai praėjo; Python moduliai sėkmingai sukompiliuoti.
+- Pilnas eksperimentas po importo pataisymo sėkmingai baigtas.
+- `metrics.csv` (be vykdymo trukmės), `test_predictions.csv`,
+  `model_selection.csv`, `split_summary.csv`, `split_membership.csv`,
+  `subgroups.csv`, `error_examples.csv` tiksliai sutampa su ankstesniais
+  rezultatais, naudojant `pandas.testing.assert_frame_equal(check_exact=True)`.
+- Atskirai paleistas grafikų atkūrimas iš CSV ir naujų sesijų prognozavimas.
+- Ankstesni `results/` eksperimento įrodymai išsaugoti; struktūros patikra
+  atlikta atskirame laikiname rezultatų kataloge. Modelių failai permokyti
+  su tais pačiais parametrais. Prognozės nepasikeitė.
+
+Šiuos pakeitimus ir patikras atliko AI pagal vartotojo nurodymus; jie nėra
+studento savarankiško kodo paaiškinimo ar gynimo įrodymas.

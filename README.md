@@ -28,6 +28,12 @@ python -m src.predict --input examples/unseen_sessions.csv
 
 Antra komanda veikia po eksperimento ir grąžina tikimybes naujoms sesijoms. Dėstytojo failui pakeiskite `--input`. Pavyzdinės eilutės yra sintetinės, tik techninei patikrai.
 
+## Aiškus kodas kaip laboratoriniame darbe
+
+Pradėkite nuo [pradedančiojo vadovo](docs/PRADEDANCIOJO_VADOVAS.md): failų paskirtis,
+kintamieji, mokymo pavyzdys ir konkrečios korekcijų vietos.
+Grafikus atkurkite be mokymo: `python -m src.plots --results results`.
+
 ## Ką skaityti
 
 | Failas | Paskirtis |
@@ -44,9 +50,14 @@ Antra komanda veikia po eksperimento ir grąžina tikimybes naujoms sesijoms. D�
 ## Projekto struktūra
 
 - `src/data.py` – gavimas, schema, požymiai, skaidymas.
-- `src/models.py` – preprocessing, keturi metodai ir tiesioginė RF formulė.
+- `src/preprocessing.py` – skaitinių ir kategorinių požymių paruošimas.
+- `src/models.py` – keturi klasifikatoriai, parametrų variantai ir RF formulė.
+- `src/training.py` – kandidatų mokymas ir pasirinkimas validacijoje.
+- `src/analysis.py` – atsparumas, RF klaidos, pogrupiai ir AP intervalas.
+- `src/plots.py` – grafikai; galima paleisti atskirai iš rezultatų CSV.
+- `src/reporting.py` – lentelių, santraukos ir vykdymo aprašo įrašymas.
 - `src/evaluation.py` – AP, PR-AUC, precision, recall, kalibracijos nuostoliai, slenkstis ir bootstrap.
-- `src/experiment.py` – vienas nuoseklus eksperimentas, rezultatai, grafikas, modelių išsaugojimas.
+- `src/experiment.py` – nuosekli eiga, iškviečianti atskirų modulių funkcijas.
 - `src/predict.py` – naujų sesijų prognozė.
 - `config.json` – mėnesiai, sėkla, atsparumo kaukė ir bootstrap kiekis.
 - `results/` – tikrai įvykdyto eksperimento lentelės, prognozės, grafikai ir vykdymo aprašas.
