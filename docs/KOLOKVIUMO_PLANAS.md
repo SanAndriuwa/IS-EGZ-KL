@@ -105,9 +105,11 @@ Netiesiškumas yra privalumas prieš tiesinę regresiją, bet ne išskirtinis pr
 
 **H1:** nenaudojant PageValues, RF galutinio testo AP bus bent 0,02 didesnė už logistinės regresijos AP, jeigu netiesinės naršymo intensyvumo ir išėjimo rodiklių sąveikos išlieka vėlesniais mėnesiais. Logistinė regresija yra stipresnė atskaita; papildomai pateikiamas palyginimas su pastoviu dažniu.
 
-ΔAP = AP(RF) - AP(logistinė regresija); tikslas: ΔAP ≥ 0,02.
+$$
+\Delta\mathrm{AP}=\mathrm{AP}_{\mathrm{RF}}-\mathrm{AP}_{\mathrm{LR}},\qquad \Delta\mathrm{AP}\geq 0{,}02. \tag{1}
+$$
 
-0,02 yra iš anksto pasirinktas praktinio pagerėjimo kriterijus, ne iš literatūros gautas garantuotas efektas. Abu modeliai gauna tas pačias imtis ir tą patį parinkimo kriterijų; kiekvienam skiriami du kandidatų mokymai.
+(1) formulėje 0,02 yra iš anksto pasirinktas praktinio pagerėjimo kriterijus, ne iš literatūros gautas garantuotas efektas. Abu modeliai gauna tas pačias imtis ir tą patį parinkimo kriterijų; kiekvienam skiriami du kandidatų mokymai.
 
 ### 4.4. Kaip bus daroma išvada?
 
@@ -147,47 +149,81 @@ Pasirinkto RF prognozės kelias: sesijos x reikšmės → paruoštas vektorius z
 
 ### 6.1. Skaitinių duomenų paruošimas
 
-x′ᵢⱼ = xᵢⱼ, jei reikšmė žinoma; kitu atveju x′ᵢⱼ = mⱼ.
+$$
+x'_{ij}=\begin{cases}x_{ij},&\text{jei reikšmė žinoma},\\ m_j,&\text{jei reikšmės trūksta}.\end{cases} \tag{2}
+$$
 
-zᵢⱼ = (x′ᵢⱼ - μⱼ) / sⱼ.
+$$
+z_{ij}=\frac{x'_{ij}-\mu_j}{s_j}. \tag{3}
+$$
 
-mⱼ - j požymio žinomų train reikšmių mediana; μⱼ ir sⱼ - jau užpildyto train stulpelio vidurkis ir standartinis nuokrypis. Jei stulpelis pastovus, StandardScaler naudoja skalę 1. Validation ir test reikšmės nekeičia šių parametrų. Kategorijai c kuriamas indikatorius I(x = c), lygus 1 sutapus kategorijai ir 0 nesutapus. Gautos skiltys sujungiamos į z. Modulis: preprocessing.py.
+(2)-(3) formulėse mⱼ - j požymio žinomų train reikšmių mediana; μⱼ ir sⱼ - jau užpildyto train stulpelio vidurkis ir standartinis nuokrypis. Jei stulpelis pastovus, StandardScaler naudoja skalę 1. Validation ir test reikšmės nekeičia šių parametrų. Kategorijai c kuriamas indikatorius I(x = c), lygus 1 sutapus kategorijai ir 0 nesutapus. Gautos skiltys sujungiamos į z. Modulis: preprocessing.py.
 
 ### 6.2. Vieno medžio taisyklė ir tikimybė
 
-Jei zⱼ ≤ t, eiti į kairį vaiką; kitu atveju - į dešinį.
+$$
+\text{kitas mazgas}=\begin{cases}\text{kairysis vaikas},&z_j\leq t,\\ \text{dešinysis vaikas},&z_j>t.\end{cases} \tag{4}
+$$
 
-p<sub>b</sub>(z) = n<sub>b,1</sub>(L<sub>b</sub>(z)) / n<sub>b</sub>(L<sub>b</sub>(z)).
+$$
+p_b(z)=\frac{n_{b,1}\!\left(L_b(z)\right)}{n_b\!\left(L_b(z)\right)}. \tag{5}
+$$
 
-j ir t - mokymo metu parinkto mazgo požymio indeksas ir slenkstis. Kartojame sąlygą iki lapo Lᵦ(z). nᵦ,₁ - pirkusių mokymo pavyzdžių svoris tame lape; nᵦ - visų mokymo pavyzdžių svoris tame lape. Bootstrap pasikartojimai skaičiuojami su jų kartotinumu. Tai mokymo lapo statistika, ne naujos sesijos Revenue. Naujos sesijos tikras atsakymas prognozei nežinomas.
+(4)-(5) formulėse j ir t - mokymo metu parinkto mazgo požymio indeksas ir slenkstis. Kartojame sąlygą iki lapo L<sub>b</sub>(z). n<sub>b,1</sub> - pirkusių mokymo pavyzdžių svoris tame lape; n<sub>b</sub> - visų mokymo pavyzdžių svoris tame lape. Bootstrap pasikartojimai skaičiuojami su jų kartotinumu. Tai mokymo lapo statistika, ne naujos sesijos Revenue. Naujos sesijos tikras atsakymas prognozei nežinomas.
 
 ### 6.3. Miško išvestis ir dvejetainis sprendimas
 
-pRF(x) = (1 / B) ∑<sub>b=1</sub><super>B</super> p<sub>b</sub>(z),   B = 200.
+$$
+\hat p_{\mathrm{RF}}(x)=\frac{1}{B}\sum_{b=1}^{B}p_b(z),\qquad B=200. \tag{6}
+$$
 
-ŷ = 1, kai pRF(x) ≥ τ; kitu atveju ŷ = 0.
+$$
+\hat y=\begin{cases}1,&\hat p_{\mathrm{RF}}(x)\geq\tau,\\ 0,&\hat p_{\mathrm{RF}}(x)<\tau.\end{cases} \tag{7}
+$$
 
-B - medžių skaičius; τ - tik validation imtyje parinktas slenkstis. sklearn RF vidurkina tikimybes, ne vien medžių 0/1 balsus [4]. models.py sukurs mišką ir turės forest_probability_by_formula; analysis.py palygins formulę su predict_proba. Leistina skaitinė paklaida: 10⁻¹² (absoliuti, be santykinės tolerancijos).
+(6)-(7) formulėse B - medžių skaičius; τ - tik validation imtyje parinktas slenkstis. sklearn RF vidurkina tikimybes, ne vien medžių 0/1 balsus [4]. models.py sukurs mišką ir turės forest_probability_by_formula; analysis.py palygins formulę su predict_proba. Leistina skaitinė paklaida: 10⁻¹² (absoliuti, be santykinės tolerancijos).
 
 **Rankinis pavyzdys, ne rezultatas:** jei trijų medžių lapų tikimybės yra 0,2; 0,6; 0,4, jų vidurkis yra 0,4. Su τ = 0,3 prognozė lygi 1. Net jei tik vienas medis viršytų 0,5, sprendimas priklauso nuo tikimybių vidurkio ir pasirinkto τ.
 
 ### 6.4. Atskaitų formulės
 
-p₀ = (1 / N) ∑<sub>i=1</sub><super>N</super> yᵢ;     pLR(z) = 1 / (1 + exp(-(wᵀz + a))).
+$$
+\hat p_0=\frac{1}{N}\sum_{i=1}^{N}y_i. \tag{8}
+$$
 
-N - train sesijų skaičius; yᵢ - jų Revenue (0/1); p₀ - pastovi pirkimų dalis. w - regresijos išmokti svoriai, a - jos poslinkis; abu gaunami tik iš train. Modulis: models.py. Mokymo optimizavimo išvedimai neprivalomi: mokymą atliks biblioteka, o šiame plane tiksliai aprašyta prognozės taisyklė.
+$$
+\hat p_{\mathrm{LR}}(z)=\frac{1}{1+\exp\!\left[-(w^{\mathsf T}z+a)\right]}. \tag{9}
+$$
+
+(8)-(9) formulėse N - train sesijų skaičius; yᵢ - jų Revenue (0/1); p₀ - pastovi pirkimų dalis. w - regresijos išmokti svoriai, a - jos poslinkis; abu gaunami tik iš train. Modulis: models.py. Mokymo optimizavimo išvedimai neprivalomi: mokymą atliks biblioteka, o šiame plane tiksliai aprašyta prognozės taisyklė.
 
 ## 7. Vertinimas, papildomi bandymai ir biudžetas
 
 ### 7.1. Metrikos ir jų interpretacija
 
-P = TP / (TP + FP);   R = TP / (TP + FN);   F₂ = 5PR / (4P + R).
+$$
+P=\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FP}}. \tag{10}
+$$
 
-TP - teisingai aptikti pirkimai; FP - prognozuoti pirkimai, kurių nebuvo; FN - praleisti pirkimai; TN - teisingai atmesti nepirkimai. P (precision) rodo teigiamų prognozių patikimumą, R (recall) - aptiktų pirkimų dalį. Kai vardiklis nulis, atitinkama metrika lygi 0. F2 daugiau svarbos teikia recall; tai pasirinktas mokomasis prioritetas, ne piniginis optimumas.
+$$
+R=\frac{\mathrm{TP}}{\mathrm{TP}+\mathrm{FN}}. \tag{11}
+$$
 
-AP = ∑ₖ (Rₖ - Rₖ₋₁) Pₖ;    Brier = (1 / M) ∑<sub>i=1</sub><super>M</super> (pᵢ - yᵢ)².
+$$
+F_2=\frac{5PR}{4P+R}. \tag{12}
+$$
 
-AP sumuojama slenksčius atlaisvinant nuo mažesnio iki didesnio recall; k žymi tašką, R₀ = 0. Naudojama sklearn average_precision_score realizacija [7], o ne trapecinis PR plotas. M - vertinamos imties dydis, pᵢ - modelio tikimybė, yᵢ - tikras atsakymas. Didesnė AP ir mažesnis Brier yra geriau. AP nėra procentinis klasifikavimo tikslumas.
+(10)-(12) formulėse TP - teisingai aptikti pirkimai; FP - prognozuoti pirkimai, kurių nebuvo; FN - praleisti pirkimai; TN - teisingai atmesti nepirkimai. P (precision) rodo teigiamų prognozių patikimumą, R (recall) - aptiktų pirkimų dalį. Kai vardiklis nulis, atitinkama metrika lygi 0. F2 daugiau svarbos teikia recall; tai pasirinktas mokomasis prioritetas, ne piniginis optimumas.
+
+$$
+\mathrm{AP}=\sum_{k}(R_k-R_{k-1})P_k. \tag{13}
+$$
+
+$$
+\mathrm{Brier}=\frac{1}{M}\sum_{i=1}^{M}(p_i-y_i)^2. \tag{14}
+$$
+
+(13) formulėje AP sumuojama slenksčius atlaisvinant nuo mažesnio iki didesnio recall; k žymi tašką, R₀ = 0. Naudojama sklearn average_precision_score realizacija [7], o ne trapecinis PR plotas. (14) formulėje M - vertinamos imties dydis, pᵢ - modelio tikimybė, yᵢ - tikras atsakymas. Didesnė AP ir mažesnis Brier yra geriau. AP nėra procentinis klasifikavimo tikslumas.
 
 Papildomai pateikti trapecinį PR-AUC, log loss, painiavos matricą, PR kreivę ir kalibracijos kreivę su 8 vienodo dažnio grupėmis. Kalibracijos grafikas tik vertins tikimybes; papildomas kalibratorius nebus mokomas. Modulis: evaluation.py; grafikai: plots.py.
 
@@ -234,7 +270,7 @@ AI bus naudojamas dokumento struktūrai, pradiniam paprastam kodui, komentarams 
 
 Priėmimo sąlyga: kitas programuotojas pagal 2, 5-7 skyrius gali įgyvendinti grandinę ir gauti visus numatytus išvesties failus. Teigiamas hipotezės rezultatas nėra darbo priėmimo sąlyga. Studentas turi gebėti paaiškinti įvestį, miško formulę, slenkstį ir skaidymą.
 
-## 9. Šaltiniai ir vertinimo kriterijų atitiktis
+## 9. Šaltiniai
 
 Pirminiai šaltiniai ir bibliotekos autorių dokumentacija patikrinti 2026-09-18. Šaltinių numeriai naudojami 2-7 skyriuose. DOI nuoroda pati savaime nėra pilno straipsnio perskaitymo įrodymas.
 
@@ -255,19 +291,3 @@ Breiman straipsnio autoriaus PDF (peržiūrėtas). [Atverti šaltinį](https://w
 [7] scikit-learn autoriai. average_precision_score. Versija 1.8. [Atverti šaltinį](https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html)
 
 Friedman DOI nukreipia į leidėjo puslapį, tačiau pilnas tekstas šioje prieigoje neperskaitytas. Algoritmo paaiškinimas tikrintas oficialiame šaltinyje [6]; straipsniui nepriskiriamos nepatikrintos pažodinės citatos.
-
-### 9.1. Atitikties žemėlapis
-
-| Kriterijus | Maks. | Kur įgyvendinta šiame plane |
-|---|---|---|
-| 1.1. Problemos supratimas | 0,25 | 1 ir 8 sk.: neaiškumai, ribos, klaidų kaina. |
-| 1.2. Išskaidymas | 0,25 | 2.1 ir 5.2: etapai, išvestys, modulių atsakomybės. |
-| 1.3. Suprantamos formuluotės | 0,50 | 1.1 ir 2.1: praktinė prasmė įvairioms rolėms. |
-| 2.1. Metodų alternatyvos | 0,50 | 3 sk.: trys mokomi metodai ir paprastas baseline. |
-| 2.2. Tinkamumo pagrindimas | 1,50 | 3 ir 9 sk.: ryšys su uždaviniu, pirminiai šaltiniai. |
-| 3.1. Pagrindinis pasirinkimas | 0,50 | 4.1: RF ir jo pasirinkimo prioritetai. |
-| 3.2. Privalumai prieš alternatyvas | 2,50 | 4.2-4.4: tiesioginis palyginimas, sąlygos, hipotezė. |
-| 4.1. Įvestis ir išvestis | 0,50 | 2.2-2.3: visi stulpeliai, tipai ir interpretacija. |
-| 4.2. Veiksmų eiliškumas | 1,00 | 5 sk.: devyni žingsniai, skaidymas, parametrai. |
-| 4.3. Formulės ir kintamieji | 2,50 | 6-7 sk.: simbolių kilmė, pavyzdys, ryšys su moduliais. |
-| Iš viso | 10,00 | Atitikties žemėlapis, ne pažadėtas dėstytojo balas. |

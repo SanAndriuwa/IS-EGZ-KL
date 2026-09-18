@@ -129,3 +129,26 @@ PDF patikra: 9 A4 puslapiai, lietuviški šriftai, puslapių numeriai, formulės
 lentelės, aktyvios šaltinių nuorodos. Puslapiai renderinti ir vizualiai peržiūrėti;
 papildomai patikrintos teksto ribos. Tai dokumentacijos pakeitimas: modeliai
 nepermokyti ir rezultatų skaičiai nekeisti.
+
+
+## 2026-09-18 — formulės ir VILNIUS TECH šablono patikra
+
+Vartotojo prašymu iš plano pašalintas 9.1 atitikties žemėlapis. Formulės
+surinktos LaTeX, su tikromis trupmenomis, sumų ribomis, indeksais ir dalinėmis
+taisyklėmis. PDF įterptas vektorinis turinys, ne mažos raiškos paveikslėliai.
+14 formulių numeruojamos tęstinai (1)-(14), numeriai dešinėje; tekste pateiktos
+nuorodos į formules. Matematinė sprendimo logika nekeista.
+
+Rastas oficialus VILNIUS TECH įrašas „Rašto darbo maketavimo šablonas (LT)“:
+https://etalpykla.vilniustech.lt/handle/123456789/156359 . Bibliotekos puslapis
+https://vilniustech.lt/biblioteka/moksline-komunikacija/vilnius-tech-baigiamieji-darbai-elaba-etd/
+nurodo universiteto prisijungimo ir suteiktų prieigos teisių poreikį.
+Šablono turinio gauti nepavyko; kai kurios rastos senesnės metodinių nurodymų
+PDF nuorodos grąžino 404. Todėl dabartinis šriftas, paraštės ir intervalai
+NEPRISTATOMI kaip patikrinta atitiktis konkrečiai VILNIUS TECH katedros tvarkai.
+Tiksliai adaptacijai reikalingas vartotojo pateiktas šablonas arba gairės.
+
+Formulių numeracija yra pasirinktas akademinis įforminimas, o ne nepasiekiamo
+šablono taisyklių citata. Microsoft Word redaguojamų OMML formulių šiame PDF
+nėra; lygiavertis vizualus surinkimas atliktas LaTeX. Generavimo scenarijus ir
+jo priklausomybių aprašas atnaujinti. PDF iš naujo renderintas bei patikrintas.

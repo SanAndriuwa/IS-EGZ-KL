@@ -3,10 +3,13 @@ Paleidimas projekto kataloge: python scripts/build_colloquium_pdf.py
 PDF generavimui reikia reportlab; tai dokumento, ne ML eksperimento priklausomybė.
 """
 from pathlib import Path
+import subprocess
+import hashlib
+import fitz
 import re
 from xml.sax.saxutils import escape
 from reportlab.pdfgen import canvas
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, PageBreak, Flowable
 from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib import colors
 from reportlab.pdfbase import pdfmetrics
@@ -18,7 +21,7 @@ for name, file in [('D','DejaVuSans.ttf'),('DB','DejaVuSans-Bold.ttf')]:
     pdfmetrics.registerFont(TTFont(name,str(FONT/file)))
 pdfmetrics.registerFontFamily('D',normal='D',bold='DB',italic='D',boldItalic='DB')
 styles = {
- 'title': ParagraphStyle('title',fontName='DB',fontSize=21,leading=26,textColor=colors.HexColor('#16324f'),spaceAfter=15),
+ 'title': ParagraphStyle('title',fontName='DB',fontSize=16,leading=21,textColor=colors.HexColor('#16324f'),spaceBefore=18,spaceAfter=12,keepWithNext=True),
  'h': ParagraphStyle('h',fontName='DB',fontSize=12,leading=16,spaceBefore=12,spaceAfter=6,textColor=colors.HexColor('#16706b'),keepWithNext=True),
  'p': ParagraphStyle('p',fontName='D',fontSize=9.5,leading=14,spaceAfter=7),
  'small': ParagraphStyle('small',fontName='D',fontSize=8.3,leading=11.7,spaceAfter=4),
@@ -29,7 +32,9 @@ def page(title):
     pages.append([('title',title)])
 def p(t): pages[-1].append(('p',t))
 def h(t): pages[-1].append(('h',t))
-def eq(t): pages[-1].append(('eq',t))
+def eq(latex):
+    # LaTeX šaltinis bendras PDF ir GitHub Markdown formulėms.
+    pages[-1].append(('eq', latex))
 def table(headers,rows,widths): pages[-1].append(('table',(headers,rows,widths)))
 
 page('1. Problema ir sprendimo paskirtis')
@@ -92,8 +97,8 @@ table(['Alternatyva','Miško privalumas šiame plane','Kada alternatyva tinkames
 p('Netiesiškumas yra privalumas prieš tiesinę regresiją, bet ne išskirtinis privalumas prieš gradientinį stiprinimą: abu medžių metodai aprašo sąveikas. Miškas taip pat nėra lengviau interpretuojamas už logistinę regresiją. RF parametrų paprastumas čia yra konkretaus riboto eksperimento pasirinkimas, ne universalus metodų reitingas.')
 h('4.3. Patikrinama hipotezė ir sąlygos')
 p('<b>H1:</b> nenaudojant PageValues, RF galutinio testo AP bus bent 0,02 didesnė už logistinės regresijos AP, jeigu netiesinės naršymo intensyvumo ir išėjimo rodiklių sąveikos išlieka vėlesniais mėnesiais. Logistinė regresija yra stipresnė atskaita; papildomai pateikiamas palyginimas su pastoviu dažniu.')
-eq('ΔAP = AP(RF) - AP(logistinė regresija); tikslas: ΔAP ≥ 0,02.')
-p('0,02 yra iš anksto pasirinktas praktinio pagerėjimo kriterijus, ne iš literatūros gautas garantuotas efektas. Abu modeliai gauna tas pačias imtis ir tą patį parinkimo kriterijų; kiekvienam skiriami du kandidatų mokymai.')
+eq('\\Delta\\mathrm{AP}=\\mathrm{AP}_{\\mathrm{RF}}-\\mathrm{AP}_{\\mathrm{LR}},\\qquad \\Delta\\mathrm{AP}\\geq 0{,}02.')
+p('(1) formulėje 0,02 yra iš anksto pasirinktas praktinio pagerėjimo kriterijus, ne iš literatūros gautas garantuotas efektas. Abu modeliai gauna tas pačias imtis ir tą patį parinkimo kriterijų; kiekvienam skiriami du kandidatų mokymai.')
 h('4.4. Kaip bus daroma išvada?')
 p('Jei ΔAP &lt; 0,02, numatytas pagerėjimas šiame teste nepasitvirtins. Jei ΔAP ≥ 0,02, kriterijus bus pasiektas tik šiame teste; papildomai vertinamas 95 % porinio bootstrap intervalas. Jei intervalas apima nulį, tvirto teiginio apie persvarą nedarysime. Nepasiekus prasmingos persvaros, paprastesnė regresija liks pagrįsta praktinė alternatyva. Testo rezultatu nebus perrašomas pradinis parinkimo planas.')
 
@@ -119,28 +124,32 @@ p('Pastovus dažnis: 1 kandidatas. Regresija: C = 0,1 arba 1,0; max_iter = 2000.
 page('6. Formulės: nuo įvesties iki sprendimo')
 p('Pasirinkto RF prognozės kelias: sesijos x reikšmės → paruoštas vektorius z → kiekvieno medžio lapas → lapo pirkimų dalis → medžių vidurkis → sprendimas pagal slenkstį. Indeksas i žymi sesiją, j - skaitinį požymį, b - medį.')
 h('6.1. Skaitinių duomenų paruošimas')
-eq('x′ᵢⱼ = xᵢⱼ, jei reikšmė žinoma; kitu atveju x′ᵢⱼ = mⱼ.')
-eq('zᵢⱼ = (x′ᵢⱼ - μⱼ) / sⱼ.')
-p('mⱼ - j požymio žinomų train reikšmių mediana; μⱼ ir sⱼ - jau užpildyto train stulpelio vidurkis ir standartinis nuokrypis. Jei stulpelis pastovus, StandardScaler naudoja skalę 1. Validation ir test reikšmės nekeičia šių parametrų. Kategorijai c kuriamas indikatorius I(x = c), lygus 1 sutapus kategorijai ir 0 nesutapus. Gautos skiltys sujungiamos į z. Modulis: preprocessing.py.')
+eq("x'_{ij}=\\begin{cases}x_{ij},&\\text{jei reikšmė žinoma},\\\\ m_j,&\\text{jei reikšmės trūksta}.\\end{cases}")
+eq("z_{ij}=\\frac{x'_{ij}-\\mu_j}{s_j}.")
+p('(2)-(3) formulėse mⱼ - j požymio žinomų train reikšmių mediana; μⱼ ir sⱼ - jau užpildyto train stulpelio vidurkis ir standartinis nuokrypis. Jei stulpelis pastovus, StandardScaler naudoja skalę 1. Validation ir test reikšmės nekeičia šių parametrų. Kategorijai c kuriamas indikatorius I(x = c), lygus 1 sutapus kategorijai ir 0 nesutapus. Gautos skiltys sujungiamos į z. Modulis: preprocessing.py.')
 h('6.2. Vieno medžio taisyklė ir tikimybė')
-eq('Jei zⱼ ≤ t, eiti į kairį vaiką; kitu atveju - į dešinį.')
-eq('p<sub>b</sub>(z) = n<sub>b,1</sub>(L<sub>b</sub>(z)) / n<sub>b</sub>(L<sub>b</sub>(z)).')
-p('j ir t - mokymo metu parinkto mazgo požymio indeksas ir slenkstis. Kartojame sąlygą iki lapo Lᵦ(z). nᵦ,₁ - pirkusių mokymo pavyzdžių svoris tame lape; nᵦ - visų mokymo pavyzdžių svoris tame lape. Bootstrap pasikartojimai skaičiuojami su jų kartotinumu. Tai mokymo lapo statistika, ne naujos sesijos Revenue. Naujos sesijos tikras atsakymas prognozei nežinomas.')
+eq('\\text{kitas mazgas}=\\begin{cases}\\text{kairysis vaikas},&z_j\\leq t,\\\\ \\text{dešinysis vaikas},&z_j>t.\\end{cases}')
+eq('p_b(z)=\\frac{n_{b,1}\\!\\left(L_b(z)\\right)}{n_b\\!\\left(L_b(z)\\right)}.')
+p('(4)-(5) formulėse j ir t - mokymo metu parinkto mazgo požymio indeksas ir slenkstis. Kartojame sąlygą iki lapo L<sub>b</sub>(z). n<sub>b,1</sub> - pirkusių mokymo pavyzdžių svoris tame lape; n<sub>b</sub> - visų mokymo pavyzdžių svoris tame lape. Bootstrap pasikartojimai skaičiuojami su jų kartotinumu. Tai mokymo lapo statistika, ne naujos sesijos Revenue. Naujos sesijos tikras atsakymas prognozei nežinomas.')
 h('6.3. Miško išvestis ir dvejetainis sprendimas')
-eq('pRF(x) = (1 / B) ∑<sub>b=1</sub><super>B</super> p<sub>b</sub>(z),   B = 200.')
-eq('ŷ = 1, kai pRF(x) ≥ τ; kitu atveju ŷ = 0.')
-p('B - medžių skaičius; τ - tik validation imtyje parinktas slenkstis. sklearn RF vidurkina tikimybes, ne vien medžių 0/1 balsus [4]. models.py sukurs mišką ir turės forest_probability_by_formula; analysis.py palygins formulę su predict_proba. Leistina skaitinė paklaida: 10⁻¹² (absoliuti, be santykinės tolerancijos).')
+eq('\\hat p_{\\mathrm{RF}}(x)=\\frac{1}{B}\\sum_{b=1}^{B}p_b(z),\\qquad B=200.')
+eq('\\hat y=\\begin{cases}1,&\\hat p_{\\mathrm{RF}}(x)\\geq\\tau,\\\\ 0,&\\hat p_{\\mathrm{RF}}(x)<\\tau.\\end{cases}')
+p('(6)-(7) formulėse B - medžių skaičius; τ - tik validation imtyje parinktas slenkstis. sklearn RF vidurkina tikimybes, ne vien medžių 0/1 balsus [4]. models.py sukurs mišką ir turės forest_probability_by_formula; analysis.py palygins formulę su predict_proba. Leistina skaitinė paklaida: 10⁻¹² (absoliuti, be santykinės tolerancijos).')
 p('<b>Rankinis pavyzdys, ne rezultatas:</b> jei trijų medžių lapų tikimybės yra 0,2; 0,6; 0,4, jų vidurkis yra 0,4. Su τ = 0,3 prognozė lygi 1. Net jei tik vienas medis viršytų 0,5, sprendimas priklauso nuo tikimybių vidurkio ir pasirinkto τ.')
 h('6.4. Atskaitų formulės')
-eq('p₀ = (1 / N) ∑<sub>i=1</sub><super>N</super> yᵢ;     pLR(z) = 1 / (1 + exp(-(wᵀz + a))).')
-p('N - train sesijų skaičius; yᵢ - jų Revenue (0/1); p₀ - pastovi pirkimų dalis. w - regresijos išmokti svoriai, a - jos poslinkis; abu gaunami tik iš train. Modulis: models.py. Mokymo optimizavimo išvedimai neprivalomi: mokymą atliks biblioteka, o šiame plane tiksliai aprašyta prognozės taisyklė.')
+eq('\\hat p_0=\\frac{1}{N}\\sum_{i=1}^{N}y_i.')
+eq('\\hat p_{\\mathrm{LR}}(z)=\\frac{1}{1+\\exp\\!\\left[-(w^{\\mathsf T}z+a)\\right]}.')
+p('(8)-(9) formulėse N - train sesijų skaičius; yᵢ - jų Revenue (0/1); p₀ - pastovi pirkimų dalis. w - regresijos išmokti svoriai, a - jos poslinkis; abu gaunami tik iš train. Modulis: models.py. Mokymo optimizavimo išvedimai neprivalomi: mokymą atliks biblioteka, o šiame plane tiksliai aprašyta prognozės taisyklė.')
 
 page('7. Vertinimas, papildomi bandymai ir biudžetas')
 h('7.1. Metrikos ir jų interpretacija')
-eq('P = TP / (TP + FP);   R = TP / (TP + FN);   F₂ = 5PR / (4P + R).')
-p('TP - teisingai aptikti pirkimai; FP - prognozuoti pirkimai, kurių nebuvo; FN - praleisti pirkimai; TN - teisingai atmesti nepirkimai. P (precision) rodo teigiamų prognozių patikimumą, R (recall) - aptiktų pirkimų dalį. Kai vardiklis nulis, atitinkama metrika lygi 0. F2 daugiau svarbos teikia recall; tai pasirinktas mokomasis prioritetas, ne piniginis optimumas.')
-eq('AP = ∑ₖ (Rₖ - Rₖ₋₁) Pₖ;    Brier = (1 / M) ∑<sub>i=1</sub><super>M</super> (pᵢ - yᵢ)².')
-p('AP sumuojama slenksčius atlaisvinant nuo mažesnio iki didesnio recall; k žymi tašką, R₀ = 0. Naudojama sklearn average_precision_score realizacija [7], o ne trapecinis PR plotas. M - vertinamos imties dydis, pᵢ - modelio tikimybė, yᵢ - tikras atsakymas. Didesnė AP ir mažesnis Brier yra geriau. AP nėra procentinis klasifikavimo tikslumas.')
+eq('P=\\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FP}}.')
+eq('R=\\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FN}}.')
+eq('F_2=\\frac{5PR}{4P+R}.')
+p('(10)-(12) formulėse TP - teisingai aptikti pirkimai; FP - prognozuoti pirkimai, kurių nebuvo; FN - praleisti pirkimai; TN - teisingai atmesti nepirkimai. P (precision) rodo teigiamų prognozių patikimumą, R (recall) - aptiktų pirkimų dalį. Kai vardiklis nulis, atitinkama metrika lygi 0. F2 daugiau svarbos teikia recall; tai pasirinktas mokomasis prioritetas, ne piniginis optimumas.')
+eq('\\mathrm{AP}=\\sum_{k}(R_k-R_{k-1})P_k.')
+eq('\\mathrm{Brier}=\\frac{1}{M}\\sum_{i=1}^{M}(p_i-y_i)^2.')
+p('(13) formulėje AP sumuojama slenksčius atlaisvinant nuo mažesnio iki didesnio recall; k žymi tašką, R₀ = 0. Naudojama sklearn average_precision_score realizacija [7], o ne trapecinis PR plotas. (14) formulėje M - vertinamos imties dydis, pᵢ - modelio tikimybė, yᵢ - tikras atsakymas. Didesnė AP ir mažesnis Brier yra geriau. AP nėra procentinis klasifikavimo tikslumas.')
 p('Papildomai pateikti trapecinį PR-AUC, log loss, painiavos matricą, PR kreivę ir kalibracijos kreivę su 8 vienodo dažnio grupėmis. Kalibracijos grafikas tik vertins tikimybes; papildomas kalibratorius nebus mokomas. Modulis: evaluation.py; grafikai: plots.py.')
 h('7.2. Iš anksto numatyta analizė')
 table(['Bandymas','Tiksli taisyklė ir tikslas'],[
@@ -171,7 +180,7 @@ table(['Tikrinamas dalykas','Patikros veiksmas'],[
 ['Rezultatai','Vykdyti eksperimentą; skaičius imti iš CSV. Patikrinti pakartojamumą su ta pačia sėkla, įrašyti versijas ir kodo sumas.']],[99,396])
 p('Priėmimo sąlyga: kitas programuotojas pagal 2, 5-7 skyrius gali įgyvendinti grandinę ir gauti visus numatytus išvesties failus. Teigiamas hipotezės rezultatas nėra darbo priėmimo sąlyga. Studentas turi gebėti paaiškinti įvestį, miško formulę, slenkstį ir skaidymą.')
 
-page('9. Šaltiniai ir vertinimo kriterijų atitiktis')
+page('9. Šaltiniai')
 p('Pirminiai šaltiniai ir bibliotekos autorių dokumentacija patikrinti 2026-09-18. Šaltinių numeriai naudojami 2-7 skyriuose. DOI nuoroda pati savaime nėra pilno straipsnio perskaitymo įrodymas.')
 refs=[
 ('[1] Sakar, C.; Kastro, Y. (2018). Online Shoppers Purchasing Intention Dataset. UCI. DOI: 10.24432/C5F88Q.','https://doi.org/10.24432/C5F88Q'),
@@ -186,19 +195,48 @@ refs=[
 for title,url in refs:
     pages[-1].append(('small',escape(title)+' <link href="'+url+'" color="#16706b">Atverti šaltinį</link>'))
 p('Friedman DOI nukreipia į leidėjo puslapį, tačiau pilnas tekstas šioje prieigoje neperskaitytas. Algoritmo paaiškinimas tikrintas oficialiame šaltinyje [6]; straipsniui nepriskiriamos nepatikrintos pažodinės citatos.')
-h('9.1. Atitikties žemėlapis')
-table(['Kriterijus','Maks.','Kur įgyvendinta šiame plane'],[
-['1.1. Problemos supratimas','0,25','1 ir 8 sk.: neaiškumai, ribos, klaidų kaina.'],
-['1.2. Išskaidymas','0,25','2.1 ir 5.2: etapai, išvestys, modulių atsakomybės.'],
-['1.3. Suprantamos formuluotės','0,50','1.1 ir 2.1: praktinė prasmė įvairioms rolėms.'],
-['2.1. Metodų alternatyvos','0,50','3 sk.: trys mokomi metodai ir paprastas baseline.'],
-['2.2. Tinkamumo pagrindimas','1,50','3 ir 9 sk.: ryšys su uždaviniu, pirminiai šaltiniai.'],
-['3.1. Pagrindinis pasirinkimas','0,50','4.1: RF ir jo pasirinkimo prioritetai.'],
-['3.2. Privalumai prieš alternatyvas','2,50','4.2-4.4: tiesioginis palyginimas, sąlygos, hipotezė.'],
-['4.1. Įvestis ir išvestis','0,50','2.2-2.3: visi stulpeliai, tipai ir interpretacija.'],
-['4.2. Veiksmų eiliškumas','1,00','5 sk.: devyni žingsniai, skaidymas, parametrai.'],
-['4.3. Formulės ir kintamieji','2,50','6-7 sk.: simbolių kilmė, pavyzdys, ryšys su moduliais.'],
-['Iš viso','10,00','Atitikties žemėlapis, ne pažadėtas dėstytojo balas.']],[198,42,255])
+
+# ReportLab rezervuoja vietą ir įrašo numerį. PyMuPDF įterpia LaTeX PDF
+# vektorinį turinį į tą vietą, todėl trupmenos ir indeksai neišsilieja priartinus.
+EQUATION_POSITIONS = []
+class Equation(Flowable):
+    def __init__(self, latex, number):
+        super().__init__()
+        cache = ROOT / 'tmp' / 'equations'
+        cache.mkdir(parents=True, exist_ok=True)
+        stem = hashlib.sha256(latex.encode()).hexdigest()[:16]
+        tex = cache / (stem + '.tex')
+        self.pdf = cache / (stem + '.pdf')
+        if not self.pdf.exists():
+            tex.write_text(r'\documentclass[12pt,border=2pt]{standalone}' + '\n' +
+                r'\usepackage[T1]{fontenc}\usepackage[utf8]{inputenc}' + '\n' +
+                r'\usepackage{amsmath,amssymb}' + '\n' +
+                r'\begin{document}$\displaystyle '+latex+r'$\end{document}')
+            done = subprocess.run(['pdflatex','-interaction=nonstopmode','-halt-on-error',
+                '-output-directory',str(cache),str(tex)],capture_output=True,text=True)
+            if done.returncode:
+                raise RuntimeError(done.stdout[-3000:])
+        with fitz.open(self.pdf) as pdf:
+            self.natural_width = pdf[0].rect.width
+            self.natural_height = pdf[0].rect.height
+        self.width = 495
+        self.scale = min(1.0, 433 / self.natural_width)
+        self.height = self.natural_height*self.scale + 10
+        self.number = number
+        self.keepWithNext = True
+        self.spaceBefore = 2
+        self.spaceAfter = 2
+    def draw(self):
+        w = self.natural_width*self.scale
+        h = self.natural_height*self.scale
+        x = (self.width-w)/2
+        px,py = self.canv.absolutePosition(x,5)
+        pageheight = self.canv._pagesize[1]
+        EQUATION_POSITIONS.append((self.canv.getPageNumber()-1, str(self.pdf),
+            (px,pageheight-py-h,px+w,pageheight-py)))
+        self.canv.setFont('D',9.5)
+        self.canv.setFillColor(colors.black)
+        self.canv.drawRightString(self.width,self.height/2-3,'('+str(self.number)+')')
 
 # Tas pats turinys išsaugomas kaip redaguojamas Markdown.
 def plain(t):
@@ -207,8 +245,9 @@ def plain(t):
     return t.replace('&lt;','<').replace('&gt;','>').replace('&amp;','&')
 md=['# Kolokviumo įgyvendinimo planas','']
 flow=[]
+equation_number=0
 for i,blocks in enumerate(pages):
-    if i: flow.append(PageBreak())
+    # Turinys teka nuosekliai; antraštės ir formulės laikomos su paaiškinimais.
     for kind,val in blocks:
         if kind=='table':
             headers,rows,widths=val
@@ -219,6 +258,10 @@ for i,blocks in enumerate(pages):
             flow.extend([t,Spacer(1,8)])
             md += ['| '+' | '.join(headers)+' |','|'+'|'.join(['---']*len(headers))+'|']
             md += ['| '+' | '.join(row)+' |' for row in rows];md.append('')
+        elif kind=='eq':
+            equation_number += 1
+            flow.append(Equation(val,equation_number))
+            md.extend(['$$',val + r' \tag{' + str(equation_number) + '}', '$$', ''])
         else:
             flow.append(Paragraph(val,styles[kind]));md.extend([('## ' if kind=='title' else '### ' if kind=='h' else '')+plain(val),''])
 (ROOT/'docs/KOLOKVIUMO_PLANAS.md').write_text('\n'.join(md))
@@ -230,4 +273,12 @@ def footer(c,doc):
     c.drawRightString(545,28,str(doc.page))
 path=ROOT/'docs/KOLOKVIUMO_PLANAS.pdf'
 SimpleDocTemplate(str(path),pagesize=(595.28,841.89),rightMargin=50,leftMargin=50,topMargin=54,bottomMargin=48,title='Kolokviumo įgyvendinimo planas - pirkimo ketinimo tyrimas',author='Andrej Kondratjev').build(flow,onFirstPage=footer,onLaterPages=footer)
+pdf=fitz.open(path)
+for page_number,source,rect in EQUATION_POSITIONS:
+    with fitz.open(source) as equation_pdf:
+        pdf[page_number].show_pdf_page(fitz.Rect(rect),equation_pdf,0)
+rendered = path.with_suffix('.rendered.pdf')
+pdf.save(rendered,garbage=4,deflate=True)
+pdf.close()
+rendered.replace(path)
 print(path)
