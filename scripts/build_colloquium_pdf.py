@@ -1,6 +1,7 @@
 """Atkuria kolokviumo Markdown ir PDF iš vieno turinio šaltinio.
 Paleidimas projekto kataloge: python scripts/build_colloquium_pdf.py
-PDF generavimui reikia reportlab; tai dokumento, ne ML eksperimento priklausomybė.
+PDF generavimui reikia reportlab, PyMuPDF ir pdflatex (standalone, amsmath,
+amssymb); tai dokumento, ne ML eksperimento priklausomybės.
 """
 from pathlib import Path
 import subprocess
