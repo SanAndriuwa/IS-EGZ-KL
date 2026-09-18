@@ -34,6 +34,14 @@ Pradėkite nuo [pradedančiojo vadovo](docs/PRADEDANCIOJO_VADOVAS.md): failų pa
 kintamieji, mokymo pavyzdys ir konkrečios korekcijų vietos.
 Grafikus atkurkite be mokymo: `python -m src.plots --results results`.
 
+## Kolokviumo pateikimas
+
+[Kolokviumo planas PDF](docs/KOLOKVIUMO_PLANAS.pdf) - savarankiškas įgyvendinimo planas pagal visus 10 kriterijų, be galutinių rezultatų.
+[Vertinimas ir atlikti papildymai](docs/KOLOKVIUMO_VERTINIMAS.md) pateikti atskirai.
+PDF ir Markdown atkuriami komanda `python scripts/build_colloquium_pdf.py`;
+dokumentui generuoti reikia `reportlab` ir Linux DejaVu Sans šriftų.
+Tai papildomos dokumento generavimo priklausomybės, nereikalingos modelių mokymui.
+
 ## Ką skaityti
 
 | Failas | Paskirtis |

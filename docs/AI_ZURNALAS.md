@@ -100,3 +100,32 @@ Notion turinys šiuo kodo pakeitimu automatiškai neatsinaujina.
 
 Šiuos pakeitimus ir patikras atliko AI pagal vartotojo nurodymus; jie nėra
 studento savarankiško kodo paaiškinimo ar gynimo įrodymas.
+
+## 2026-09-18 — kolokviumo plano peržiūra ir PDF
+
+Vartotojas pateikė 10 vertinimo kriterijų (10 balų suma), paprašė įvertinti
+aiškumą, sutvarkyti dokumentą maksimaliam įvertinimui ir įkelti PDF į GitHub.
+Patikslino, kad reikalingas įgyvendinimo planas, o ne kodas ar galutiniai rezultatai.
+
+AI perskaitė esamą planą, protokolą, konfigūraciją ir reikalavimus. Ankstesnio
+teksto preliminarus turinio įvertis - 7,50/10; stipriausiai papildytas pagrindinio
+metodo palyginimas su alternatyvomis, formulių paaiškinimas ir uždavinių praktinė
+prasmė. Vertinimo pagrindas išsaugotas KOLOKVIUMO_VERTINIMAS.md. Pažymėta, kad
+AI peržiūra negarantuoja dėstytojo pažymio.
+
+Sukurtas savarankiškas 9 skyrių planas: problema, etapai ir schema, trys mokomi
+metodai bei baseline, RF pasirinkimas ir hipotezė, eksperimento eiga, formulės,
+vertinimas ir biudžetas, rizikos ir AI naudojimas, šaltiniai ir kriterijų žemėlapis.
+Galutinių modelių rezultatų plane nėra. Pradinis PROTOKOLAS.md nekeistas;
+patikslinta redakcija nevadinama nauja išankstine registracija.
+
+Šaltinių patikra: atvertas UCI puslapis, Breiman autoriaus PDF ir oficialios
+sklearn 1.8 regresijos, ansamblių, RandomForestClassifier bei AP dokumentacijos.
+Friedman DOI nukreipė į leidėją, tačiau pilnas tekstas neprieinamas; mechanizmo
+paaiškinimas remtas oficialia bibliotekos dokumentacija. Ši riba nurodyta plane.
+
+Markdown ir PDF generuojami iš vieno turinio scripts/build_colloquium_pdf.py.
+PDF patikra: 9 A4 puslapiai, lietuviški šriftai, puslapių numeriai, formulės,
+lentelės, aktyvios šaltinių nuorodos. Puslapiai renderinti ir vizualiai peržiūrėti;
+papildomai patikrintos teksto ribos. Tai dokumentacijos pakeitimas: modeliai
+nepermokyti ir rezultatų skaičiai nekeisti.
