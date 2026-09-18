@@ -43,7 +43,7 @@ Prognozė neįrodo, kad nuolaida ar konsultanto kontaktas pakeistų pirkėjo elg
 
 ### 2.2. Duomenų šaltinis ir tiksli schema
 
-Naudojamas UCI Online Shoppers Purchasing Intention Dataset: 12 330 sesijų, 17 pradinių požymių ir tikslas Revenue [1]. Modeliui atrenkama 15 požymių. Viena CSV eilutė - viena sesija; į modelį siunčiama požymių lentelė, o ne svetainės vaizdas ar tekstas.
+Naudojamas UCI Online Shoppers Purchasing Intention Dataset: 12 330 sesijų, 17 pradinių požymių ir tikslas Revenue (Sakar & Kastro, 2018). Modeliui atrenkama 15 požymių. Viena CSV eilutė - viena sesija; į modelį siunčiama požymių lentelė, o ne svetainės vaizdas ar tekstas.
 
 **9 skaitiniai:** Administrative, Administrative_Duration, Informational, Informational_Duration, ProductRelated, ProductRelated_Duration, BounceRates, ExitRates, SpecialDay. Pirmieji trys pavadinimų tipai žymi puslapių kiekius, jų Duration - trukmes sekundėmis; paskutiniai trys rodikliai yra intervale [0; 1].
 
@@ -65,25 +65,25 @@ Kiekvienai sesijai grąžinama ta pati mokymo imties pirkimų dalis. Tai patikri
 
 ### 3.2. Logistinė regresija - stipresnė atskaita
 
-Modelis mokosi skaitinių ir užkoduotų kategorinių požymių svorių, o sigmoidė duoda pirkimo tikimybės įvertį [2]. Tinka dvejetainiam tikslui ir nedidelės ar vidutinės dimensijos lenteliniams duomenims. Šiame plane tai interpretuojamas palyginimas, padedantis patikrinti, ar sudėtingesnio modelio apskritai reikia.
+Modelis mokosi skaitinių ir užkoduotų kategorinių požymių svorių, o sigmoidė duoda pirkimo tikimybės įvertį (scikit-learn developers, 2026). Tinka dvejetainiam tikslui ir nedidelės ar vidutinės dimensijos lenteliniams duomenims. Šiame plane tai interpretuojamas palyginimas, padedantis patikrinti, ar sudėtingesnio modelio apskritai reikia.
 
 Riba: be papildomų sąveikų požymių logaritminis šansų santykis yra tiesinis. Pavyzdžiui, tas pats naršymo laikas skirtingai produktų peržiūrų grupei gali turėti kitą reikšmę; ši sąveika automatiškai neįtraukiama. Šaltinis pagrindžia algoritmo formą, bet ne jo būsimą tikslumą šiame rinkinyje.
 
 ### 3.3. Atsitiktinis miškas - pagrindinis metodas
 
-Atskirų medžių sąlygų deriniai leidžia mokytis netiesinių ryšių ir požymių sąveikų. Bootstrap imtys ir atsitiktiniai požymių poaibiai sukuria skirtingus medžius, kurių rezultatai sujungiami [3]. Tai prasminga sesijų lentelei, kur kiekių, trukmių ir lankytojo tipo sąveikos iš anksto nežinomos.
+Atskirų medžių sąlygų deriniai leidžia mokytis netiesinių ryšių ir požymių sąveikų. Bootstrap imtys ir atsitiktiniai požymių poaibiai sukuria skirtingus medžius, kurių rezultatai sujungiami (Breiman, 2001). Tai prasminga sesijų lentelei, kur kiekių, trukmių ir lankytojo tipo sąveikos iš anksto nežinomos.
 
-Breiman (2001), DOI 10.1023/A:1010933404324, pagrindžia miško konstrukciją; konkreti sklearn realizacija tikimybes skaičiuoja kaip medžių lapų tikimybių vidurkį [4]. Riba: ansamblis mažiau skaidrus negu svorių modelis, o laiko poslinkis gali panaikinti išmoktų taisyklių naudą.
+Breiman (2001, DOI 10.1023/A:1010933404324) pagrindžia miško konstrukciją; konkreti sklearn realizacija tikimybes skaičiuoja kaip medžių lapų tikimybių vidurkį (scikit-learn developers, 2026). Riba: ansamblis mažiau skaidrus negu svorių modelis, o laiko poslinkis gali panaikinti išmoktų taisyklių naudą.
 
 ### 3.4. Histograminis gradientinis stiprinimas
 
-Medžiai pridedami nuosekliai, kad mažintų pasirinkto nuostolio likusią paklaidą. Metodas gali atkurti sudėtingus lentelinių požymių ryšius [5, 6], todėl yra prasminga kita netiesinė alternatyva tam pačiam dvejetainiam uždaviniui.
+Medžiai pridedami nuosekliai, kad mažintų pasirinkto nuostolio likusią paklaidą. Metodas gali atkurti sudėtingus lentelinių požymių ryšius (Friedman, 2001; scikit-learn developers, 2026), todėl yra prasminga kita netiesinė alternatyva tam pačiam dvejetainiam uždaviniui.
 
-Friedman (2001), DOI 10.1214/aos/1013203451, yra bendro metodo pirminis šaltinis; histograminės realizacijos ir parametrų elgsena remiama bibliotekos autorių dokumentacija [6]. Reikia derinti žingsnio, iteracijų ir medžių sudėtingumo sąveiką. Tai savaime nereiškia, kad metodas blogesnis už mišką.
+Friedman (2001, DOI 10.1214/aos/1013203451) yra bendro metodo pirminis šaltinis; histograminės realizacijos ir parametrų elgsena remiama bibliotekos autorių dokumentacija (scikit-learn developers, 2026). Reikia derinti žingsnio, iteracijų ir medžių sudėtingumo sąveiką. Tai savaime nereiškia, kad metodas blogesnis už mišką.
 
 ### 3.5. Pagrindimo ribos
 
-Duomenų šaltinis [1] patvirtina klasifikavimo uždavinį ir įvesčių pobūdį. Šaltiniai [2-6] pagrindžia mechanizmus, o jų pritaikymas šiai schemai yra argumentuota projektavimo išvada. Nei pirminis straipsnis, nei algoritmo populiarumas negarantuoja pranašumo šiame eksperimente.
+Duomenų šaltinis (Sakar & Kastro, 2018) patvirtina klasifikavimo uždavinį ir įvesčių pobūdį. Pirminiai straipsniai ir bibliotekos dokumentacija pagrindžia mechanizmus, o jų pritaikymas šiai schemai yra argumentuota projektavimo išvada. Nei pirminis straipsnis, nei algoritmo populiarumas negarantuoja pranašumo šiame eksperimente.
 
 ## 4. Pagrindinis sprendimas ir hipotezė
 
@@ -139,6 +139,16 @@ Tik train imtyje išmokstama skaitinių medianų, standartizavimo ir kategorini�
 
 Po pasirinkimo modelis nepermokomas su validation duomenimis. Slenkstis parenkamas iš 0,01; 0,02; ...; 0,99 pagal didžiausią F2; lygybės atveju mažesnis. Testas neperduodamas kandidatų ar slenksčio parinkimo funkcijai.
 
+```mermaid
+flowchart LR
+A[CSV schema] --> B[Preprocessing]
+B --> C[Train candidates]
+C --> D[Validation AP and threshold]
+D --> E[Test and prediction]
+```
+
+_1 pav. Sprendimo eiga. Sudaryta autoriaus._
+
 ### 5.3. Fiksuotas kandidatų tinklas
 
 Pastovus dažnis: 1 kandidatas. Regresija: C = 0,1 arba 1,0; max_iter = 2000. RF: 200 medžių, max_features = sqrt, min_samples_leaf = 5 arba 20, n_jobs = 1; kiti numatyti sklearn 1.8 nustatymai, įskaitant bootstrap ir Gini. Stiprinimas: max_iter = 150, learning_rate = 0,05, max_leaf_nodes = 7 arba 15, early_stopping = False. Mažesnis C reiškia stipresnį reguliavimą.
@@ -181,7 +191,7 @@ $$
 \hat y=\begin{cases}1,&\hat p_{\mathrm{RF}}(x)\geq\tau,\\ 0,&\hat p_{\mathrm{RF}}(x)<\tau.\end{cases} \tag{7}
 $$
 
-(6)-(7) formulėse B - medžių skaičius; τ - tik validation imtyje parinktas slenkstis. sklearn RF vidurkina tikimybes, ne vien medžių 0/1 balsus [4]. models.py sukurs mišką ir turės forest_probability_by_formula; analysis.py palygins formulę su predict_proba. Leistina skaitinė paklaida: 10⁻¹² (absoliuti, be santykinės tolerancijos).
+(6)-(7) formulėse B - medžių skaičius; τ - tik validation imtyje parinktas slenkstis. sklearn RF vidurkina tikimybes, ne vien medžių 0/1 balsus (scikit-learn developers, 2026). models.py sukurs mišką ir turės forest_probability_by_formula; analysis.py palygins formulę su predict_proba. Leistina skaitinė paklaida: 10⁻¹² (absoliuti, be santykinės tolerancijos).
 
 **Rankinis pavyzdys, ne rezultatas:** jei trijų medžių lapų tikimybės yra 0,2; 0,6; 0,4, jų vidurkis yra 0,4. Su τ = 0,3 prognozė lygi 1. Net jei tik vienas medis viršytų 0,5, sprendimas priklauso nuo tikimybių vidurkio ir pasirinkto τ.
 
@@ -196,6 +206,19 @@ $$
 $$
 
 (8)-(9) formulėse N - train sesijų skaičius; yᵢ - jų Revenue (0/1); p₀ - pastovi pirkimų dalis. w - regresijos išmokti svoriai, a - jos poslinkis; abu gaunami tik iš train. Modulis: models.py. Mokymo optimizavimo išvedimai neprivalomi: mokymą atliks biblioteka, o šiame plane tiksliai aprašyta prognozės taisyklė.
+
+### 6.5. Simbolių ir programos realizacijos atitiktis
+
+| Formulės simbolis | Reikšmė plane | Kur realizuojama |
+|---|---|---|
+| xᵢⱼ, yᵢ | i-osios sesijos požymis ir Revenue tikslas. | data.py: `X`, `y` |
+| mⱼ, μⱼ, sⱼ | Tik train duomenyse išmokta mediana, vidurkis ir skalė. | preprocessing.py: `SimpleImputer`, `StandardScaler` |
+| z | Po paruošimo gautas skaitinių ir one-hot požymių vektorius. | preprocessing.py: `ColumnTransformer` |
+| Lᵦ(z), nᵦ,₁, nᵦ | b-ojo medžio pasiektas lapas ir jo klasės skaičiai. | models.py: `forest_probability_by_formula` |
+| B, p̂RF, τ | 200 medžių, vidutinė tikimybė ir validation parinktas slenkstis. | models.py, training.py, evaluation.py |
+| P, R, F₂, AP, Brier | Testo metrikos iš `TP`, `FP`, `FN` ir tikimybių. | evaluation.py: `metrics` |
+
+Ši lentelė yra praktinė formulės patikra: prieš vykdymą programuotojas turi rasti kiekvieną simbolį nurodytame modulyje. Jei kodo pavadinimas pakeičiamas, atnaujinama ir lentelė bei AI žurnalas. Tai reiškia „sutikrinti simbolius su realizacija“ - ne perrašyti bibliotekos vidinio optimizatoriaus, o įrodyti, kad plane aprašytas skaičiavimas sutampa su faktiniu prognozės keliu.
 
 ## 7. Vertinimas, papildomi bandymai ir biudžetas
 
@@ -223,7 +246,7 @@ $$
 \mathrm{Brier}=\frac{1}{M}\sum_{i=1}^{M}(p_i-y_i)^2. \tag{14}
 $$
 
-(13) formulėje AP sumuojama slenksčius atlaisvinant nuo mažesnio iki didesnio recall; k žymi tašką, R₀ = 0. Naudojama sklearn average_precision_score realizacija [7], o ne trapecinis PR plotas. (14) formulėje M - vertinamos imties dydis, pᵢ - modelio tikimybė, yᵢ - tikras atsakymas. Didesnė AP ir mažesnis Brier yra geriau. AP nėra procentinis klasifikavimo tikslumas.
+(13) formulėje AP sumuojama slenksčius atlaisvinant nuo mažesnio iki didesnio recall; k žymi tašką, R₀ = 0. Naudojama sklearn average_precision_score realizacija (scikit-learn developers, 2026), o ne trapecinis PR plotas. (14) formulėje M - vertinamos imties dydis, pᵢ - modelio tikimybė, yᵢ - tikras atsakymas. Didesnė AP ir mažesnis Brier yra geriau. AP nėra procentinis klasifikavimo tikslumas.
 
 Papildomai pateikti trapecinį PR-AUC, log loss, painiavos matricą, PR kreivę ir kalibracijos kreivę su 8 vienodo dažnio grupėmis. Kalibracijos grafikas tik vertins tikimybes; papildomas kalibratorius nebus mokomas. Modulis: evaluation.py; grafikai: plots.py.
 
@@ -259,35 +282,37 @@ Bootstrap intervalas apibūdina šios testo imties ir šių išmokytų modelių 
 
 ### 8.2. AI naudojimo ir tikrinimo planas
 
-AI bus naudojamas dokumento struktūrai, pradiniam paprastam kodui, komentarams ir testų idėjoms. AI nepakeis šaltinių skaitymo ar programos vykdymo. Kiekvieną reikšmingą pakeitimą, atmestą pasiūlymą ir aptiktą klaidą registruoti AI_ZURNALAS.md.
+AI bus naudojamas dokumento struktūrai, pradiniam aiškiam kodui, komentarams ir testų idėjoms. AI nepakeis šaltinių skaitymo ar programos vykdymo. AI gali pasiūlyti citatą ar DOI, tačiau autorius privalo atverti pirminį arba oficialų šaltinį, patikrinti metaduomenis ir teiginio atitiktį bei pats patvirtinti galutinę citatą. Kiekvieną reikšmingą pakeitimą, atmestą pasiūlymą ir aptiktą klaidą registruoti AI_ZURNALAS.md.
 
 | Tikrinamas dalykas | Patikros veiksmas |
 |---|---|
-| Citatos | Atverti autoriaus, leidėjo ar oficialios bibliotekos puslapį; patikrinti autorių, metus, DOI ir teiginio atitiktį. Neprieinamo pilno teksto neskelbti perskaitytu. |
+| Citatos | AI parenka kandidatą; autorius atveria autoriaus, leidėjo ar oficialios bibliotekos puslapį ir patikrina autorių, metus, DOI bei teiginio atitiktį. Neprieinamo pilno teksto neskelbti perskaitytu. |
 | Formulės | Sutikrinti simbolius su realizacija; vienos sesijos skaičiavimą patikrinti ranka, RF medžių vidurkį - prieš predict_proba. |
 | Kodas | Testuoti nesikertančias imtis, draudžiamus požymius, tik train išmoktas transformacijas, nežinomas kategorijas ir netinkamą schemą. |
 | Rezultatai | Vykdyti eksperimentą; skaičius imti iš CSV. Patikrinti pakartojamumą su ta pačia sėkla, įrašyti versijas ir kodo sumas. |
+
+Kodo autorystė: AI parengė pradinį kodą pagal užduoties, projekto ir bibliotekų dokumentacijos reikalavimus; kodas nėra autoriaus gairių automatiškai patvirtintas sprendimas. Autorius turi perskaityti modulius, paleisti testus, patikrinti rezultatus, gebėti paaiškinti sprendimus ir pats priimti galutinę redakciją. AI sugeneruotas tekstas ar kodas negali būti pateikiamas kaip vien autoriaus savarankiškai parašytas darbas.
 
 Priėmimo sąlyga: kitas programuotojas pagal 2, 5-7 skyrius gali įgyvendinti grandinę ir gauti visus numatytus išvesties failus. Teigiamas hipotezės rezultatas nėra darbo priėmimo sąlyga. Studentas turi gebėti paaiškinti įvestį, miško formulę, slenkstį ir skaidymą.
 
 ## 9. Šaltiniai
 
-Pirminiai šaltiniai ir bibliotekos autorių dokumentacija patikrinti 2026-09-18. Šaltinių numeriai naudojami 2-7 skyriuose. DOI nuoroda pati savaime nėra pilno straipsnio perskaitymo įrodymas.
+Šaltiniai pateikiami APA 7 autoriaus–metų principu. Pirminiai šaltiniai ir bibliotekos autorių dokumentacija patikrinti 2026-09-18. DOI nuoroda pati savaime nėra pilno straipsnio perskaitymo įrodymas; kiekvienos citatos galutinį tinkamumą patvirtina autorius.
 
-[1] Sakar, C.; Kastro, Y. (2018). Online Shoppers Purchasing Intention Dataset. UCI. DOI: 10.24432/C5F88Q. [Atverti šaltinį](https://doi.org/10.24432/C5F88Q)
+Sakar, C., & Kastro, Y. (2018). <i>Online Shoppers Purchasing Intention Dataset</i>. UCI Machine Learning Repository. https://doi.org/10.24432/C5F88Q [Atverti šaltinį](https://doi.org/10.24432/C5F88Q)
 
-[2] scikit-learn autoriai. Linear Models: Logistic regression. Versija 1.8. [Atverti šaltinį](https://scikit-learn.org/1.8/modules/linear_model.html#logistic-regression)
+scikit-learn developers. (2026). <i>Linear models: Logistic regression</i> (Version 1.8) [Documentation]. [Atverti šaltinį](https://scikit-learn.org/1.8/modules/linear_model.html#logistic-regression)
 
-[3] Breiman, L. (2001). Random Forests. Machine Learning, 45, 5-32. DOI: 10.1023/A:1010933404324. [Atverti šaltinį](https://doi.org/10.1023/A:1010933404324)
+Breiman, L. (2001). Random forests. <i>Machine Learning, 45</i>, 5–32. https://doi.org/10.1023/A:1010933404324 [Atverti šaltinį](https://doi.org/10.1023/A:1010933404324)
 
-Breiman straipsnio autoriaus PDF (peržiūrėtas). [Atverti šaltinį](https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf)
+Breiman, L. (2001). <i>Random forests</i> [Author manuscript]. [Atverti šaltinį](https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf)
 
-[4] scikit-learn autoriai. RandomForestClassifier, predict_proba. Versija 1.8. [Atverti šaltinį](https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.RandomForestClassifier.html)
+scikit-learn developers. (2026). <i>RandomForestClassifier: predict_proba</i> (Version 1.8) [Documentation]. [Atverti šaltinį](https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.RandomForestClassifier.html)
 
-[5] Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. Annals of Statistics, 29(5), 1189-1232. DOI: 10.1214/aos/1013203451. [Atverti šaltinį](https://doi.org/10.1214/aos/1013203451)
+Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. <i>Annals of Statistics, 29</i>(5), 1189–1232. https://doi.org/10.1214/aos/1013203451 [Atverti šaltinį](https://doi.org/10.1214/aos/1013203451)
 
-[6] scikit-learn autoriai. Ensembles: Histogram-Based Gradient Boosting. Versija 1.8. [Atverti šaltinį](https://scikit-learn.org/1.8/modules/ensemble.html#histogram-based-gradient-boosting)
+scikit-learn developers. (2026). <i>Ensembles: Histogram-based gradient boosting</i> (Version 1.8) [Documentation]. [Atverti šaltinį](https://scikit-learn.org/1.8/modules/ensemble.html#histogram-based-gradient-boosting)
 
-[7] scikit-learn autoriai. average_precision_score. Versija 1.8. [Atverti šaltinį](https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html)
+scikit-learn developers. (2026). <i>average_precision_score</i> (Version 1.8) [Documentation]. [Atverti šaltinį](https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html)
 
-Friedman DOI nukreipia į leidėjo puslapį, tačiau pilnas tekstas šioje prieigoje neperskaitytas. Algoritmo paaiškinimas tikrintas oficialiame šaltinyje [6]; straipsniui nepriskiriamos nepatikrintos pažodinės citatos.
+Friedman DOI nukreipia į leidėjo puslapį, tačiau pilnas tekstas šioje prieigoje neperskaitytas. Algoritmo paaiškinimas tikrintas oficialioje bibliotekos dokumentacijoje; straipsniui nepriskiriamos nepatikrintos pažodinės citatos.

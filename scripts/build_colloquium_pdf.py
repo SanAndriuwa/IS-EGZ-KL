@@ -17,15 +17,18 @@ from reportlab.pdfbase.ttfonts import TTFont
 
 ROOT = Path(__file__).resolve().parents[1]
 FONT = Path('/usr/share/fonts/truetype/dejavu')
-for name, file in [('D','DejaVuSans.ttf'),('DB','DejaVuSans-Bold.ttf')]:
+for name, file in [('TNR','DejaVuSerif.ttf'),
+                   ('TNRB','DejaVuSerif-Bold.ttf'),
+                   ('TNRI','DejaVuSerif.ttf')]:
     pdfmetrics.registerFont(TTFont(name,str(FONT/file)))
-pdfmetrics.registerFontFamily('D',normal='D',bold='DB',italic='D',boldItalic='DB')
+pdfmetrics.registerFontFamily('TNR',normal='TNR',bold='TNRB',italic='TNRI',boldItalic='TNRB')
 styles = {
- 'title': ParagraphStyle('title',fontName='DB',fontSize=16,leading=21,textColor=colors.HexColor('#16324f'),spaceBefore=18,spaceAfter=12,keepWithNext=True),
- 'h': ParagraphStyle('h',fontName='DB',fontSize=12,leading=16,spaceBefore=12,spaceAfter=6,textColor=colors.HexColor('#16706b'),keepWithNext=True),
- 'p': ParagraphStyle('p',fontName='D',fontSize=9.5,leading=14,spaceAfter=7),
- 'small': ParagraphStyle('small',fontName='D',fontSize=8.3,leading=11.7,spaceAfter=4),
- 'eq': ParagraphStyle('eq',fontName='D',fontSize=11,leading=17,spaceBefore=5,spaceAfter=7,leftIndent=12,textColor=colors.HexColor('#16324f')),
+ 'title': ParagraphStyle('title',fontName='TNRB',fontSize=14,leading=18,textColor=colors.black,spaceBefore=14,spaceAfter=10,keepWithNext=True),
+ 'h': ParagraphStyle('h',fontName='TNRB',fontSize=12,leading=16,spaceBefore=11,spaceAfter=6,textColor=colors.black,keepWithNext=True),
+ 'p': ParagraphStyle('p',fontName='TNR',fontSize=10.5,leading=15.75,spaceAfter=7,alignment=4),
+ 'small': ParagraphStyle('small',fontName='TNR',fontSize=8.5,leading=11.5,spaceAfter=4),
+ 'eq': ParagraphStyle('eq',fontName='TNR',fontSize=11,leading=17,spaceBefore=5,spaceAfter=7,leftIndent=12,textColor=colors.black),
+ 'caption': ParagraphStyle('caption',fontName='TNRB',fontSize=10,leading=13,spaceBefore=4,spaceAfter=8,alignment=1),
 }
 pages=[]
 def page(title):
@@ -35,6 +38,8 @@ def h(t): pages[-1].append(('h',t))
 def eq(latex):
     # LaTeX šaltinis bendras PDF ir GitHub Markdown formulėms.
     pages[-1].append(('eq', latex))
+def diagram(title):
+    pages[-1].append(('diagram', title))
 def table(headers,rows,widths): pages[-1].append(('table',(headers,rows,widths)))
 
 page('1. Problema ir sprendimo paskirtis')
@@ -63,7 +68,7 @@ table(['Etapas','Ką darome ir kodėl','Baigimo požymis'],[
 ['Vertinimas','Pamatuojame naudą naujesniu laikotarpiu ir paaiškiname klaidas.','Metrikos, palyginimas, klaidų pavyzdžiai.'],
 ['Naudojimas','Naujai sesijai pateikiame įvertį, nekartodami mokymo.','CSV: eilutės numeris, tikimybė, prognozė.']],[86,251,158])
 h('2.2. Duomenų šaltinis ir tiksli schema')
-p('Naudojamas UCI Online Shoppers Purchasing Intention Dataset: 12 330 sesijų, 17 pradinių požymių ir tikslas Revenue [1]. Modeliui atrenkama 15 požymių. Viena CSV eilutė - viena sesija; į modelį siunčiama požymių lentelė, o ne svetainės vaizdas ar tekstas.')
+p('Naudojamas UCI Online Shoppers Purchasing Intention Dataset: 12 330 sesijų, 17 pradinių požymių ir tikslas Revenue (Sakar &amp; Kastro, 2018). Modeliui atrenkama 15 požymių. Viena CSV eilutė - viena sesija; į modelį siunčiama požymių lentelė, o ne svetainės vaizdas ar tekstas.')
 p('<b>9 skaitiniai:</b> Administrative, Administrative_Duration, Informational, Informational_Duration, ProductRelated, ProductRelated_Duration, BounceRates, ExitRates, SpecialDay. Pirmieji trys pavadinimų tipai žymi puslapių kiekius, jų Duration - trukmes sekundėmis; paskutiniai trys rodikliai yra intervale [0; 1].')
 p('<b>6 kategoriniai:</b> OperatingSystems, Browser, Region, TrafficType, VisitorType, Weekend. Skaitiniai kategorijų kodai laikomi pavadinimais, ne dydžiais. Month naudojamas tik skaidymui. PageValues naudojamas tik atskirame požymio įtakos bandyme. Revenue: False → 0, True → 1.')
 h('2.3. Įvesties ir išvesties sutartis')
@@ -75,16 +80,16 @@ p('Intelektualieji metodai taikomi pirkimo klasifikavimo uždaviniui. CSV gavimu
 h('3.1. Paprastas baseline: mokymo pirkimų dažnis')
 p('Kiekvienai sesijai grąžinama ta pati mokymo imties pirkimų dalis. Tai patikrina, ar modelis iš požymių išmoksta daugiau negu vien bendrą klasės dažnį. Šis metodas sesijų neranguoja; formulė pateikta 6 skyriuje. Tai aritmetinė atskaita, ne pagrindinis intelektualusis metodas.')
 h('3.2. Logistinė regresija - stipresnė atskaita')
-p('Modelis mokosi skaitinių ir užkoduotų kategorinių požymių svorių, o sigmoidė duoda pirkimo tikimybės įvertį [2]. Tinka dvejetainiam tikslui ir nedidelės ar vidutinės dimensijos lenteliniams duomenims. Šiame plane tai interpretuojamas palyginimas, padedantis patikrinti, ar sudėtingesnio modelio apskritai reikia.')
+p('Modelis mokosi skaitinių ir užkoduotų kategorinių požymių svorių, o sigmoidė duoda pirkimo tikimybės įvertį (scikit-learn developers, 2026). Tinka dvejetainiam tikslui ir nedidelės ar vidutinės dimensijos lenteliniams duomenims. Šiame plane tai interpretuojamas palyginimas, padedantis patikrinti, ar sudėtingesnio modelio apskritai reikia.')
 p('Riba: be papildomų sąveikų požymių logaritminis šansų santykis yra tiesinis. Pavyzdžiui, tas pats naršymo laikas skirtingai produktų peržiūrų grupei gali turėti kitą reikšmę; ši sąveika automatiškai neįtraukiama. Šaltinis pagrindžia algoritmo formą, bet ne jo būsimą tikslumą šiame rinkinyje.')
 h('3.3. Atsitiktinis miškas - pagrindinis metodas')
-p('Atskirų medžių sąlygų deriniai leidžia mokytis netiesinių ryšių ir požymių sąveikų. Bootstrap imtys ir atsitiktiniai požymių poaibiai sukuria skirtingus medžius, kurių rezultatai sujungiami [3]. Tai prasminga sesijų lentelei, kur kiekių, trukmių ir lankytojo tipo sąveikos iš anksto nežinomos.')
-p('Breiman (2001), DOI 10.1023/A:1010933404324, pagrindžia miško konstrukciją; konkreti sklearn realizacija tikimybes skaičiuoja kaip medžių lapų tikimybių vidurkį [4]. Riba: ansamblis mažiau skaidrus negu svorių modelis, o laiko poslinkis gali panaikinti išmoktų taisyklių naudą.')
+p('Atskirų medžių sąlygų deriniai leidžia mokytis netiesinių ryšių ir požymių sąveikų. Bootstrap imtys ir atsitiktiniai požymių poaibiai sukuria skirtingus medžius, kurių rezultatai sujungiami (Breiman, 2001). Tai prasminga sesijų lentelei, kur kiekių, trukmių ir lankytojo tipo sąveikos iš anksto nežinomos.')
+p('Breiman (2001, DOI 10.1023/A:1010933404324) pagrindžia miško konstrukciją; konkreti sklearn realizacija tikimybes skaičiuoja kaip medžių lapų tikimybių vidurkį (scikit-learn developers, 2026). Riba: ansamblis mažiau skaidrus negu svorių modelis, o laiko poslinkis gali panaikinti išmoktų taisyklių naudą.')
 h('3.4. Histograminis gradientinis stiprinimas')
-p('Medžiai pridedami nuosekliai, kad mažintų pasirinkto nuostolio likusią paklaidą. Metodas gali atkurti sudėtingus lentelinių požymių ryšius [5, 6], todėl yra prasminga kita netiesinė alternatyva tam pačiam dvejetainiam uždaviniui.')
-p('Friedman (2001), DOI 10.1214/aos/1013203451, yra bendro metodo pirminis šaltinis; histograminės realizacijos ir parametrų elgsena remiama bibliotekos autorių dokumentacija [6]. Reikia derinti žingsnio, iteracijų ir medžių sudėtingumo sąveiką. Tai savaime nereiškia, kad metodas blogesnis už mišką.')
+p('Medžiai pridedami nuosekliai, kad mažintų pasirinkto nuostolio likusią paklaidą. Metodas gali atkurti sudėtingus lentelinių požymių ryšius (Friedman, 2001; scikit-learn developers, 2026), todėl yra prasminga kita netiesinė alternatyva tam pačiam dvejetainiam uždaviniui.')
+p('Friedman (2001, DOI 10.1214/aos/1013203451) yra bendro metodo pirminis šaltinis; histograminės realizacijos ir parametrų elgsena remiama bibliotekos autorių dokumentacija (scikit-learn developers, 2026). Reikia derinti žingsnio, iteracijų ir medžių sudėtingumo sąveiką. Tai savaime nereiškia, kad metodas blogesnis už mišką.')
 h('3.5. Pagrindimo ribos')
-p('Duomenų šaltinis [1] patvirtina klasifikavimo uždavinį ir įvesčių pobūdį. Šaltiniai [2-6] pagrindžia mechanizmus, o jų pritaikymas šiai schemai yra argumentuota projektavimo išvada. Nei pirminis straipsnis, nei algoritmo populiarumas negarantuoja pranašumo šiame eksperimente.')
+p('Duomenų šaltinis (Sakar &amp; Kastro, 2018) patvirtina klasifikavimo uždavinį ir įvesčių pobūdį. Pirminiai straipsniai ir bibliotekos dokumentacija pagrindžia mechanizmus, o jų pritaikymas šiai schemai yra argumentuota projektavimo išvada. Nei pirminis straipsnis, nei algoritmo populiarumas negarantuoja pranašumo šiame eksperimente.')
 
 page('4. Pagrindinis sprendimas ir hipotezė')
 h('4.1. Pasirinkimas')
@@ -118,6 +123,7 @@ table(['Nr.','Veiksmas','Planuojamas modulis'],[
 ['8','Įrašyti metrikas, prognozes, grafikus, kodų sumas ir visą modelio grandinę.','reporting.py, plots.py'],
 ['9','Naują CSV tikrinti ir transformuoti išsaugota grandine; pateikti tikimybes.','predict.py']],[26,322,147])
 p('Po pasirinkimo modelis nepermokomas su validation duomenimis. Slenkstis parenkamas iš 0,01; 0,02; ...; 0,99 pagal didžiausią F2; lygybės atveju mažesnis. Testas neperduodamas kandidatų ar slenksčio parinkimo funkcijai.')
+diagram('Sprendimo eiga')
 h('5.3. Fiksuotas kandidatų tinklas')
 p('Pastovus dažnis: 1 kandidatas. Regresija: C = 0,1 arba 1,0; max_iter = 2000. RF: 200 medžių, max_features = sqrt, min_samples_leaf = 5 arba 20, n_jobs = 1; kiti numatyti sklearn 1.8 nustatymai, įskaitant bootstrap ir Gini. Stiprinimas: max_iter = 150, learning_rate = 0,05, max_leaf_nodes = 7 arba 15, early_stopping = False. Mažesnis C reiškia stipresnį reguliavimą.')
 
@@ -134,12 +140,22 @@ p('(4)-(5) formulėse j ir t - mokymo metu parinkto mazgo požymio indeksas ir s
 h('6.3. Miško išvestis ir dvejetainis sprendimas')
 eq('\\hat p_{\\mathrm{RF}}(x)=\\frac{1}{B}\\sum_{b=1}^{B}p_b(z),\\qquad B=200.')
 eq('\\hat y=\\begin{cases}1,&\\hat p_{\\mathrm{RF}}(x)\\geq\\tau,\\\\ 0,&\\hat p_{\\mathrm{RF}}(x)<\\tau.\\end{cases}')
-p('(6)-(7) formulėse B - medžių skaičius; τ - tik validation imtyje parinktas slenkstis. sklearn RF vidurkina tikimybes, ne vien medžių 0/1 balsus [4]. models.py sukurs mišką ir turės forest_probability_by_formula; analysis.py palygins formulę su predict_proba. Leistina skaitinė paklaida: 10⁻¹² (absoliuti, be santykinės tolerancijos).')
+p('(6)-(7) formulėse B - medžių skaičius; τ - tik validation imtyje parinktas slenkstis. sklearn RF vidurkina tikimybes, ne vien medžių 0/1 balsus (scikit-learn developers, 2026). models.py sukurs mišką ir turės forest_probability_by_formula; analysis.py palygins formulę su predict_proba. Leistina skaitinė paklaida: 10⁻¹² (absoliuti, be santykinės tolerancijos).')
 p('<b>Rankinis pavyzdys, ne rezultatas:</b> jei trijų medžių lapų tikimybės yra 0,2; 0,6; 0,4, jų vidurkis yra 0,4. Su τ = 0,3 prognozė lygi 1. Net jei tik vienas medis viršytų 0,5, sprendimas priklauso nuo tikimybių vidurkio ir pasirinkto τ.')
 h('6.4. Atskaitų formulės')
 eq('\\hat p_0=\\frac{1}{N}\\sum_{i=1}^{N}y_i.')
 eq('\\hat p_{\\mathrm{LR}}(z)=\\frac{1}{1+\\exp\\!\\left[-(w^{\\mathsf T}z+a)\\right]}.')
 p('(8)-(9) formulėse N - train sesijų skaičius; yᵢ - jų Revenue (0/1); p₀ - pastovi pirkimų dalis. w - regresijos išmokti svoriai, a - jos poslinkis; abu gaunami tik iš train. Modulis: models.py. Mokymo optimizavimo išvedimai neprivalomi: mokymą atliks biblioteka, o šiame plane tiksliai aprašyta prognozės taisyklė.')
+h('6.5. Simbolių ir programos realizacijos atitiktis')
+table(['Formulės simbolis','Reikšmė plane','Kur realizuojama'],[
+['xᵢⱼ, yᵢ','i-osios sesijos požymis ir Revenue tikslas.','data.py: `X`, `y`'],
+['mⱼ, μⱼ, sⱼ','Tik train duomenyse išmokta mediana, vidurkis ir skalė.','preprocessing.py: `SimpleImputer`, `StandardScaler`'],
+['z','Po paruošimo gautas skaitinių ir one-hot požymių vektorius.','preprocessing.py: `ColumnTransformer`'],
+['Lᵦ(z), nᵦ,₁, nᵦ','b-ojo medžio pasiektas lapas ir jo klasės skaičiai.','models.py: `forest_probability_by_formula`'],
+['B, p̂RF, τ','200 medžių, vidutinė tikimybė ir validation parinktas slenkstis.','models.py, training.py, evaluation.py'],
+['P, R, F₂, AP, Brier','Testo metrikos iš `TP`, `FP`, `FN` ir tikimybių.','evaluation.py: `metrics`'],
+],[126,220,175])
+p('Ši lentelė yra praktinė formulės patikra: prieš vykdymą programuotojas turi rasti kiekvieną simbolį nurodytame modulyje. Jei kodo pavadinimas pakeičiamas, atnaujinama ir lentelė bei AI žurnalas. Tai reiškia „sutikrinti simbolius su realizacija“ - ne perrašyti bibliotekos vidinio optimizatoriaus, o įrodyti, kad plane aprašytas skaičiavimas sutampa su faktiniu prognozės keliu.')
 
 page('7. Vertinimas, papildomi bandymai ir biudžetas')
 h('7.1. Metrikos ir jų interpretacija')
@@ -149,7 +165,7 @@ eq('F_2=\\frac{5PR}{4P+R}.')
 p('(10)-(12) formulėse TP - teisingai aptikti pirkimai; FP - prognozuoti pirkimai, kurių nebuvo; FN - praleisti pirkimai; TN - teisingai atmesti nepirkimai. P (precision) rodo teigiamų prognozių patikimumą, R (recall) - aptiktų pirkimų dalį. Kai vardiklis nulis, atitinkama metrika lygi 0. F2 daugiau svarbos teikia recall; tai pasirinktas mokomasis prioritetas, ne piniginis optimumas.')
 eq('\\mathrm{AP}=\\sum_{k}(R_k-R_{k-1})P_k.')
 eq('\\mathrm{Brier}=\\frac{1}{M}\\sum_{i=1}^{M}(p_i-y_i)^2.')
-p('(13) formulėje AP sumuojama slenksčius atlaisvinant nuo mažesnio iki didesnio recall; k žymi tašką, R₀ = 0. Naudojama sklearn average_precision_score realizacija [7], o ne trapecinis PR plotas. (14) formulėje M - vertinamos imties dydis, pᵢ - modelio tikimybė, yᵢ - tikras atsakymas. Didesnė AP ir mažesnis Brier yra geriau. AP nėra procentinis klasifikavimo tikslumas.')
+p('(13) formulėje AP sumuojama slenksčius atlaisvinant nuo mažesnio iki didesnio recall; k žymi tašką, R₀ = 0. Naudojama sklearn average_precision_score realizacija (scikit-learn developers, 2026), o ne trapecinis PR plotas. (14) formulėje M - vertinamos imties dydis, pᵢ - modelio tikimybė, yᵢ - tikras atsakymas. Didesnė AP ir mažesnis Brier yra geriau. AP nėra procentinis klasifikavimo tikslumas.')
 p('Papildomai pateikti trapecinį PR-AUC, log loss, painiavos matricą, PR kreivę ir kalibracijos kreivę su 8 vienodo dažnio grupėmis. Kalibracijos grafikas tik vertins tikimybes; papildomas kalibratorius nebus mokomas. Modulis: evaluation.py; grafikai: plots.py.')
 h('7.2. Iš anksto numatyta analizė')
 table(['Bandymas','Tiksli taisyklė ir tikslas'],[
@@ -172,29 +188,30 @@ table(['Grėsmė','Valdymas ir liekanti riba'],[
 ['Klaidos kaina ir kalibracija','F2 nėra finansinio pelno kriterijus. Prieš diegimą reikėtų klaidų kainų, prognozės momento audito ir atskiros tikimybių patikros.']],[122,373])
 p('Bootstrap intervalas apibūdina šios testo imties ir šių išmokytų modelių neapibrėžtumą. Jis neapima viso mokymo proceso kintamumo, būsimų sezonų ar kitų parduotuvių. Trūkstamų reikšmių maskavimas neimituoja visų realių gedimų.')
 h('8.2. AI naudojimo ir tikrinimo planas')
-p('AI bus naudojamas dokumento struktūrai, pradiniam paprastam kodui, komentarams ir testų idėjoms. AI nepakeis šaltinių skaitymo ar programos vykdymo. Kiekvieną reikšmingą pakeitimą, atmestą pasiūlymą ir aptiktą klaidą registruoti AI_ZURNALAS.md.')
+p('AI bus naudojamas dokumento struktūrai, pradiniam aiškiam kodui, komentarams ir testų idėjoms. AI nepakeis šaltinių skaitymo ar programos vykdymo. AI gali pasiūlyti citatą ar DOI, tačiau autorius privalo atverti pirminį arba oficialų šaltinį, patikrinti metaduomenis ir teiginio atitiktį bei pats patvirtinti galutinę citatą. Kiekvieną reikšmingą pakeitimą, atmestą pasiūlymą ir aptiktą klaidą registruoti AI_ZURNALAS.md.')
 table(['Tikrinamas dalykas','Patikros veiksmas'],[
-['Citatos','Atverti autoriaus, leidėjo ar oficialios bibliotekos puslapį; patikrinti autorių, metus, DOI ir teiginio atitiktį. Neprieinamo pilno teksto neskelbti perskaitytu.'],
+['Citatos','AI parenka kandidatą; autorius atveria autoriaus, leidėjo ar oficialios bibliotekos puslapį ir patikrina autorių, metus, DOI bei teiginio atitiktį. Neprieinamo pilno teksto neskelbti perskaitytu.'],
 ['Formulės','Sutikrinti simbolius su realizacija; vienos sesijos skaičiavimą patikrinti ranka, RF medžių vidurkį - prieš predict_proba.'],
 ['Kodas','Testuoti nesikertančias imtis, draudžiamus požymius, tik train išmoktas transformacijas, nežinomas kategorijas ir netinkamą schemą.'],
 ['Rezultatai','Vykdyti eksperimentą; skaičius imti iš CSV. Patikrinti pakartojamumą su ta pačia sėkla, įrašyti versijas ir kodo sumas.']],[99,396])
+p('Kodo autorystė: AI parengė pradinį kodą pagal užduoties, projekto ir bibliotekų dokumentacijos reikalavimus; kodas nėra autoriaus gairių automatiškai patvirtintas sprendimas. Autorius turi perskaityti modulius, paleisti testus, patikrinti rezultatus, gebėti paaiškinti sprendimus ir pats priimti galutinę redakciją. AI sugeneruotas tekstas ar kodas negali būti pateikiamas kaip vien autoriaus savarankiškai parašytas darbas.')
 p('Priėmimo sąlyga: kitas programuotojas pagal 2, 5-7 skyrius gali įgyvendinti grandinę ir gauti visus numatytus išvesties failus. Teigiamas hipotezės rezultatas nėra darbo priėmimo sąlyga. Studentas turi gebėti paaiškinti įvestį, miško formulę, slenkstį ir skaidymą.')
 
 page('9. Šaltiniai')
-p('Pirminiai šaltiniai ir bibliotekos autorių dokumentacija patikrinti 2026-09-18. Šaltinių numeriai naudojami 2-7 skyriuose. DOI nuoroda pati savaime nėra pilno straipsnio perskaitymo įrodymas.')
+p('Šaltiniai pateikiami APA 7 autoriaus–metų principu. Pirminiai šaltiniai ir bibliotekos autorių dokumentacija patikrinti 2026-09-18. DOI nuoroda pati savaime nėra pilno straipsnio perskaitymo įrodymas; kiekvienos citatos galutinį tinkamumą patvirtina autorius.')
 refs=[
-('[1] Sakar, C.; Kastro, Y. (2018). Online Shoppers Purchasing Intention Dataset. UCI. DOI: 10.24432/C5F88Q.','https://doi.org/10.24432/C5F88Q'),
-('[2] scikit-learn autoriai. Linear Models: Logistic regression. Versija 1.8.','https://scikit-learn.org/1.8/modules/linear_model.html#logistic-regression'),
-('[3] Breiman, L. (2001). Random Forests. Machine Learning, 45, 5-32. DOI: 10.1023/A:1010933404324.','https://doi.org/10.1023/A:1010933404324'),
-('Breiman straipsnio autoriaus PDF (peržiūrėtas).','https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf'),
-('[4] scikit-learn autoriai. RandomForestClassifier, predict_proba. Versija 1.8.','https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.RandomForestClassifier.html'),
-('[5] Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. Annals of Statistics, 29(5), 1189-1232. DOI: 10.1214/aos/1013203451.','https://doi.org/10.1214/aos/1013203451'),
-('[6] scikit-learn autoriai. Ensembles: Histogram-Based Gradient Boosting. Versija 1.8.','https://scikit-learn.org/1.8/modules/ensemble.html#histogram-based-gradient-boosting'),
-('[7] scikit-learn autoriai. average_precision_score. Versija 1.8.','https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html'),
+('Sakar, C., & Kastro, Y. (2018). <i>Online Shoppers Purchasing Intention Dataset</i>. UCI Machine Learning Repository. https://doi.org/10.24432/C5F88Q','https://doi.org/10.24432/C5F88Q'),
+('scikit-learn developers. (2026). <i>Linear models: Logistic regression</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/linear_model.html#logistic-regression'),
+('Breiman, L. (2001). Random forests. <i>Machine Learning, 45</i>, 5–32. https://doi.org/10.1023/A:1010933404324','https://doi.org/10.1023/A:1010933404324'),
+('Breiman, L. (2001). <i>Random forests</i> [Author manuscript].','https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf'),
+('scikit-learn developers. (2026). <i>RandomForestClassifier: predict_proba</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.RandomForestClassifier.html'),
+('Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. <i>Annals of Statistics, 29</i>(5), 1189–1232. https://doi.org/10.1214/aos/1013203451','https://doi.org/10.1214/aos/1013203451'),
+('scikit-learn developers. (2026). <i>Ensembles: Histogram-based gradient boosting</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/ensemble.html#histogram-based-gradient-boosting'),
+('scikit-learn developers. (2026). <i>average_precision_score</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html'),
 ]
 for title,url in refs:
     pages[-1].append(('small',escape(title)+' <link href="'+url+'" color="#16706b">Atverti šaltinį</link>'))
-p('Friedman DOI nukreipia į leidėjo puslapį, tačiau pilnas tekstas šioje prieigoje neperskaitytas. Algoritmo paaiškinimas tikrintas oficialiame šaltinyje [6]; straipsniui nepriskiriamos nepatikrintos pažodinės citatos.')
+p('Friedman DOI nukreipia į leidėjo puslapį, tačiau pilnas tekstas šioje prieigoje neperskaitytas. Algoritmo paaiškinimas tikrintas oficialioje bibliotekos dokumentacijoje; straipsniui nepriskiriamos nepatikrintos pažodinės citatos.')
 
 # ReportLab rezervuoja vietą ir įrašo numerį. PyMuPDF įterpia LaTeX PDF
 # vektorinį turinį į tą vietą, todėl trupmenos ir indeksai neišsilieja priartinus.
@@ -234,9 +251,48 @@ class Equation(Flowable):
         pageheight = self.canv._pagesize[1]
         EQUATION_POSITIONS.append((self.canv.getPageNumber()-1, str(self.pdf),
             (px,pageheight-py-h,px+w,pageheight-py)))
-        self.canv.setFont('D',9.5)
+        self.canv.setFont('TNR',9.5)
         self.canv.setFillColor(colors.black)
         self.canv.drawRightString(self.width,self.height/2-3,'('+str(self.number)+')')
+
+class FlowDiagram(Flowable):
+    """Nedidelė vektorinė schema, paaiškinanti 5.2 skyriaus veiksmų seką."""
+    def __init__(self, caption):
+        super().__init__()
+        self.width = 495
+        self.height = 94
+        self.caption = caption
+    def draw(self):
+        c = self.canv
+        labels = [
+            ('1. CSV', 'schema + SHA256'),
+            ('2. Paruošimas', 'train / val / test'),
+            ('3. Mokymas', 'baseline + modeliai'),
+            ('4. Parinkimas', 'AP + slenkstis τ'),
+            ('5. Naudojimas', 'tikimybė + klasė'),
+        ]
+        box_w, box_h, gap = 88, 42, 12
+        y = 37
+        c.setStrokeColor(colors.black)
+        c.setFillColor(colors.white)
+        c.setLineWidth(0.7)
+        for i, (head, sub) in enumerate(labels):
+            x = i * (box_w + gap)
+            c.roundRect(x, y, box_w, box_h, 3, stroke=1, fill=1)
+            c.setFillColor(colors.black)
+            c.setFont('TNRB', 8.2)
+            c.drawCentredString(x + box_w / 2, y + 25, head)
+            c.setFont('TNR', 7.2)
+            c.drawCentredString(x + box_w / 2, y + 13, sub)
+            if i < len(labels) - 1:
+                ax = x + box_w + 2
+                c.line(ax, y + box_h / 2, ax + gap - 4, y + box_h / 2)
+                c.line(ax + gap - 4, y + box_h / 2, ax + gap - 8, y + box_h / 2 + 3)
+                c.line(ax + gap - 4, y + box_h / 2, ax + gap - 8, y + box_h / 2 - 3)
+            c.setFillColor(colors.white)
+        c.setFont('TNRB', 9.5)
+        c.setFillColor(colors.black)
+        c.drawCentredString(self.width / 2, 16, '1 pav. Sprendimo eiga (sudaryta autoriaus)')
 
 # Tas pats turinys išsaugomas kaip redaguojamas Markdown.
 def plain(t):
@@ -262,12 +318,20 @@ for i,blocks in enumerate(pages):
             equation_number += 1
             flow.append(Equation(val,equation_number))
             md.extend(['$$',val + r' \tag{' + str(equation_number) + '}', '$$', ''])
+        elif kind=='diagram':
+            flow.extend([FlowDiagram(val), Spacer(1, 6)])
+            md.extend(['```mermaid', 'flowchart LR',
+                       'A[CSV schema] --> B[Preprocessing]',
+                       'B --> C[Train candidates]',
+                       'C --> D[Validation AP and threshold]',
+                       'D --> E[Test and prediction]', '```', '',
+                       '_1 pav. Sprendimo eiga. Sudaryta autoriaus._', ''])
         else:
             flow.append(Paragraph(val,styles[kind]));md.extend([('## ' if kind=='title' else '### ' if kind=='h' else '')+plain(val),''])
 (ROOT/'docs/KOLOKVIUMO_PLANAS.md').write_text('\n'.join(md))
 def footer(c,doc):
     c.setStrokeColor(colors.HexColor('#16706b'));c.line(50,802,545,802)
-    c.setFont('D',8);c.setFillColor(colors.HexColor('#536477'))
+    c.setFont('TNR',8);c.setFillColor(colors.HexColor('#536477'))
     c.drawString(50,813,'IS-EGZ-KL  /  KOLOKVIUMO PLANAS')
     c.drawString(50,28,'Andrej Kondratjev · DISfm-26 · 2026-09-18')
     c.drawRightString(545,28,str(doc.page))

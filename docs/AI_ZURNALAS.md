@@ -152,3 +152,35 @@ Formulių numeracija yra pasirinktas akademinis įforminimas, o ne nepasiekiamo
 šablono taisyklių citata. Microsoft Word redaguojamų OMML formulių šiame PDF
 nėra; lygiavertis vizualus surinkimas atliktas LaTeX. Generavimo scenarijus ir
 jo priklausomybių aprašas atnaujinti. PDF iš naujo renderintas bei patikrintas.
+
+## 2026-09-18 — prisegto VILNIUS TECH šablono pritaikymas
+
+Vartotojas pateikė `01-BD-ablonas.docx`. Jo stiliuose patikrinta, kad pagrindiniam
+tekstui numatyta Times New Roman 12 pt ir 1,5 eilutės intervalo logika, antraštės
+juodos, citavimui nurodytas APA 7, o formulės turi būti kuriamos per Word
+`Insert Equation` ir numeruojamos. Šios taisyklės naudotos kaip PDF maketo
+orientyras; PDF nepretenduoja atkartoti Word OMML objekto, nes jo paskirtis yra
+stabilus galutinis PDF.
+
+Numeruotos nuorodos pakeistos į APA autoriaus–metų citatas, o šaltinių sąrašas
+pertvarkytas į APA 7 tipo įrašus. AI gali parinkti kandidatinį šaltinį, bet galutinę
+citatą tvirtina autorius: jis turi atverti pirminį arba oficialų puslapį, sutikrinti
+autorių, metus, DOI, nuorodą ir teiginio atitiktį. Jei pilnas tekstas nebuvo
+perskaitytas, žurnale tai aiškiai pažymima.
+
+Į formulų skyrių įtraukta simbolių–realizacijos lentelė. Joje `x`, `y`, `m`, `μ`,
+`s`, `z`, `L_b(z)`, `B`, `τ` ir metrikų simboliai susieti su `data.py`,
+`preprocessing.py`, `models.py`, `training.py` ir `evaluation.py`. Tai reiškia,
+kad prieš vykdymą tikrinama ne vien graži formulė, bet ir ar kiekvienas jos
+kintamasis egzistuoja programoje bei ar jo skaičiavimo tvarka sutampa.
+
+Į planą įtraukta vektorinė 1 pav. „Sprendimo eiga“: CSV patikra → paruošimas →
+kandidatų mokymas → validacijos AP ir slenksčio parinkimas → testas ir prognozė.
+Paveikslas pažymėtas „sudaryta autoriaus“, todėl tai nėra nepatikrinta išorinio
+šaltinio iliustracija.
+
+Kodo autorystė dokumente patikslinta: AI parengė pradinį aiškų kodą pagal užduoties,
+projekto ir bibliotekų dokumentacijos reikalavimus, tačiau autorius turi pats
+perskaityti modulius, paleisti testus, patikrinti rezultatus, gebėti paaiškinti
+sprendimus ir priimti galutinę redakciją. AI sugeneruotas kodas nėra automatiškai
+laikomas vien autoriaus savarankiškai parašytu kodu.
