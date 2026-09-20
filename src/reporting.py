@@ -26,7 +26,8 @@ def save_summary(table, delta, interval, formula_error, output):
               '', f'Formulės ir bibliotekos prognozių didžiausias skirtumas: `{formula_error:.3g}`.',
               '', '![PR ir kalibracija](evaluation.svg)', '',
               'Interpretacija, ribos ir klaidų analizė: [ataskaita](../docs/ATASKAITA.md).']
-    (output / 'RESULTS.md').write_text('\n'.join(lines) + '\n')
+    # UTF-8 išsaugo lietuviškas raides ir Windows aplinkoje.
+    (output / 'RESULTS.md').write_text('\n'.join(lines) + '\n', encoding='utf-8')
 
 
 def save_splits(parts, config, output):
@@ -79,4 +80,4 @@ def save_manifest(root, config, data, formula_error, delta, interval,
         'missing_numeric_cells': int(missing_mask.sum()), 'elapsed_seconds': perf_counter() - started,
         'source_sha256': source_checksums,
     }
-    (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+    (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')

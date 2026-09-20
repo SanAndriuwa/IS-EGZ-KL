@@ -311,3 +311,19 @@ Markdown, atskiras šablonas, generavimo scenarijai ir pataisytos nuorodos.
 Failų pavadinimai pakeisti į autoriaus prašytą `KOLIOKVIUMO_` formą;
 ankstesnės versijos išlieka Git istorijoje. Dokumentai iš naujo negeneruoti,
 kad būtų išsaugotas anksčiau patikrintas maketas. Mokymas nevykdytas.
+
+## 2026-09-20 — Windows paleidimas ir UTF-8 koduotė
+
+Autorius pranešė, kad Windows CMD neatpažino `source`, o ataskaitos įrašymas
+nutrūko su `UnicodeEncodeError`: numatytoji `cp1251` koduotė nepalaikė `š`.
+Vėliau autorius patvirtino, kad paleidimas veikia, ir paprašė atnaujinti GitHub
+bei README. AI pridėjo aiškią UTF-8 koduotę ataskaitos ir vykdymo aprašo
+įrašymui bei konfigūracijos skaitymui. README išskirtos CMD, PowerShell ir
+Linux/macOS instrukcijos; pateiktas paleidimas be PowerShell aktyvavimo ir
+laikinas `-X utf8` sprendimas senoms kopijoms.
+
+Pridėtas regresinis testas, imituojantis `cp1251` kaip numatytąją koduotę.
+Jis patikrino, kad ataskaita išsaugoma UTF-8 ir išlaiko lietuviškas raides
+bei `≥` simbolį. Testas praėjo Linux aplinkoje; tikras Windows paleidimas
+šiame etape nebuvo atliktas. `git diff --check` klaidų nerodė. Išsaugoti
+autoriaus commite `200560e` įkelti rezultatai; modeliai nepermokyti.

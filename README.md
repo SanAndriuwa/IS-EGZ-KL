@@ -8,7 +8,36 @@ Atkuriamas Python tyrimas pagal individualią užduotį. Įgyvendintos abi atska
 
 ## Paleidimas
 
-Rekomenduojama Python 3.12. Iš projekto šakninio katalogo:
+Rekomenduojama Python 3.12. Komandas vykdykite projekto šakniniame kataloge
+(jame yra `requirements.txt` ir `src`). Pasirinkite savo terminalo variantą.
+
+### Windows CMD
+
+```bat
+python -m venv .venv
+.venv\Scripts\activate.bat
+python -m pip install -r requirements.txt
+python -m src.experiment
+```
+
+### Windows PowerShell
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+python -m src.experiment
+```
+
+Jei PowerShell neleidžia aktyvavimo scenarijaus, galima vykdyti tiesiogiai,
+nekeičiant vykdymo politikos:
+
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m src.experiment
+```
+
+### Linux / macOS
 
 ```bash
 python -m venv .venv
@@ -17,7 +46,17 @@ python -m pip install -r requirements.txt
 python -m src.experiment
 ```
 
-Windows PowerShell aktyvavimas: `.venv\Scripts\Activate.ps1`. Po priklausomybių įdiegimo **viena komanda** visam pagrindiniam eksperimentui yra `python -m src.experiment`. Pirmą kartą reikalingas internetas UCI duomenims. Modelių mokymui GPU nereikia.
+Jei `.venv` jau sukurta, jos kūrimo komandą praleiskite. `source` naudojama
+Linux / macOS terminale, Windows CMD jos neatpažįsta.
+
+Po priklausomybių įdiegimo ir aplinkos aktyvavimo **viena komanda** visam
+pagrindiniam eksperimentui yra `python -m src.experiment`. Pirmą kartą
+reikalingas internetas UCI duomenims. Modelių mokymui GPU nereikia.
+
+Ataskaita ir vykdymo aprašas įrašomi UTF-8 koduote, o `config.json` skaitomas
+UTF-8 koduote. Tai apsaugo nuo Windows `UnicodeEncodeError`, kai sistemos
+numatytoji koduotė nepalaiko lietuviškų raidžių. Naudojant senesnę projekto
+kopiją laikinas sprendimas: `python -X utf8 -m src.experiment`.
 
 Duomenys automatiškai atsisiunčiami į `data/online_shoppers_intention.csv`, patikrinama SHA256. Jei atsisiuntimas neprieinamas, iš [UCI puslapio](https://archive.ics.uci.edu/dataset/468/online+shoppers+purchasing+intention+dataset) atsisiųskite ZIP ir originalų CSV įdėkite į minėtą kelią. Duomenų ir modelių kopijų Git repozitorijoje nėra; modeliai atkuriami komanda. Jei kontrolinė suma neatitinka, patikrinkite failo kilmę ir nekeiskite sumos vien tam, kad apeitumėte patikrą.
 

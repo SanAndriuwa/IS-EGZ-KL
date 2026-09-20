@@ -30,7 +30,7 @@ def run(config_path=ROOT / 'config.json', output=ROOT / 'results'):
     """
     # 1. Nustatymai ir katalogai. perf_counter matuoja trukmę sekundėmis.
     started = perf_counter()
-    config = json.loads(Path(config_path).read_text())
+    config = json.loads(Path(config_path).read_text(encoding='utf-8'))
     output = Path(output)
     output.mkdir(parents=True, exist_ok=True)
     model_dir = ROOT / 'models'
