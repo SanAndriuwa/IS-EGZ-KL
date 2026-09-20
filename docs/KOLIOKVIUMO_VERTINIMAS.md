@@ -1,6 +1,6 @@
 # Kolokviumo plano peržiūra pagal vertinimo kriterijus
 
-2026-09-18. Vertintas `KOLOKVIUMO_PLANAS.md` tekstas prieš šios dienos papildymą.
+2026-09-18. Vertintas `KOLIOKVIUMO_PLANAS.md` tekstas prieš šios dienos papildymą.
 Tai AI atlikta dokumento peržiūra, ne dėstytojo pažymys. Pradinio teksto
 orientacinis įvertis - **7,50 / 10**. Didžiausia spraga buvo išsamus pagrindinio
 metodo palyginimas su kiekviena alternatyva (3.2), o ne kodo trūkumas:
@@ -47,5 +47,5 @@ vertinti argumentų stiprumą ir pareikalauti paaiškinti darbą žodžiu.
 5. Kodėl transformacijų negalima mokyti iš viso rinkinio?
 6. Ką darysime, jei numatyta hipotezė nepasitvirtins?
 
-Pateikimui: [kolokviumo planas PDF](KOLOKVIUMO_PLANAS.pdf).
-Redagavimui: [tas pats tekstas Markdown](KOLOKVIUMO_PLANAS.md).
+Pateikimui: [kolokviumo planas PDF](KOLIOKVIUMO_PLANAS.pdf).
+Redagavimui: [tas pats tekstas Markdown](KOLIOKVIUMO_PLANAS.md).

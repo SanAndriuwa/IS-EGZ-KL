@@ -36,11 +36,19 @@ Grafikus atkurkite be mokymo: `python -m src.plots --results results`.
 
 ## Kolokviumo pateikimas
 
-[Kolokviumo planas PDF](docs/KOLOKVIUMO_PLANAS.pdf) - savarankiškas įgyvendinimo planas pagal visus 10 kriterijų, be galutinių rezultatų.
-[Kolokviumo plano DOCX](docs/KOLOKVIUMO_PLANAS.docx) - redaguojama dokumento versija pagal pateikto VILNIUS TECH šablono stilius.
-[Vertinimas ir atlikti papildymai](docs/KOLOKVIUMO_VERTINIMAS.md) pateikti atskirai.
-PDF ir Markdown atkuriami komanda `python scripts/build_colloquium_pdf.py`;
-dokumentui generuoti reikia `reportlab`, `PyMuPDF`, `pdflatex` (standalone, amsmath, amssymb) ir Linux DejaVu Serif šriftų.
+[Kolokviumo planas PDF](docs/KOLIOKVIUMO_PLANAS.pdf) - savarankiškas įgyvendinimo planas pagal visus 10 kriterijų, be galutinių rezultatų.
+[Kolokviumo plano DOCX](docs/KOLIOKVIUMO_PLANAS.docx) - redaguojama dokumento versija pagal pateikto VILNIUS TECH šablono stilius.
+[Vertinimas ir atlikti papildymai](docs/KOLIOKVIUMO_VERTINIMAS.md) pateikti atskirai.
+[Pateiktas VILNIUS TECH šablonas](docs/KOLIOKVIUMO_PLANAS_TEMPLATE.docx) - atskiras pradinio šablono failas.
+Word ir Markdown atkuriami komanda `python scripts/build_colloquium_docx.py`.
+Galutinį PDF eksportuokite iš gauto DOCX naudodami Word arba LibreOffice:
+taip abu pateikiami dokumentai turi tą patį turinį ir puslapių maketą.
+Scenarijui reikia `python-docx`, `lxml`, `pandoc`, `reportlab`, `PyMuPDF`,
+`matplotlib` ir `pdflatex` (standalone, amsmath, amssymb).
+`build_colloquium_pdf.py` saugo bendrą turinį ir atkuria alternatyvaus maketo
+PDF, kurį galutiniam pateikimui pakeičia Word eksportas. DOCX išlaiko
+redaguojamas OMML formules su numeriais dešinėje. Jei sistemoje nėra Times
+New Roman, PDF eksportuotojas gali pakeisti šį šriftą suderinamu šriftu.
 Tai papildomos dokumento generavimo priklausomybės, nereikalingos modelių mokymui.
 
 ## Ką skaityti
@@ -48,7 +56,7 @@ Tai papildomos dokumento generavimo priklausomybės, nereikalingos modelių moky
 | Failas | Paskirtis |
 |---|---|
 | [Kodo dokumentacija ir lankstumas](docs/KODO_DOKUMENTACIJA.md) | Funkcijos, konfigūracija, plėtimo pavyzdžiai ir ribos |
-| [Kolokviumo planas](docs/KOLOKVIUMO_PLANAS.md) | Problema, metodai, literatūra, formulės, moduliai ir AI planas |
+| [Kolokviumo planas](docs/KOLIOKVIUMO_PLANAS.md) | Problema, metodai, literatūra, formulės, moduliai ir AI planas |
 | [Eksperimento protokolas](docs/PROTOKOLAS.md) | Prieš mokymą nustatytas skaidymas, hipotezė ir bandymai |
 | [Galutinė ataskaita](docs/ATASKAITA.md) | Rezultatai, klaidos, interpretacija ir apribojimai |
 | [Automatinė rezultatų lentelė](results/RESULTS.md) | Visų metodų ir bandymų metrikos |

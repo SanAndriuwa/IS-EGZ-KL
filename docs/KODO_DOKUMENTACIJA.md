@@ -42,7 +42,7 @@ Paleidus `python -m src.predict`, mokymas nebevyksta. Įkeliamas išsaugotas mod
 | `experiment.run(config_path, output)` | Konfigūracijos ir rezultatų keliai | Rašo CSV, grafiką, vykdymo aprašą ir modelius; reikšmės negrąžina |
 | `predict.predict(input_path, model_path, output_path)` | Naujas CSV, modelio ir išvesties keliai | Prognozių DataFrame; tą pačią lentelę išsaugo CSV |
 
-Funkcijų pavadinimai čia pateikti su modulio vardu, pavyzdžiui, `data` reiškia `src/data.py`. Pagrindinės eigos, mokymo, modelių, analizės ir išvesties moduliuose yra lietuviški komentarai; išsamesnis metodų pagrindimas bei formulės – [kolokviumo plane](KOLOKVIUMO_PLANAS.md).
+Funkcijų pavadinimai čia pateikti su modulio vardu, pavyzdžiui, `data` reiškia `src/data.py`. Pagrindinės eigos, mokymo, modelių, analizės ir išvesties moduliuose yra lietuviški komentarai; išsamesnis metodų pagrindimas bei formulės – [kolokviumo plane](KOLIOKVIUMO_PLANAS.md).
 
 ## Ką galima pakeisti be Python kodo redagavimo
 

@@ -6,7 +6,7 @@ Andrej Kondratjev, DISfm-26. Intelektualiosios sistemos, 2026–2027 m.
 
 Be neaiškios kilmės prognozės momentu požymio `PageValues` atsitiktinis miškas tik nežymiai pranoko logistinę regresiją. Iš anksto suformuluota hipotezė apie bent 0,02 AP persvarą nepasitvirtino. Tai korektiškas neigiamas rezultatas: modelių ir slenksčių parinkimui galutinis testas nebuvo naudotas. Su `PageValues` gautas daug geresnis rangavimas, bet šio požymio tinkamumas būsimų sesijų realaus laiko prognozei nėra patvirtintas.
 
-Veikianti programa atsisiunčia duomenis, parengia juos, išmoko keturis pagrindinius metodus, atlieka jautrumo bei atsparumo bandymus ir išsaugo tikimybes. Planas, formulės ir literatūra pateikti [kolokviumo plane](KOLOKVIUMO_PLANAS.md), išankstiniai sprendimai – [protokole](PROTOKOLAS.md).
+Veikianti programa atsisiunčia duomenis, parengia juos, išmoko keturis pagrindinius metodus, atlieka jautrumo bei atsparumo bandymus ir išsaugo tikimybes. Planas, formulės ir literatūra pateikti [kolokviumo plane](KOLIOKVIUMO_PLANAS.md), išankstiniai sprendimai – [protokole](PROTOKOLAS.md).
 
 ## Duomenys ir skaidymas
 

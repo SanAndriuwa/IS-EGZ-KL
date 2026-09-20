@@ -4,6 +4,7 @@ PDF generavimui reikia reportlab, PyMuPDF ir pdflatex (standalone, amsmath,
 amssymb); tai dokumento, ne ML eksperimento priklausomybės.
 """
 from pathlib import Path
+import matplotlib
 import subprocess
 import hashlib
 import fitz
@@ -17,10 +18,10 @@ from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 
 ROOT = Path(__file__).resolve().parents[1]
-FONT = Path('/usr/share/fonts/truetype/dejavu')
+FONT = Path(matplotlib.get_data_path()) / 'fonts' / 'ttf'
 for name, file in [('TNR','DejaVuSerif.ttf'),
                    ('TNRB','DejaVuSerif-Bold.ttf'),
-                   ('TNRI','DejaVuSerif.ttf')]:
+                   ('TNRI','DejaVuSerif-Italic.ttf')]:
     pdfmetrics.registerFont(TTFont(name,str(FONT/file)))
 pdfmetrics.registerFontFamily('TNR',normal='TNR',bold='TNRB',italic='TNRI',boldItalic='TNRB')
 styles = {
@@ -45,16 +46,17 @@ def table(headers,rows,widths): pages[-1].append(('table',(headers,rows,widths))
 
 page('1. Problema ir sprendimo paskirtis')
 p('<b>Elektroninės parduotuvės pirkimo ketinimo tyrimo įgyvendinimo planas</b><br/>Andrej Kondratjev | DISfm-26 | Intelektualiosios sistemos | 2026-09-18')
-p('Dokumento paskirtis - apibrėžti įgyvendinimą prieš naujo bandymo vykdymą: duomenis, metodus, sprendimo taisykles ir vertinimą. Čia nepateikiami galutinio eksperimento rezultatai. Tai patikslinta projekto plano redakcija; pradinio protokolo istorija išsaugoma atskirai, todėl ši redakcija nėra nauja išankstinė registracija.')
+h('Įžanga')
+p('Šiame darbe pateikiamas elektroninės parduotuvės lankytojų pirkimo ketinimo tyrimo įgyvendinimo planas. Pirmiausia apibrėžiama problema, praktinė sprendimo vertė ir naudojami naršymo sesijų duomenys. Toliau palyginami galimi klasifikavimo metodai, pagrindžiamas atsitiktinio miško pasirinkimas ir suformuluojama tikrinama hipotezė. Aprašomi duomenų paruošimo, modelių mokymo, vertinimo ir naudojimo etapai, pagrindinės formulės bei planuojami programos moduliai. Taip pat aptariami tyrimo apribojimai ir AI naudojimo bei jo pasiūlymų tikrinimo tvarka. Dokumente pateikiamas darbų planas, o ne galutiniai eksperimento rezultatai.')
 h('1.1. Problema, techninis uždavinys ir vertė')
-p('Elektroninė parduotuvė turi naršymo sesijų duomenų, tačiau vien puslapių ar praleisto laiko skaičius nepasako, kuri sesija labiau tikėtina baigsis pirkimu. Reikia išmokti ryšį tarp kelių sesijos požymių ir pirkimo fakto.')
-p('<b>Techninis uždavinys:</b> prižiūrimo mokymosi dvejetainė klasifikacija. Iš vienos sesijos požymių x apskaičiuoti pirkimo tikimybės įvertį p(x) ir klasę: 1 - pirks, 0 - nepirks. Mokymui pateikiamas žinomas atsakymas Revenue; prognozuojant jo nereikia.')
+p('Elektroninė parduotuvė kaupia duomenis apie lankytojų naršymo sesijas, tačiau vien aplankytų puslapių skaičiaus ar naršymo trukmės nepakanka pirkimo tikimybei įvertinti. Pagal ankstesnių sesijų duomenis siekiama nustatyti, kokie lankytojų elgsenos požymių deriniai yra susiję su pirkimu, ir sukurti modelį šiai tikimybei įvertinti.')
+p('<b>Techninis uždavinys:</b> dvejetainis klasifikavimas (angl. <i>binary classification</i>), taikant prižiūrimąjį mokymąsi (angl. <i>supervised learning</i>). Iš vienos sesijos požymių x apskaičiuoti pirkimo tikimybės įvertį p(x) ir klasę: 1 – sesija priskiriama pirkimo klasei, 0 – nepirkimo klasei. Mokymui pateikiamas žinomas atsakymas Revenue; prognozuojant jo nereikia. Kadangi naudojamos užbaigtų sesijų suvestinės, tai nėra patvirtinta prognozė dar vykstant naršymui.')
 p('<b>Praktinė vertė:</b> sesijų rangavimas galėtų padėti planuoti konsultantų dėmesį ir analizuoti pirkimo elgseną. Projektų vadovui rezultatas būtų patikrinamas prototipas; finansininkui - klaidingų signalų ir praleistų pirkėjų skaičiai; vadybininkui - prioritetų sąrašas; personalo vadybininkui - informacija galimam konsultantų apkrovos planavimui. Darbuotojų vertinimas nėra šio modelio paskirtis.')
 h('1.2. Neakivaizdžios problemos dalys')
 table(['Neaiškumas','Sprendimas plane'],[
-['Kada žinomi požymiai?','CSV yra sesijos suvestinė. Tiriamas neprisijungęs klasifikavimas; realaus laiko prognozė neįrodoma. PageValues pagrindiniame modelyje nenaudojamas.'],
+['Kada žinomi požymiai?','CSV yra sesijos suvestinė. Tiriamas klasifikavimas pagal sukauptus duomenis (angl. <i>offline classification</i>); realaus laiko prognozė neįrodoma. PageValues pagrindiniame modelyje nenaudojamas.'],
 ['Kuris metodas tinkamiausias?','Tiesinį modelį ir du medžių ansamblius lyginti tomis pačiomis imtimis bei metrikomis.'],
-['Mažuma sesijų baigiasi pirkimu','Bendro accuracy nepakanka. Vertinti AP, precision, recall ir klaidų skaičius.'],
+['Mažuma sesijų baigiasi pirkimu','Vien bendro klasifikavimo tikslumo (angl. <i>accuracy</i>) nepakanka. Vertinti AP, teigiamų prognozių tikslumą, jautrumą ir klaidų skaičius (7.1 skyrius).'],
 ['Ar ryšiai išliks vėliau?','Mokyti ankstesniais mėnesiais, vertinti vėlesniais; aprašyti sezoninio poslinkio ribą.'],
 ['Kiek kainuoja klaida?','FP - bereikalingas kontaktas, FN - praleistas pirkėjas. Eurais kainos nežinomos; jų neišgalvoti.']],[130,365])
 p('Prognozė neįrodo, kad nuolaida ar konsultanto kontaktas pakeistų pirkėjo elgesį. Tam reikėtų atskiro intervencijos eksperimento. Konkretaus komercinio įrankio veikimas neaudituojamas, todėl jam nepriskiriami nepatikrinti gebėjimai.')
@@ -70,6 +72,7 @@ table(['Etapas','Ką darome ir kodėl','Baigimo požymis'],[
 ['Naudojimas','Naujai sesijai pateikiame įvertį, nekartodami mokymo.','CSV: eilutės numeris, tikimybė, prognozė.']],[86,251,158])
 h('2.2. Duomenų šaltinis ir tiksli schema')
 p('Naudojamas UCI Online Shoppers Purchasing Intention Dataset: 12 330 sesijų, 17 pradinių požymių ir tikslas Revenue (Sakar &amp; Kastro, 2018). Modeliui atrenkama 15 požymių. Viena CSV eilutė - viena sesija; į modelį siunčiama požymių lentelė, o ne svetainės vaizdas ar tekstas.')
+p('Su rinkiniu susijusiame Sakar ir kt. (2019) tyrime pirkimo ketinimas vertinamas pagal apibendrintus puslapių peržiūrų, sesijos ir lankytojo duomenis. Leidėjo pateiktoje santraukoje aprašytas RF, SVM ir daugiasluoksnio perceptrono palyginimas; tame eksperimente perceptronas pasiekė geresnius accuracy ir F1 rezultatus. Šaltinis pagrindžia uždavinio aktualumą ir RF taikymo galimybę, bet ne RF pranašumą. Šio plano požymiai, skaidymas ir vertinimas skiriasi, todėl paskelbtų rezultatų tiesiogiai neperkeliame. Tikrinta santrauka, o ne visas straipsnis.')
 p('<b>9 skaitiniai:</b> Administrative, Administrative_Duration, Informational, Informational_Duration, ProductRelated, ProductRelated_Duration, BounceRates, ExitRates, SpecialDay. Pirmieji trys pavadinimų tipai žymi puslapių kiekius, jų Duration - trukmes sekundėmis; paskutiniai trys rodikliai yra intervale [0; 1].')
 p('<b>6 kategoriniai:</b> OperatingSystems, Browser, Region, TrafficType, VisitorType, Weekend. Skaitiniai kategorijų kodai laikomi pavadinimais, ne dydžiais. Month naudojamas tik skaidymui. PageValues naudojamas tik atskirame požymio įtakos bandyme. Revenue: False → 0, True → 1.')
 h('2.3. Įvesties ir išvesties sutartis')
@@ -78,17 +81,17 @@ p('Išvestis: row - įvesties eilutės numeris nuo 0; purchase_probability - mod
 
 page('3. Metodų alternatyvos ir šaltiniai')
 p('Intelektualieji metodai taikomi pirkimo klasifikavimo uždaviniui. CSV gavimui ar failų įrašymui dirbtinio intelekto nereikia. Nagrinėjami <b>trys mokomi metodai ir viena paprasta atskaita</b>.')
-h('3.1. Paprastas baseline: mokymo pirkimų dažnis')
-p('Kiekvienai sesijai grąžinama ta pati mokymo imties pirkimų dalis. Tai patikrina, ar modelis iš požymių išmoksta daugiau negu vien bendrą klasės dažnį. Šis metodas sesijų neranguoja; formulė pateikta 6 skyriuje. Tai aritmetinė atskaita, ne pagrindinis intelektualusis metodas.')
+h('3.1. Paprasta atskaita: mokymo imties pirkimų dažnis')
+p('Paprasta atskaita (angl. <i>baseline</i>) kiekvienai sesijai grąžina tą pačią mokymo imties pirkimų dalį. Ji leidžia patikrinti, ar modelis panaudoja sesijos požymius geriau negu vien bendrą pirkimų dažnį. Šis metodas sesijų neranguoja; formulė pateikta 6 skyriuje. Tai aritmetinė atskaita, ne pagrindinis intelektualusis metodas.')
 h('3.2. Logistinė regresija - stipresnė atskaita')
-p('Modelis mokosi skaitinių ir užkoduotų kategorinių požymių svorių, o sigmoidė duoda pirkimo tikimybės įvertį (scikit-learn developers, 2026). Tinka dvejetainiam tikslui ir nedidelės ar vidutinės dimensijos lenteliniams duomenims. Šiame plane tai interpretuojamas palyginimas, padedantis patikrinti, ar sudėtingesnio modelio apskritai reikia.')
+p('Logistinė regresija (angl. <i>logistic regression</i>) nustato skaitinių ir užkoduotų kategorinių požymių svorius, o sigmoidės funkcija paverčia jų svertinę sumą pirkimo tikimybės įverčiu (scikit-learn developers, n.d.-d). Metodas tinka dvejetainiam tikslui ir lenteliniams duomenims. Šiame plane jis naudojamas kaip palyginti lengvai paaiškinama atskaita, padedanti patikrinti, ar sudėtingesnio modelio apskritai reikia.')
 p('Riba: be papildomų sąveikų požymių logaritminis šansų santykis yra tiesinis. Pavyzdžiui, tas pats naršymo laikas skirtingai produktų peržiūrų grupei gali turėti kitą reikšmę; ši sąveika automatiškai neįtraukiama. Šaltinis pagrindžia algoritmo formą, bet ne jo būsimą tikslumą šiame rinkinyje.')
 h('3.3. Atsitiktinis miškas - pagrindinis metodas')
-p('Atskirų medžių sąlygų deriniai leidžia mokytis netiesinių ryšių ir požymių sąveikų. Bootstrap imtys ir atsitiktiniai požymių poaibiai sukuria skirtingus medžius, kurių rezultatai sujungiami (Breiman, 2001). Tai prasminga sesijų lentelei, kur kiekių, trukmių ir lankytojo tipo sąveikos iš anksto nežinomos.')
-p('Breiman (2001, DOI 10.1023/A:1010933404324) pagrindžia miško konstrukciją; konkreti sklearn realizacija tikimybes skaičiuoja kaip medžių lapų tikimybių vidurkį (scikit-learn developers, 2026). Riba: ansamblis mažiau skaidrus negu svorių modelis, o laiko poslinkis gali panaikinti išmoktų taisyklių naudą.')
+p('Atsitiktinis miškas (angl. <i>random forest</i>, RF) sujungia daugelio sprendimų medžių prognozes. Medžių sąlygų deriniai leidžia aprašyti netiesinius ryšius ir požymių sąveikas. Mokymo eilučių atranka su grąžinimu (angl. <i>bootstrap sampling</i>) ir atsitiktiniai požymių poaibiai padeda sudaryti skirtingus medžius (Breiman, 2001). Tai prasminga sesijų lentelei, kur puslapių skaičiaus, naršymo trukmės ir lankytojo tipo sąveikos iš anksto nežinomos.')
+p('Breiman (2001) pagrindžia miško konstrukciją; konkreti scikit-learn realizacija tikimybes skaičiuoja kaip medžių lapų tikimybių vidurkį (scikit-learn developers, n.d.-f). Ansamblį sunkiau paaiškinti negu regresijos svorius, o pasikeitusi lankytojų elgsena gali sumažinti išmoktų taisyklių naudą.')
 h('3.4. Histograminis gradientinis stiprinimas')
-p('Medžiai pridedami nuosekliai, kad mažintų pasirinkto nuostolio likusią paklaidą. Metodas gali atkurti sudėtingus lentelinių požymių ryšius (Friedman, 2001; scikit-learn developers, 2026), todėl yra prasminga kita netiesinė alternatyva tam pačiam dvejetainiam uždaviniui.')
-p('Friedman (2001, DOI 10.1214/aos/1013203451) yra bendro metodo pirminis šaltinis; histograminės realizacijos ir parametrų elgsena remiama bibliotekos autorių dokumentacija (scikit-learn developers, 2026). Reikia derinti žingsnio, iteracijų ir medžių sudėtingumo sąveiką. Tai savaime nereiškia, kad metodas blogesnis už mišką.')
+p('Histograminis gradientinis stiprinimas (angl. <i>histogram-based gradient boosting</i>) nuosekliai prideda medžius, siekdamas mažinti nuostolio funkcijos reikšmę. Jis leidžia aprašyti netiesinius ryšius ir yra alternatyva tam pačiam dvejetainio klasifikavimo uždaviniui (scikit-learn developers, n.d.-b).')
+p('Friedman (2001) yra bendro gradientinio stiprinimo metodo pirminis šaltinis. Jo pilnas tekstas šios patikros metu nebuvo prieinamas, todėl konkretaus mechanizmo paaiškinimas ir histograminės realizacijos savybės šiame plane remiami oficialia bibliotekos dokumentacija (scikit-learn developers, n.d.-b, n.d.-c). Reikia atsižvelgti į mokymosi žingsnio, iteracijų skaičiaus ir medžių sudėtingumo sąveiką; tai savaime nereiškia, kad metodas blogesnis už mišką.')
 h('3.5. Pagrindimo ribos')
 p('Duomenų šaltinis (Sakar &amp; Kastro, 2018) patvirtina klasifikavimo uždavinį ir įvesčių pobūdį. Pirminiai straipsniai ir bibliotekos dokumentacija pagrindžia mechanizmus, o jų pritaikymas šiai schemai yra argumentuota projektavimo išvada. Nei pirminis straipsnis, nei algoritmo populiarumas negarantuoja pranašumo šiame eksperimente.')
 
@@ -104,15 +107,18 @@ p('Netiesiškumas yra privalumas prieš tiesinę regresiją, bet ne išskirtinis
 h('4.3. Patikrinama hipotezė ir sąlygos')
 p('<b>H1:</b> nenaudojant PageValues, RF galutinio testo AP bus bent 0,02 didesnė už logistinės regresijos AP, jeigu netiesinės naršymo intensyvumo ir išėjimo rodiklių sąveikos išlieka vėlesniais mėnesiais. Logistinė regresija yra stipresnė atskaita; papildomai pateikiamas palyginimas su pastoviu dažniu.')
 eq('\\Delta\\mathrm{AP}=\\mathrm{AP}_{\\mathrm{RF}}-\\mathrm{AP}_{\\mathrm{LR}},\\qquad \\Delta\\mathrm{AP}\\geq 0{,}02.')
-p('(1) formulėje 0,02 yra iš anksto pasirinktas praktinio pagerėjimo kriterijus, ne iš literatūros gautas garantuotas efektas. Abu modeliai gauna tas pačias imtis ir tą patį parinkimo kriterijų; kiekvienam skiriami du kandidatų mokymai.')
+p('(1) formulėje 0,02 reiškia absoliutų AP skirtumą, arba 2 procentinius punktus. Ši riba pasirinkta tam, kad labai maži skirtumai, pavyzdžiui, 0,001–0,003, nebūtų laikomi praktiškai svarbiu modelio pranašumu, nes jie gali atsirasti dėl konkrečios testavimo imties atsitiktinumo. Tai iš anksto nustatytas preliminarus praktinio pagerėjimo kriterijus, o ne iš literatūros gautas universalus dydis ar garantuotas efektas. Jei būtų žinomos klaidingo signalo ir praleisto pirkimo kainos, ribą reikėtų grįsti jomis; šiame plane tokios piniginės informacijos nėra. Todėl papildomai vertinamas 95 % porinis bootstrap intervalas ir galima jautrumo analizė su 0,01 bei 0,05 ribomis. Abu modeliai gauna tas pačias imtis ir tą patį parinkimo kriterijų; kiekvienam skiriami du kandidatų mokymai.')
 h('4.4. Kaip bus daroma išvada?')
 p('Jei ΔAP &lt; 0,02, numatytas pagerėjimas šiame teste nepasitvirtins. Jei ΔAP ≥ 0,02, kriterijus bus pasiektas tik šiame teste; papildomai vertinamas 95 % porinio bootstrap intervalas. Jei intervalas apima nulį, tvirto teiginio apie persvarą nedarysime. Nepasiekus prasmingos persvaros, paprastesnė regresija liks pagrįsta praktinė alternatyva. Testo rezultatu nebus perrašomas pradinis parinkimo planas.')
 
 page('5. Algoritmo eiga ir eksperimento taisyklės')
 h('5.1. Skaidymas ir duomenų paruošimas')
-p('Sėkla - 42. Train: Feb, Mar, May, June, Jul, Aug; validation: Sep, Oct; test: Nov, Dec. Jan ir Apr įrašų rinkinyje nėra. Month nėra modelio požymis. Imtys turi nesikirsti, apimti visas eilutes ir turėti abi klases. Chronologija tikrinama pagal mėnesio numerį; tikslių laiko žymų nėra.')
-p('Tik train imtyje išmokstama skaitinių medianų, standartizavimo ir kategorinių modų bei one-hot kategorijų aibė. Validation, test ir naujos sesijos tik transformuojamos. Nežinoma kategorija koduojama nuliais savo kategorijos indikatorių grupėje. Standartizavimas naudingas regresijai; medžiams nebūtinas, bet grandinė visiems vienoda. SMOTE ir klasių svoriai nenaudojami.')
+p('Mokymo imčiai (angl. <i>training set</i>; kode train) priskiriami Feb, Mar, May, June, Jul, Aug mėnesiai; parinkimo imčiai (angl. <i>validation set</i>; kode validation) – Sep ir Oct; galutinei testavimo imčiai (angl. <i>test set</i>; kode test) – Nov ir Dec. Jan ir Apr įrašų rinkinyje nėra. Month nėra modelio požymis. Imtys turi nesikirsti, apimti visas eilutes ir turėti abi klases. Skaidoma pagal mėnesio numerį, nes tikslių laiko žymų nėra.')
+p('Atsitiktinių skaičių generatoriaus pradinė reikšmė (angl. <i>random seed</i>) nustatoma lygi 42. Ji naudojama atsitiktinėms operacijoms, pavyzdžiui, miško mokymo eilučių atrankai ir trūkstamų reikšmių bandymui. Ta pati pradinė reikšmė padeda pakartoti šias operacijas toje pačioje aplinkoje, su tais pačiais duomenimis ir kodu. Skaičius 42 pasirinktas sutartinai, o ne siekiant geresnės prognozės. Skaidymas pagal mėnesius nėra atsitiktinis ir nuo šios reikšmės nepriklauso.')
+p('Duomenų paruošimo (angl. <i>preprocessing</i>) parametrai nustatomi tik mokymo imtyje: skaitinių požymių medianos, vidurkiai ir skalės, kategorinių požymių modos bei kategorijų aibė. Kategorijos paverčiamos atskirais 0 ir 1 indikatoriais (angl. <i>one-hot encoding</i>). Parinkimo, testavimo ir naujos sesijos tik transformuojamos. Nežinoma kategorija koduojama nuliais savo indikatorių grupėje. Standartizavimas naudingas regresijai; medžiams nebūtinas, bet paruošimo veiksmai visiems modeliams vienodi. Sintetiniai mažumos klasės pavyzdžiai nekuriami, klasių svoriai nenaudojami.')
+p('Mokymo ir testavimo duomenys turi išlikti atskirti ir paruošimo metu. Kapoor ir Narayanan (2022, preprintas, 2.4 skyrius, L1.2) visos imties naudojimą transformacijoms nustatyti išskiria kaip informacijos nutekėjimo (angl. <i>data leakage</i>) atvejį. Todėl medianos ir standartizavimo parametrai šiame plane neskaičiuojami iš visos lentelės. Šaltinis pagrindžia šį principą, bet nenustato konkretaus mūsų skaidymo pagal mėnesius.')
 h('5.2. Veiksmų seka programuotojui')
+p('Įgyvendinimui naudojama Python biblioteka scikit-learn. Pedregosa ir kt. (2011) aprašo jos bendrą paskirtį, vienodą programavimo sąsają ir dėmesį dokumentacijai bei kodo kokybei. Tai pagrindžia bendros bibliotekos pasirinkimą aiškiam modelių palyginimui. Dabartinės 1.8 versijos parametrų reikšmės tikrinamos atskiruose dokumentacijos puslapiuose, nes 2011 m. straipsnis jų neaprašo.')
 table(['Nr.','Veiksmas','Planuojamas modulis'],[
 ['1','Gauti CSV; patikrinti SHA256, schemą, reikšmes ir Revenue kodavimą.','data.py'],
 ['2','Skaidyti pagal Month; išsaugoti originalių eilučių priklausomybę imtims.','data.py, reporting.py'],
@@ -125,8 +131,13 @@ table(['Nr.','Veiksmas','Planuojamas modulis'],[
 ['9','Naują CSV tikrinti ir transformuoti išsaugota grandine; pateikti tikimybes.','predict.py']],[26,322,147])
 p('Po pasirinkimo modelis nepermokomas su validation duomenimis. Slenkstis parenkamas iš 0,01; 0,02; ...; 0,99 pagal didžiausią F2; lygybės atveju mažesnis. Testas neperduodamas kandidatų ar slenksčio parinkimo funkcijai.')
 diagram('Sprendimo eiga')
-h('5.3. Fiksuotas kandidatų tinklas')
-p('Pastovus dažnis: 1 kandidatas. Regresija: C = 0,1 arba 1,0; max_iter = 2000. RF: 200 medžių, max_features = sqrt, min_samples_leaf = 5 arba 20, n_jobs = 1; kiti numatyti sklearn 1.8 nustatymai, įskaitant bootstrap ir Gini. Stiprinimas: max_iter = 150, learning_rate = 0,05, max_leaf_nodes = 7 arba 15, early_stopping = False. Mažesnis C reiškia stipresnį reguliavimą.')
+h('5.3. Modelių parametrų variantai ir jų pasirinkimo pagrindimas')
+p('Kandidatu vadinamas modelis su konkrečiu parametrų rinkiniu. Iš anksto nustatytas variantų sąrašas (angl. <i>hyperparameter grid</i>) riboja bandymų skaičių ir leidžia atkurti palyginimą. Toliau paaiškinama, kodėl pasirinktos būtent šios reikšmės. Tai riboto mokomojo eksperimento nustatymai, o ne literatūroje įrodytos optimalios reikšmės šiam duomenų rinkiniui.')
+p('<b>Paprasta atskaita – 1 kandidatas.</b> Pirkimų dažnis apskaičiuojamas iš mokymo duomenų, todėl papildomų derinamų parametrų nėra.')
+p('<b>Logistinė regresija – 2 kandidatai.</b> C = 0,1 ir C = 1,0 leidžia palyginti dešimt kartų besiskiriantį reguliavimo stiprumą: mažesnis C labiau riboja svorius. Taip tikrinama, ar naudingesnis stipriau apribotas modelis. max_iter = 2000 yra optimizavimo iteracijų viršutinė riba, paliekanti vietos konvergencijai, o ne reikalavimas visada vykdyti 2000 iteracijų. Jei gaunamas įspėjimas apie nekonvergavimą, jis registruojamas (scikit-learn developers, n.d.-e).')
+p('<b>Atsitiktinis miškas – 2 kandidatai.</b> Abiem parenkama po 200 medžių: tai praktinis kompromisas tarp prognozių vidurkinimo ir skaičiavimo biudžeto, kurio pakankamumas dar neįrodytas. min_samples_leaf = 5 ir 20 leidžia palyginti smulkesnes ir stambesnes sesijų grupes lapuose; didesnė reikšmė riboja pernelyg detalias taisykles. max_features = sqrt nustato viename skaidyme svarstomų požymių skaičių pagal transformuotų požymių skaičiaus kvadratinę šaknį, kad medžiai būtų įvairesni. n_jobs = 1 išjungia miško darbų lygiagretinimą. Kiti nustatymai – scikit-learn 1.8 numatytieji, įskaitant atranką su grąžinimu ir Gini kriterijų (scikit-learn developers, n.d.-f).')
+p('<b>Histograminis gradientinis stiprinimas – 2 kandidatai.</b> max_leaf_nodes = 7 ir 15 leidžia palyginti du medžių sudėtingumo lygius. max_iter = 150 ir learning_rate = 0,05 parenkami kaip bendras riboto biudžeto nustatymas: mažesnės kiekvieno medžio pataisos derinamos su fiksuotu iteracijų skaičiumi. Tai nėra šių reikšmių optimalumo įrodymas. early_stopping = False išjungia ankstyvą stabdymą, kad nebūtų automatiškai kuriama papildoma vidinė parinkimo imtis ir visi kandidatai būtų mokomi pagal tą pačią taisyklę (scikit-learn developers, n.d.-c).')
+p('Kiekvienam mokomam metodui skiriami du kandidatų mokymai. Tai vienodas bandymų skaičius, bet nebūtinai vienodas vykdymo laikas ar išsami geriausių parametrų paieška. Parametrų paskirtį pagrindžia dokumentacija; konkrečių skaičių pasirinkimas yra šio plano projektinis sprendimas. Pagal testavimo rezultatus šie nustatymai nekeičiami.')
 
 page('6. Formulės: nuo įvesties iki sprendimo')
 p('Pasirinkto RF prognozės kelias: sesijos x reikšmės → paruoštas vektorius z → kiekvieno medžio lapas → lapo pirkimų dalis → medžių vidurkis → sprendimas pagal slenkstį. Indeksas i žymi sesiją, j - skaitinį požymį, b - medį.')
@@ -141,7 +152,7 @@ p('(4)-(5) formulėse j ir t - mokymo metu parinkto mazgo požymio indeksas ir s
 h('6.3. Miško išvestis ir dvejetainis sprendimas')
 eq('\\hat p_{\\mathrm{RF}}(x)=\\frac{1}{B}\\sum_{b=1}^{B}p_b(z),\\qquad B=200.')
 eq('\\hat y=\\begin{cases}1,&\\hat p_{\\mathrm{RF}}(x)\\geq\\tau,\\\\ 0,&\\hat p_{\\mathrm{RF}}(x)<\\tau.\\end{cases}')
-p('(6)-(7) formulėse B - medžių skaičius; τ - tik validation imtyje parinktas slenkstis. sklearn RF vidurkina tikimybes, ne vien medžių 0/1 balsus (scikit-learn developers, 2026). models.py sukurs mišką ir turės forest_probability_by_formula; analysis.py palygins formulę su predict_proba. Leistina skaitinė paklaida: 10⁻¹² (absoliuti, be santykinės tolerancijos).')
+p('(6)-(7) formulėse B – medžių skaičius; τ – tik parinkimo imtyje parinktas sprendimo slenkstis (angl. <i>decision threshold</i>). scikit-learn RF vidurkina tikimybes, ne vien medžių 0/1 balsus (scikit-learn developers, n.d.-f). models.py funkcija forest_probability_by_formula apskaičiuoja atskirų medžių predict_proba rezultatų vidurkį; analysis.py jį palygina su viso miško predict_proba. Ši patikra tikrina vidurkinimą, bet nepriklausomai neatkuria bibliotekos medžio apėjimo. Leistina absoliuti skaitinė paklaida: 10⁻¹², be santykinės tolerancijos.')
 p('<b>Rankinis pavyzdys, ne rezultatas:</b> jei trijų medžių lapų tikimybės yra 0,2; 0,6; 0,4, jų vidurkis yra 0,4. Su τ = 0,3 prognozė lygi 1. Net jei tik vienas medis viršytų 0,5, sprendimas priklauso nuo tikimybių vidurkio ir pasirinkto τ.')
 h('6.4. Atskaitų formulės')
 eq('\\hat p_0=\\frac{1}{N}\\sum_{i=1}^{N}y_i.')
@@ -149,70 +160,78 @@ eq('\\hat p_{\\mathrm{LR}}(z)=\\frac{1}{1+\\exp\\!\\left[-(w^{\\mathsf T}z+a)\\r
 p('(8)-(9) formulėse N - train sesijų skaičius; yᵢ - jų Revenue (0/1); p₀ - pastovi pirkimų dalis. w - regresijos išmokti svoriai, a - jos poslinkis; abu gaunami tik iš train. Modulis: models.py. Mokymo optimizavimo išvedimai neprivalomi: mokymą atliks biblioteka, o šiame plane tiksliai aprašyta prognozės taisyklė.')
 h('6.5. Simbolių ir programos realizacijos atitiktis')
 table(['Formulės simbolis','Reikšmė plane','Kur realizuojama'],[
-['xᵢⱼ, yᵢ','i-osios sesijos požymis ir Revenue tikslas.','data.py: `X`, `y`'],
+['xᵢⱼ, yᵢ','i-osios sesijos požymis ir Revenue tikslas.','data.py: duomenų skaitymas ir tikrinimas'],
 ['mⱼ, μⱼ, sⱼ','Tik train duomenyse išmokta mediana, vidurkis ir skalė.','preprocessing.py: `SimpleImputer`, `StandardScaler`'],
 ['z','Po paruošimo gautas skaitinių ir one-hot požymių vektorius.','preprocessing.py: `ColumnTransformer`'],
-['Lᵦ(z), nᵦ,₁, nᵦ','b-ojo medžio pasiektas lapas ir jo klasės skaičiai.','models.py: `forest_probability_by_formula`'],
+['Lᵦ(z), nᵦ,₁, nᵦ','b-ojo medžio pasiektas lapas ir mokymo pavyzdžių svoriai.','scikit-learn medžio predict_proba; models.py vidurkina medžių tikimybes'],
 ['B, p̂RF, τ','200 medžių, vidutinė tikimybė ir validation parinktas slenkstis.','models.py, training.py, evaluation.py'],
 ['P, R, F₂, AP, Brier','Testo metrikos iš `TP`, `FP`, `FN` ir tikimybių.','evaluation.py: `metrics`'],
 ],[126,220,175])
-p('Ši lentelė yra praktinė formulės patikra: prieš vykdymą programuotojas turi rasti kiekvieną simbolį nurodytame modulyje. Jei kodo pavadinimas pakeičiamas, atnaujinama ir lentelė bei AI žurnalas. Tai reiškia „sutikrinti simbolius su realizacija“ - ne perrašyti bibliotekos vidinio optimizatoriaus, o įrodyti, kad plane aprašytas skaičiavimas sutampa su faktiniu prognozės keliu.')
+p('Lentelė nurodo, kuri programos dalis atlieka formulėje aprašytą veiksmą. Formulės raidė nebūtinai sutampa su kintamojo vardu kode. Tikrinama, iš kur gaunami duomenys, kaip jie transformuojami ir kaip apskaičiuojamas rezultatas. Pavyzdžiui, medžių tikimybių vidurkis turi sutapti su viso miško grąžinama tikimybe. Keičiant skaičiavimo logiką atnaujinamas aprašas ir AI žurnalas.')
 
 page('7. Vertinimas, papildomi bandymai ir biudžetas')
 h('7.1. Metrikos ir jų interpretacija')
 eq('P=\\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FP}}.')
 eq('R=\\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FN}}.')
 eq('F_2=\\frac{5PR}{4P+R}.')
-p('(10)-(12) formulėse TP - teisingai aptikti pirkimai; FP - prognozuoti pirkimai, kurių nebuvo; FN - praleisti pirkimai; TN - teisingai atmesti nepirkimai. P (precision) rodo teigiamų prognozių patikimumą, R (recall) - aptiktų pirkimų dalį. Kai vardiklis nulis, atitinkama metrika lygi 0. F2 daugiau svarbos teikia recall; tai pasirinktas mokomasis prioritetas, ne piniginis optimumas.')
+p('(10)-(12) formulėse TP – teisingai aptikti pirkimai; FP – prognozuoti pirkimai, kurių nebuvo; FN – praleisti pirkimai; TN – teisingai atmesti nepirkimai. P – teigiamų prognozių tikslumas (angl. <i>precision</i>), R – jautrumas (angl. <i>recall</i>), rodantis aptiktų pirkimų dalį. Kai vardiklis nulis, atitinkama metrika lygi 0. F2 daugiau svarbos teikia jautrumui; tai pasirinktas mokomasis prioritetas, ne finansinis optimumas.')
 eq('\\mathrm{AP}=\\sum_{k}(R_k-R_{k-1})P_k.')
 eq('\\mathrm{Brier}=\\frac{1}{M}\\sum_{i=1}^{M}(p_i-y_i)^2.')
-p('(13) formulėje AP sumuojama slenksčius atlaisvinant nuo mažesnio iki didesnio recall; k žymi tašką, R₀ = 0. Naudojama sklearn average_precision_score realizacija (scikit-learn developers, 2026), o ne trapecinis PR plotas. (14) formulėje M - vertinamos imties dydis, pᵢ - modelio tikimybė, yᵢ - tikras atsakymas. Didesnė AP ir mažesnis Brier yra geriau. AP nėra procentinis klasifikavimo tikslumas.')
+p('(13) formulėje AP (angl. <i>average precision</i>) apskaičiuojamas mažinant sprendimo slenkstį ir didėjant jautrumui; k žymi kreivės tašką, R₀ = 0. Naudojama scikit-learn average_precision_score realizacija (scikit-learn developers, n.d.-a), o ne trapecinis plotas po precision–recall kreive. (14) formulėje M – vertinamos imties dydis, pᵢ – modelio tikimybė, yᵢ – tikras atsakymas. Didesnė AP ir mažesnis Brier rodiklis yra geriau. AP nėra procentinis klasifikavimo tikslumas.')
 p('Papildomai pateikti trapecinį PR-AUC, log loss, painiavos matricą, PR kreivę ir kalibracijos kreivę su 8 vienodo dažnio grupėmis. Kalibracijos grafikas tik vertins tikimybes; papildomas kalibratorius nebus mokomas. Modulis: evaluation.py; grafikai: plots.py.')
+p('Saito ir Rehmsmeier (2015) parodo, kodėl nesubalansuotoms klasėms svarbu vertinti teigiamų prognozių tikslumo ir jautrumo santykį: vien accuracy ar ROC vaizdas gali nuslėpti silpną teigiamų prognozių patikimumą. Tai pagrindžia PR kreivės įtraukimą į šį planą. Straipsnis nepagrindžia mūsų hipotezės 0,02 ribos, o konkreti AP skaičiavimo taisyklė remiama scikit-learn dokumentacija.')
+p('Geras klasių atskyrimas dar nereiškia, kad modelio tikimybės gerai kalibruotos (Niculescu-Mizil &amp; Caruana, 2005). Todėl kartu su AP vertinamas Brier rodiklis ir kalibracijos kreivė (angl. <i>reliability diagram</i>), lyginanti prognozuotas tikimybes su stebimu pirkimų dažniu. Šaltinis pagrindžia atskiro tikimybių vertinimo poreikį; pasirinktos 8 vienodo dažnio grupės yra šio plano nustatymas, o ne straipsnio taisyklė.')
 h('7.2. Iš anksto numatyta analizė')
 table(['Bandymas','Tiksli taisyklė ir tikslas'],[
-['Požymio įtaka','Pakartoti RF su PageValues, paliekant tas pačias imtis ir du lapo dydžio kandidatus. Palyginti su pagrindiniu RF be šio požymio. Pagerėjimas neįrodys prieinamumo iki pirkimo.'],
-['Atsparumas','Sėkla 42; nepriklausomai maskuoti apie 10 % testo skaitinių langelių. Keturiems pagrindiniams metodams ta pati kaukė. Modelių, medianų ir slenksčių nekeisti.'],
+['Požymio įtaka (angl. <i>ablation study</i>)','Pakartoti RF su PageValues, paliekant tas pačias imtis ir du lapo dydžio kandidatus. Palyginti su pagrindiniu RF be šio požymio. Pagerėjimas neįrodys prieinamumo iki pirkimo.'],
+['Atsparumas','Generatoriaus pradinė reikšmė – 42; nepriklausomai paslėpti apie 10 % testo skaitinių langelių reikšmių. Keturiems pagrindiniams metodams tos pačios paslėptos reikšmės. Modelių, medianų ir slenksčių nekeisti.'],
 ['Klaidų analizė','RF: 5 didžiausios tikimybės FP ir 5 mažiausios tikimybės FN (arba visi, jei mažiau). Papildomos suvestinės pagal Month ir VisitorType.'],
 ['Neapibrėžtumas','500 porinio stratifikuoto bootstrap kartojimų: su grąžinimu rinkti pirkimų ir nepirkimų eilutes, abiem modeliams tas pačias. ΔAP 2,5 ir 97,5 procentiliai sudaro sąlyginį 95 % intervalą.']],[104,391])
 h('7.3. Skaičiavimo ir rezultatų planas')
 p('Iš viso 9 kandidatų mokymai: 1 + 2 + 2 + 2 pagrindiniams metodams ir 2 RF su PageValues. CPU, vienas srautas, orientacinis biudžetas - 10 min. ir 4 GB RAM. Vykdymo laikas bus matuojamas, RAM - tik planavimo įvertis, ne išmatuotas ar priverstinai ribojamas dydis. Viršijus biudžetą tai pažymėti; slaptai keisti tinklelį pagal testą negalima.')
-p('Numatomos išvestys: imčių sudėtis, kandidatų validation AP, testo metrikos ir sesijų tikimybės, klaidų bei pogrupių lentelės, grafikai, modelio grandinė ir manifestas su versijomis, sėkla bei kodo kontrolinėmis sumomis.')
+p('Numatomos išvestys: imčių sudėtis, kandidatų AP parinkimo imtyje, testavimo metrikos ir sesijų tikimybės, klaidų bei pogrupių lentelės ir grafikai. Taip pat išsaugoma duomenų paruošimo ir klasifikavimo veiksmų seka (angl. <i>pipeline</i>), kad ją būtų galima taikyti naujiems duomenims. Eksperimento vykdymo apraše (angl. <i>run manifest</i>; failas manifest.json) įrašomos bibliotekų versijos, atsitiktinių skaičių generatoriaus pradinė reikšmė ir kodo failų SHA256 kontrolinės sumos. Ši informacija padeda nustatyti, kokiu kodu ir kokioje aplinkoje atliktas bandymas.')
 
 page('8. Rizikos, AI naudojimas ir priėmimo patikros')
 h('8.1. Grėsmės išvadų galiojimui')
+p('Per didelis prisitaikymas galimas ne tik mokant modelį, bet ir renkantis jo parametrus: parinkimo kriterijus apskaičiuojamas iš baigtinės imties ir pats turi atsitiktinę paklaidą (Cawley &amp; Talbot, 2010). Dėl to šiame plane ribojamas kandidatų skaičius, o galutinė testavimo imtis nenaudojama jų parinkimui. Šaltinis pagrindžia riziką ir nepriklausomo vertinimo poreikį, bet negarantuoja, kad du kandidatai ją visiškai pašalina.')
 table(['Grėsmė','Valdymas ir liekanti riba'],[
 ['Informacijos nutekėjimas','Revenue ir Month nepatenka į modelį; PageValues tik atskiras bandymas. Vis tiek neįmanoma iš suvestinės įrodyti visų rodiklių prieinamumo iki pirkimo.'],
 ['Laiko ir parduotuvės poslinkis','Chronologinis skaidymas sumažina atsitiktinio sumaišymo optimizmą. Vieni metai ir viena parduotuvė neleidžia išvados perkelti visur.'],
 ['Nežinomas sesijų ryšys','UCI aprašo skirtingus naudotojus, bet CSV nėra ID. Teiginio nepriklausomai patikrinti ir grupuoti pagal lankytoją negalėsime.'],
 ['Validacijos perkrovimas','Ribotas kandidatų tinklas, bet ta pati validation imtis parenka ir modelį, ir slenkstį. Tai likusi optimizmo rizika.'],
-['Testo peržiūra','Pradinis protokolas išsaugomas. Naujas variantas po testo peržiūros būtų tiriamoji analizė; naujam patvirtinimui reikėtų naujo neliečiamo testo.'],
+['Testo peržiūra','Tai patikslinta projekto plano redakcija, ne nauja išankstinė registracija. Pradinis protokolas išsaugomas. Po testo peržiūros pakeistas variantas būtų tiriamoji analizė; patvirtinimui reikėtų naujo neliečiamo testo.'],
 ['Klaidos kaina ir kalibracija','F2 nėra finansinio pelno kriterijus. Prieš diegimą reikėtų klaidų kainų, prognozės momento audito ir atskiros tikimybių patikros.']],[122,373])
 p('Bootstrap intervalas apibūdina šios testo imties ir šių išmokytų modelių neapibrėžtumą. Jis neapima viso mokymo proceso kintamumo, būsimų sezonų ar kitų parduotuvių. Trūkstamų reikšmių maskavimas neimituoja visų realių gedimų.')
 h('8.2. AI naudojimo ir tikrinimo planas')
 p('AI bus naudojamas dokumento struktūrai, pradiniam aiškiam kodui, komentarams ir testų idėjoms. AI nepakeis šaltinių skaitymo ar programos vykdymo. AI gali pasiūlyti citatą ar DOI, tačiau autorius privalo atverti pirminį arba oficialų šaltinį, patikrinti metaduomenis ir teiginio atitiktį bei pats patvirtinti galutinę citatą. Kiekvieną reikšmingą pakeitimą, atmestą pasiūlymą ir aptiktą klaidą registruoti AI_ZURNALAS.md.')
 table(['Tikrinamas dalykas','Patikros veiksmas'],[
 ['Citatos','AI parenka kandidatą; autorius atveria autoriaus, leidėjo ar oficialios bibliotekos puslapį ir patikrina autorių, metus, DOI bei teiginio atitiktį. Neprieinamo pilno teksto neskelbti perskaitytu.'],
-['Formulės','Sutikrinti simbolius su realizacija; vienos sesijos skaičiavimą patikrinti ranka, RF medžių vidurkį - prieš predict_proba.'],
+['Formulės','Autorius patikrina, ar programoje naudojami tie patys dydžiai ir veiksmai kaip formulėse. Vienos sesijos pavyzdį apskaičiuoja ranka; medžių tikimybių vidurkį palygina su miško predict_proba.'],
 ['Kodas','Testuoti nesikertančias imtis, draudžiamus požymius, tik train išmoktas transformacijas, nežinomas kategorijas ir netinkamą schemą.'],
-['Rezultatai','Vykdyti eksperimentą; skaičius imti iš CSV. Patikrinti pakartojamumą su ta pačia sėkla, įrašyti versijas ir kodo sumas.']],[99,396])
-p('Kodo autorystė: AI parengė pradinį kodą pagal užduoties, projekto ir bibliotekų dokumentacijos reikalavimus; kodas nėra autoriaus gairių automatiškai patvirtintas sprendimas. Autorius turi perskaityti modulius, paleisti testus, patikrinti rezultatus, gebėti paaiškinti sprendimus ir pats priimti galutinę redakciją. AI sugeneruotas tekstas ar kodas negali būti pateikiamas kaip vien autoriaus savarankiškai parašytas darbas.')
+['Rezultatai','Autorius vykdo eksperimentą ir skaičius ima iš CSV. Tikrina pakartojamumą su ta pačia generatoriaus pradine reikšme, tais pačiais duomenimis, kodu ir aplinka; išsaugo versijas bei kodo sumas.']],[99,396])
+p('Kodo autorystė: AI parengė pradinį kodą pagal darbo autoriaus nurodymus ir užduoties reikalavimus, remdamasis bibliotekų dokumentacija. Autorius turi perskaityti modulius, paleisti testus, patikrinti rezultatus, gebėti paaiškinti sprendimus ir pats patvirtinti galutinę redakciją. Tai autoriaus numatyti tikrinimo veiksmai, o ne teiginys, kad jie jau atlikti. AI sugeneruotas tekstas ar kodas negali būti pateikiamas kaip vien autoriaus savarankiškai parašytas darbas.')
 p('Priėmimo sąlyga: kitas programuotojas pagal 2, 5-7 skyrius gali įgyvendinti grandinę ir gauti visus numatytus išvesties failus. Teigiamas hipotezės rezultatas nėra darbo priėmimo sąlyga. Studentas turi gebėti paaiškinti įvestį, miško formulę, slenkstį ir skaidymą.')
 
 page('9. Šaltiniai')
-p('Šaltiniai pateikiami APA 7 autoriaus–metų principu. Pirminiai šaltiniai ir bibliotekos autorių dokumentacija patikrinti 2026-09-18. DOI nuoroda pati savaime nėra pilno straipsnio perskaitymo įrodymas; kiekvienos citatos galutinį tinkamumą patvirtina autorius.')
 refs=[
-('Sakar, C., & Kastro, Y. (2018). <i>Online Shoppers Purchasing Intention Dataset</i>. UCI Machine Learning Repository. https://doi.org/10.24432/C5F88Q','https://doi.org/10.24432/C5F88Q'),
-('scikit-learn developers. (2026). <i>Linear models: Logistic regression</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/linear_model.html#logistic-regression'),
 ('Breiman, L. (2001). Random forests. <i>Machine Learning, 45</i>, 5–32. https://doi.org/10.1023/A:1010933404324','https://doi.org/10.1023/A:1010933404324'),
-('Breiman, L. (2001). <i>Random forests</i> [Author manuscript].','https://www.stat.berkeley.edu/~breiman/randomforest2001.pdf'),
-('scikit-learn developers. (2026). <i>RandomForestClassifier: predict_proba</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.RandomForestClassifier.html'),
+('Cawley, G. C., &amp; Talbot, N. L. C. (2010). On over-fitting in model selection and subsequent selection bias in performance evaluation. <i>Journal of Machine Learning Research, 11</i>, 2079–2107.','https://www.jmlr.org/papers/v11/cawley10a.html'),
 ('Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. <i>Annals of Statistics, 29</i>(5), 1189–1232. https://doi.org/10.1214/aos/1013203451','https://doi.org/10.1214/aos/1013203451'),
-('scikit-learn developers. (2026). <i>Ensembles: Histogram-based gradient boosting</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/ensemble.html#histogram-based-gradient-boosting'),
-('scikit-learn developers. (2026). <i>average_precision_score</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html'),
+('Kapoor, S., &amp; Narayanan, A. (2022). <i>Leakage and the reproducibility crisis in ML-based science</i> [Preprint, v1]. arXiv. https://doi.org/10.48550/arXiv.2207.07048','https://arxiv.org/abs/2207.07048v1'),
+('Niculescu-Mizil, A., &amp; Caruana, R. (2005). Predicting good probabilities with supervised learning. <i>Proceedings of the 22nd International Conference on Machine Learning</i>.','https://www.cs.cornell.edu/~alexn/papers/calibration.icml05.crc.rev3.pdf'),
+('Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cournapeau, D., Brucher, M., Perrot, M., &amp; Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. <i>Journal of Machine Learning Research, 12</i>, 2825–2830.','https://www.jmlr.org/papers/v12/pedregosa11a.html'),
+('Saito, T., &amp; Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. <i>PLOS ONE, 10</i>(3), e0118432. https://doi.org/10.1371/journal.pone.0118432','https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0118432'),
+('Sakar, C., &amp; Kastro, Y. (2018). <i>Online Shoppers Purchasing Intention Dataset</i> [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5F88Q','https://doi.org/10.24432/C5F88Q'),
+('Sakar, C. O., Polat, S. O., Katircioglu, M., &amp; Kastro, Y. (2019). Real-time prediction of online shoppers’ purchasing intention using multilayer perceptron and LSTM recurrent neural networks. <i>Neural Computing and Applications, 31</i>, 6893–6908. https://doi.org/10.1007/s00521-018-3523-0','https://link.springer.com/article/10.1007/s00521-018-3523-0'),
+('scikit-learn developers. (n.d.-a). <i>average_precision_score</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html'),
+('scikit-learn developers. (n.d.-b). <i>Ensembles: Histogram-based gradient boosting</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/ensemble.html#histogram-based-gradient-boosting'),
+('scikit-learn developers. (n.d.-c). <i>HistGradientBoostingClassifier</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html'),
+('scikit-learn developers. (n.d.-d). <i>Linear models: Logistic regression</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/linear_model.html#logistic-regression'),
+('scikit-learn developers. (n.d.-e). <i>LogisticRegression</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/generated/sklearn.linear_model.LogisticRegression.html'),
+('scikit-learn developers. (n.d.-f). <i>RandomForestClassifier</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.RandomForestClassifier.html'),
 ]
 for title,url in refs:
-    pages[-1].append(('small',escape(title)+' <link href="'+url+'" color="#16706b">Atverti šaltinį</link>'))
-p('Friedman DOI nukreipia į leidėjo puslapį, tačiau pilnas tekstas šioje prieigoje neperskaitytas. Algoritmo paaiškinimas tikrintas oficialioje bibliotekos dokumentacijoje; straipsniui nepriskiriamos nepatikrintos pažodinės citatos.')
+    pages[-1].append(('small',title+' <link href="'+url+'" color="#16706b">Atverti šaltinį</link>'))
 
 # ReportLab rezervuoja vietą ir įrašo numerį. PyMuPDF įterpia LaTeX PDF
 # vektorinį turinį į tą vietą, todėl trupmenos ir indeksai neišsilieja priartinus.
@@ -270,7 +289,7 @@ class FlowDiagram(Flowable):
             ('2. Paruošimas', 'train / val / test'),
             ('3. Mokymas', 'baseline + modeliai'),
             ('4. Parinkimas', 'AP + slenkstis τ'),
-            ('5. Naudojimas', 'tikimybė + klasė'),
+            ('5. Vertinimas', 'testas + prognozė'),
         ]
         box_w, box_h, gap = 88, 42, 12
         y = 37
@@ -293,11 +312,12 @@ class FlowDiagram(Flowable):
             c.setFillColor(colors.white)
         c.setFont('TNRB', 9.5)
         c.setFillColor(colors.black)
-        c.drawCentredString(self.width / 2, 16, '1 pav. Sprendimo eiga (sudaryta autoriaus)')
+        c.drawCentredString(self.width / 2, 16, '1 pav. Sprendimo eiga (parengta su AI pagalba pagal projekto planą)')
 
 # Tas pats turinys išsaugomas kaip redaguojamas Markdown.
 def plain(t):
     t=t.replace('<br/>','\n\n').replace('<b>','**').replace('</b>','**')
+    t=t.replace('<i>','*').replace('</i>','*')
     t=re.sub(r'<link href="([^"]+)" color="[^"]+">([^<]+)</link>',r'[\2](\1)',t)
     return t.replace('&lt;','<').replace('&gt;','>').replace('&amp;','&')
 md=['# Kolokviumo įgyvendinimo planas','']
@@ -308,13 +328,13 @@ for i,blocks in enumerate(pages):
     for kind,val in blocks:
         if kind=='table':
             headers,rows,widths=val
-            data=[[Paragraph(escape(x),styles['small']) for x in headers]]
-            data += [[Paragraph(escape(x),styles['small']) for x in row] for row in rows]
+            data=[[Paragraph(x,styles['small']) for x in headers]]
+            data += [[Paragraph(x,styles['small']) for x in row] for row in rows]
             t=Table(data,colWidths=widths,repeatRows=1,hAlign='LEFT')
             t.setStyle(TableStyle([('BACKGROUND',(0,0),(-1,0),colors.HexColor('#e3efef')),('VALIGN',(0,0),(-1,-1),'TOP'),('LINEBELOW',(0,0),(-1,0),0.6,colors.HexColor('#16706b')),('LINEBELOW',(0,1),(-1,-1),0.3,colors.HexColor('#d9e0e5')),('LEFTPADDING',(0,0),(-1,-1),7),('RIGHTPADDING',(0,0),(-1,-1),7),('TOPPADDING',(0,0),(-1,-1),6),('BOTTOMPADDING',(0,0),(-1,-1),6)]))
             flow.extend([t,Spacer(1,8)])
-            md += ['| '+' | '.join(headers)+' |','|'+'|'.join(['---']*len(headers))+'|']
-            md += ['| '+' | '.join(row)+' |' for row in rows];md.append('')
+            md += ['| '+' | '.join(plain(x) for x in headers)+' |','|'+'|'.join(['---']*len(headers))+'|']
+            md += ['| '+' | '.join(plain(x) for x in row)+' |' for row in rows];md.append('')
         elif kind=='eq':
             equation_number += 1
             flow.append(Equation(val,equation_number))
@@ -326,17 +346,15 @@ for i,blocks in enumerate(pages):
                        'B --> C[Train candidates]',
                        'C --> D[Validation AP and threshold]',
                        'D --> E[Test and prediction]', '```', '',
-                       '_1 pav. Sprendimo eiga. Sudaryta autoriaus._', ''])
+                       '_1 pav. Sprendimo eiga. Parengta su AI pagalba pagal projekto planą._', ''])
         else:
             flow.append(Paragraph(val,styles[kind]));md.extend([('## ' if kind=='title' else '### ' if kind=='h' else '')+plain(val),''])
-(ROOT/'docs/KOLOKVIUMO_PLANAS.md').write_text('\n'.join(md))
+(ROOT/'docs/KOLIOKVIUMO_PLANAS.md').write_text('\n'.join(md))
 def footer(c,doc):
-    c.setStrokeColor(colors.HexColor('#16706b'));c.line(50,802,545,802)
     c.setFont('TNR',8);c.setFillColor(colors.HexColor('#536477'))
-    c.drawString(50,813,'IS-EGZ-KL  /  KOLOKVIUMO PLANAS')
     c.drawString(50,28,'Andrej Kondratjev · DISfm-26 · 2026-09-18')
     c.drawRightString(545,28,str(doc.page))
-path=ROOT/'docs/KOLOKVIUMO_PLANAS.pdf'
+path=ROOT/'docs/KOLIOKVIUMO_PLANAS.pdf'
 SimpleDocTemplate(str(path),pagesize=(595.28,841.89),rightMargin=50,leftMargin=50,topMargin=54,bottomMargin=48,title='Kolokviumo įgyvendinimo planas - pirkimo ketinimo tyrimas',author='Andrej Kondratjev').build(flow,onFirstPage=footer,onLaterPages=footer)
 pdf=fitz.open(path)
 for page_number,source,rect in EQUATION_POSITIONS:
