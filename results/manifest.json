@@ -24,8 +24,8 @@
   "dataset_rows": 12330,
   "exact_duplicate_rows": 125,
   "split_source": "Month only; no exact timestamps or visitor IDs",
-  "python": "3.12.14",
-  "platform": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python": "3.12.0",
+  "platform": "Windows-11-10.0.26200-SP0",
   "sklearn": "1.8.0",
   "numpy": "2.3.5",
   "pandas": "2.2.3",
@@ -37,13 +37,18 @@
   ],
   "hypothesis_delta_at_least_0_02": false,
   "missing_numeric_cells": 4197,
-  "elapsed_seconds": 9.367399863999935,
+  "elapsed_seconds": 6.4524772000004305,
   "source_sha256": {
-    "src/__init__.py": "fa986673b13ecfb459611e89f3b518f8946c3d813b6efe62e34d53774146f28f",
-    "src/data.py": "b17c43037a720c4009f17e6af46caef8cafd6a6e320085542f04abe7266206c1",
-    "src/evaluation.py": "8c0db3b27e67830affaf571aaeec749c32a04dac251370077322f96cc3e4598b",
-    "src/experiment.py": "f83f298b6eec60293b7e491e46cdb0dd3049aa50cda318fe597c2f9cf5a1c55d",
-    "src/models.py": "70059d2130b87ee5940d80e07ae2b9566f8ce3e9f663ca5ce970dc0bad297f33",
-    "src/predict.py": "aa5ef63001c1f28a508e13414ce3f3cee7357ebaf680fbe823f5558e0ad17873"
+    "src\\__init__.py": "fa986673b13ecfb459611e89f3b518f8946c3d813b6efe62e34d53774146f28f",
+    "src\\analysis.py": "67c09a9dc4191137035c449e0c9e974e60a0c7dc43185af9919e190fe668a830",
+    "src\\data.py": "b17c43037a720c4009f17e6af46caef8cafd6a6e320085542f04abe7266206c1",
+    "src\\evaluation.py": "8c0db3b27e67830affaf571aaeec749c32a04dac251370077322f96cc3e4598b",
+    "src\\experiment.py": "b1ad080388d3e450a244e5b87a07f05d16afac2ef4a115f84acfa574f3543492",
+    "src\\models.py": "ddce7e962195fda4926c7e6cd1079f5dfca7eba021bc4ff276c044e3f231934e",
+    "src\\plots.py": "0286cd8f3b16124fb6be5ce3854fa7ad2cb37d7bdddfc2c30cb706766970c630",
+    "src\\predict.py": "aa5ef63001c1f28a508e13414ce3f3cee7357ebaf680fbe823f5558e0ad17873",
+    "src\\preprocessing.py": "6326ec5a934504b4f4d9c4eacdab88994e79bdeef4a542cb02504fe1d4b622ff",
+    "src\\reporting.py": "24518384453367624bce88b009755f76cfdf191fd4c387c569a564be476830e2",
+    "src\\training.py": "326a42116818de0095ef258ce3f67e5fe6ed5ba322796e06986651f6ba8938f1"
   }
 }
