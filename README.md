@@ -90,6 +90,16 @@ redaguojamas OMML formules su numeriais dešinėje. Jei sistemoje nėra Times
 New Roman, PDF eksportuotojas gali pakeisti šį šriftą suderinamu šriftu.
 Tai papildomos dokumento generavimo priklausomybės, nereikalingos modelių mokymui.
 
+## Egzamino pateikimas
+
+[Egzamino ataskaita PDF](docs/EGZAMINO_ATASKAITA.pdf) pateikia eksperimento metodiką,
+rezultatus, vizualizacijas, klaidų analizę, ribotumus ir išvadas be perteklinio kodo.
+[Egzamino ataskaitos DOCX](docs/EGZAMINO_ATASKAITA.docx) yra redaguojama versija,
+o [Markdown šaltinis](docs/EGZAMINO_ATASKAITA.md) leidžia greitai peržiūrėti turinį
+repozitorijoje. Ataskaitoje yra atskira skiltis su nuoroda į šią GitHub repozitoriją.
+Dokumentai atkuriami komanda `python scripts/build_exam_report.py`; PDF eksportuojamas
+iš DOCX naudojant dokumentų renderinimo scenarijų.
+
 ## Ką skaityti
 
 | Failas | Paskirtis |
@@ -98,6 +108,7 @@ Tai papildomos dokumento generavimo priklausomybės, nereikalingos modelių moky
 | [Kolokviumo planas](docs/KOLIOKVIUMO_PLANAS.md) | Problema, metodai, literatūra, formulės, moduliai ir AI planas |
 | [Eksperimento protokolas](docs/PROTOKOLAS.md) | Prieš mokymą nustatytas skaidymas, hipotezė ir bandymai |
 | [Galutinė ataskaita](docs/ATASKAITA.md) | Rezultatai, klaidos, interpretacija ir apribojimai |
+| [Egzamino ataskaita](docs/EGZAMINO_ATASKAITA.pdf) | Pateikimui parengta DOCX/PDF ataskaita su vizualizacijomis ir patikros išvadomis |
 | [Automatinė rezultatų lentelė](results/RESULTS.md) | Visų metodų ir bandymų metrikos |
 | [AI žurnalas](docs/AI_ZURNALAS.md) | Priimti sprendimai, aptiktos klaidos ir patikros |
 | [Gynimo instrukcija](docs/GYNIMAS.md) | Formulės paaiškinimas, nematytas CSV ir kodo pakeitimas |

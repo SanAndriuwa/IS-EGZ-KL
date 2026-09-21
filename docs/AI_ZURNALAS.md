@@ -327,3 +327,24 @@ Jis patikrino, kad ataskaita išsaugoma UTF-8 ir išlaiko lietuviškas raides
 bei `≥` simbolį. Testas praėjo Linux aplinkoje; tikras Windows paleidimas
 šiame etape nebuvo atliktas. `git diff --check` klaidų nerodė. Išsaugoti
 autoriaus commite `200560e` įkelti rezultatai; modeliai nepermokyti.
+
+## 2026-09-21 — egzamino ataskaita ir galutinė rezultatų patikra
+
+Autorius paprašė parengti egzamino ataskaitą be pilno programos kodo, paliekant
+tik svarbiausias eilutes, įvertinti galimas klaidas ir vienoje skiltyje pateikti
+nuorodą į GitHub. AI parengė atskiras DOCX, PDF ir Markdown versijas. Ataskaitoje
+palikta eksperimento paleidimo komanda ir viena `predict_proba` eilutė; pridėtos
+proceso, modelių palyginimo, precision–recall ir kalibracijos vizualizacijos.
+
+Prieš rašant išvadas perskaičiuotos sumaišties matricų sumos, precision ir recall,
+duomenų skaidymo sumos, kandidatų ir pogrupių eilučių skaičiai. Patikrinta, kad
+manifeste įrašytos šaltinio failų kontrolinės sumos sutampa su dabartiniais failais.
+Paleisti 8 automatiniai testai; visi praėjo. Ankstesniame `ATASKAITA.md` buvę
+pasenę skaičiai pataisyti: autoriaus Windows vykdymas truko 6,45 s, o dabartiniame
+rinkinyje yra 8, ne 7, automatiniai testai. Modeliai nepermokyti ir rezultatai
+neperrašyti.
+
+DOCX formulės sukurtos redaguojamu Microsoft Office Math (OMML) formatu ir
+sunumeruotos. Naudotas tas pats A4, Times New Roman 12 pt, 1,5 intervalo ir
+30/20/20/20 mm paraščių principas kaip ankstesniame pateikimo dokumente. PDF
+eksportuotas iš DOCX, o visi 10 puslapių renderinti ir vizualiai peržiūrėti.
