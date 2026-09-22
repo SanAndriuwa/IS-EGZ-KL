@@ -348,3 +348,34 @@ DOCX formulės sukurtos redaguojamu Microsoft Office Math (OMML) formatu ir
 sunumeruotos. Naudotas tas pats A4, Times New Roman 12 pt, 1,5 intervalo ir
 30/20/20/20 mm paraščių principas kaip ankstesniame pateikimo dokumente. PDF
 eksportuotas iš DOCX, o visi 10 puslapių renderinti ir vizualiai peržiūrėti.
+
+## 2026-09-22 — keturių metodų prognozių paaiškinimas
+
+Autorius pastebėjo, kad egzamino ataskaitoje formaliai aprašytas tik miško
+prognozavimo principas, ir paklausė apie pastovią atskaitą, logistinę regresiją,
+miško schemos tikslumą, gradientinį stiprinimą ir skirtingą medžių skaičių.
+AI palygino `DummyClassifier(strategy='prior')`, `LogisticRegression`,
+`RandomForestClassifier` ir `HistGradientBoostingClassifier` su projekto
+`models.py`, `preprocessing.py`, `training.py` bei oficialia scikit-learn 1.8
+dokumentacija. Ataskaitoje pateiktos visų keturių metodų prognozių taisyklės,
+paaiškinta, kad pastovi mokymo tikimybė yra 731 / 6608 ≈ 0,1106, o 0,2066 yra
+testo pirkimų dalis ir pastovaus modelio testo AP. Pabrėžta, kad logistinė
+regresija neturi paslėptų sluoksnių ir gauna 9 skaitinius bei 6 kategorinius
+pradinius požymius; kategorijų kodavimas išplečia įvestį. Nauja principų
+schema yra supaprastinta, kaip ir eksperimento eigos diagrama. Paaiškintas
+miško 200 nepriklausomų medžių ir stiprinimo 150 nuoseklių medžių vaidmuo.
+
+Kolokviumo plane jau buvusios pastovios atskaitos ir regresijos formulės
+papildytos gradientinio stiprinimo išvesties formule; dabar yra 15 numeruotų
+redaguojamų OMML formulių. Brier formulėje `M` pakeistas į `n`, kad mokymo
+iteracijų skaičius nesusimaišytų su vertinamų sesijų skaičiumi. Taip pat
+ištaisyta egzamino ataskaitos proceso schemos veiksmų tvarka: validacija ir
+modelio parinkimas vyksta prieš galutinį testą. Egzamino ataskaitos netikslus
+kategorinių trūkstamų reikšmių apibūdinimas pakeistas į mokymo dažniausią
+kategoriją. Duomenys ir eksperimento rezultatai neperrašyti.
+
+Atnaujintas egzamino DOCX eksportuotas į 12 A4 puslapių PDF; kolokviumo
+plano DOCX – į 16 A4 puslapių PDF. Visi puslapiai renderinti ir vizualiai
+peržiūrėti, ypač nauji 3.1 bei 6.4 formulių skyriai. Patikrinta, kad egzamine
+yra 8, o plane 15 sunumeruotų redaguojamų OMML formulių. Markdown matematinės
+nuorodos `\\tag{}` sugeneruotos be atsitiktinių tabuliacijos simbolių.

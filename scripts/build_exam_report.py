@@ -49,8 +49,8 @@ def make_figures() -> None:
         (1.0, 5.6, 2.2, 1.0, "UCI duomenys\n12 330 sesijų"),
         (3.9, 5.6, 2.2, 1.0, "Laikinis skaidymas\nmokymas / validacija / testas"),
         (6.8, 5.6, 2.2, 1.0, "Paruošimas\nmedianos ir kodavimas"),
-        (6.8, 2.5, 2.2, 1.0, "Galutinis testas\nAP, Brier, F2 ir klaidos"),
-        (3.9, 2.5, 2.2, 1.0, "Modelių parinkimas\ntik pagal validacijos AP"),
+        (6.8, 2.5, 2.2, 1.0, "Modelių parinkimas\ntik pagal validacijos AP"),
+        (3.9, 2.5, 2.2, 1.0, "Galutinis testas\nAP, Brier, F2 ir klaidos"),
         (1.0, 2.5, 2.2, 1.0, "Naudojimas\ntikimybė ir slenkstis"),
     ]
     for x, y, w, h, label in nodes:
@@ -100,9 +100,40 @@ def make_figures() -> None:
     fig.savefig(ASSETS / "exam_model_comparison.png", dpi=220, bbox_inches="tight")
     plt.close(fig)
 
+    fig, axes = plt.subplots(4, 1, figsize=(9.2, 6.8))
+    rows = [
+        ("Paprasta atskaita", ["Mokymo etiketės", "731 / 6608", "Visiems p = 0,1106"], "#7c8fa2"),
+        ("Logistinė regresija", ["15 požymių → kodavimas", "Svoriai + poslinkis", "Sigmoidė → p"], "#4e83b2"),
+        ("Atsitiktinis miškas", ["Požymiai", "200 medžių lygiagrečiai", "Lapų tikimybių vidurkis"], "#1d517f"),
+        ("Gradientinis stiprinimas", ["Požymiai + F₀", "150 medžių paeiliui", "Suma → sigmoidė → p"], "#338f84"),
+    ]
+    for ax, (label, steps, color) in zip(axes, rows):
+        ax.set_xlim(0, 10)
+        ax.set_ylim(0, 1.2)
+        ax.axis("off")
+        ax.text(0, 0.6, label, ha="left", va="center", weight="bold", fontsize=10, color=color)
+        for i, step in enumerate(steps):
+            x = 2.55 + 2.4 * i
+            box = FancyBboxPatch((x, 0.22), 2.05, 0.7, boxstyle="round,pad=0.07",
+                                 facecolor="#f1f5f9", edgecolor=color, linewidth=1.1)
+            ax.add_patch(box)
+            ax.text(x + 1.025, 0.57, step, ha="center", va="center", fontsize=9)
+            if i < 2:
+                ax.add_patch(FancyArrowPatch((x + 2.06, 0.57), (x + 2.37, 0.57),
+                                             arrowstyle="-|>", mutation_scale=12, color=color))
+    fig.suptitle("Keturi tikimybės skaičiavimo principai", fontsize=13, weight="bold")
+    fig.text(0.5, 0.02, "Supaprastinta schema: medžių vidaus šakų ir visų užkoduotų požymių ji nerodo.",
+             ha="center", fontsize=9, color="#555")
+    fig.tight_layout(rect=(0, 0.04, 1, 0.96))
+    fig.savefig(ASSETS / "exam_model_mechanisms.png", dpi=220, bbox_inches="tight")
+    plt.close(fig)
+
 
 FORMULAS = [
-    r"\hat{p}_{RF}(x)=\frac{1}{T}\sum_{t=1}^{T}\hat{p}_{t}(x)",
+    r"\hat p_0=\frac{1}{N}\sum_{i=1}^{N}y_i",
+    r"\hat p_{\mathrm{LR}}(x)=\frac{1}{1+\exp[-(w^{\mathsf T}z+a)]}",
+    r"\hat p_{\mathrm{RF}}(x)=\frac{1}{T}\sum_{t=1}^{T}p_t(z)",
+    r"\hat p_{\mathrm{GB}}(x)=\sigma\!\left(F_0+\eta\sum_{m=1}^{M}h_m(z)\right)",
     r"AP=\sum_{k}(R_k-R_{k-1})P_k",
     r"Brier=\frac{1}{n}\sum_{i=1}^{n}(\hat{p}_i-y_i)^2",
     r"F_2=\frac{5\,\mathrm{Precision}\,\mathrm{Recall}}{4\,\mathrm{Precision}+\mathrm{Recall}}",
@@ -295,7 +326,7 @@ class Report:
         for cell in table.rows[0].cells:
             cell.paragraphs[0].paragraph_format.line_spacing = 1.0
         self.p(explanation)
-        self.md.insert(len(self.md) - 2, f"$$ {FORMULAS[self.eq_no - 1]} \tag{{{self.eq_no}}} $$")
+        self.md.insert(len(self.md) - 2, f"$$ {FORMULAS[self.eq_no - 1]} \\tag{{{self.eq_no}}} $$")
         self.md.insert(len(self.md) - 2, "")
 
     def table(self, caption: str, headers: list[str], rows: list[list[str]], widths=None):
@@ -343,9 +374,11 @@ class Report:
         self.figure_no += 1
         p = self.doc.add_paragraph()
         p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        p.paragraph_format.keep_with_next = True
         p.add_run().add_picture(str(path), width=Mm(width))
         cap = self.doc.add_paragraph(f"{self.figure_no} pav. {caption}", style="Caption")
         cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        cap.paragraph_format.keep_with_next = False
         relative = Path(os.path.relpath(path, DOCS)).as_posix()
         self.md.extend([f"![{caption}]({relative})", "",
                         f"*{self.figure_no} pav. {caption}*", ""])
@@ -361,7 +394,7 @@ def build() -> None:
     r.title_page()
 
     r.heading("1. Įvadas")
-    r.p("Šioje ataskaitoje aprašomas elektroninės parduotuvės sesijos pirkimo ketinimo tyrimas: duomenų gavimas ir paruošimas, modelių mokymas, parinkimas, galutinis vertinimas, klaidų analizė ir praktinio naudojimo ribos. Tyrimo tikslas – pagal iki sprendimo momento turimus sesijos požymius apskaičiuoti pirkimo tikimybę ir palyginti, ar atsitiktinis miškas suteikia praktiškai pastebimą pranašumą prieš paprastesnes atskaitas. Ataskaitoje pateikiami jau įvykdyto eksperimento rezultatai; visas programos kodas nekartojamas.")
+    r.p("Šioje ataskaitoje aprašomas elektroninės parduotuvės sesijos pirkimo ketinimo tyrimas: duomenų gavimas ir paruošimas, modelių mokymas, parinkimas, galutinis vertinimas, klaidų analizė ir praktinio naudojimo ribos. Tyrimo tikslas – pagal užbaigtų sesijų suvestines apskaičiuoti pirkimo tikimybės įvertį ir palyginti, ar atsitiktinis miškas suteikia praktiškai pastebimą pranašumą prieš paprastesnes atskaitas. Šio bandymo požymių prieinamumas dar vykstant naršymui nepatvirtintas. Ataskaitoje pateikiami jau įvykdyto eksperimento rezultatai; visas programos kodas nekartojamas.")
     r.p("Praktinė vertė – galimybė rikiuoti sesijas pagal tikėtiną pirkimą ir nukreipti ribotus veiksmus, pavyzdžiui, konsultanto dėmesį ar priminimą. Prognozė pati savaime nenusako, kokį veiksmą taikyti: tam dar reikia žinoti klaidingo teigiamo sprendimo, praleisto pirkėjo ir intervencijos kainą.")
     r.heading("1.1. Tyrimo klausimas ir hipotezė", 2)
     r.p("Pagrindinis klausimas: ar modelis, gebantis aprašyti netiesines požymių sąveikas, vėlesnių mėnesių sesijas surikiuoja geriau už logistinę regresiją? Iš anksto nustatyta H1 hipotezė: nenaudojant neaiškaus prieinamumo požymio PageValues, atsitiktinio miško galutinio testo AP turi būti bent 0,02, t. y. 2 procentiniais punktais, didesnė už logistinės regresijos AP. 0,02 riba yra projekto minimalus praktiškai pastebimas pagerėjimas, o ne literatūroje garantuotas efektas.")
@@ -373,7 +406,7 @@ def build() -> None:
         ["Validacija", "Rugsėjis–spalis", "997", "201", "20,16 %"],
         ["Galutinis testas", "Lapkritis–gruodis", "4 725", "976", "20,66 %"],
     ], [1.2, 1.7, 1, 1, 1.2])
-    r.p("Skaidymas sąmoningai imituoja mokymą iš ankstesnių mėnesių ir vertinimą vėlesniu laikotarpiu. Mokymo imties medianos, kategorijų žodynas ir kitos transformacijos apskaičiuojamos tik iš mokymo dalies. Skaitinės tuščios reikšmės pakeičiamos mokymo mediana, kategorinės – atskira reikšme, o kategorijos koduojamos vienkartiniu kodavimu (angl. one-hot encoding). Nežinomos vėlesnių imčių kategorijos priimamos be klaidos.")
+    r.p("Skaidymas sąmoningai imituoja mokymą iš ankstesnių mėnesių ir vertinimą vėlesniu laikotarpiu. Mokymo imties medianos, kategorijų žodynas ir kitos transformacijos apskaičiuojamos tik iš mokymo dalies. Skaitinės tuščios reikšmės pakeičiamos mokymo mediana, kategorinės – mokyme dažniausia reikšme, o kategorijos koduojamos vienkartiniu kodavimu (angl. one-hot encoding). Nežinomos vėlesnių imčių kategorijos priimamos be klaidos.")
     r.p("Pagrindiniame variante naudojama 15 pradinių požymių. PageValues pašalintas, nes jo apskaičiavimo momentas duomenų apraše nėra pakankamai aiškus realaus laiko prognozei. Šis požymis grąžinamas tik atskirame jautrumo bandyme. Visiškai sutampančios 125 eilutės paliktos, nes suvestinės sutapimas neįrodo, kad tai tas pats lankytojas; jos dėl mėnesio negali kirsti pasirinkto skaidymo ribų.")
 
     r.heading("3. Metodai ir eksperimento protokolas")
@@ -384,9 +417,22 @@ def build() -> None:
         ["Gradientinis stiprinimas", "Nuosekliai taisomos ankstesnių medžių klaidos", "150 iteracijų; 7 lapai"],
     ], [1.3, 2.5, 1.7])
     r.p("Iš viso validacijoje išbandyti 9 iš anksto apibrėžti kandidatai: viena pastovi atskaita, dvi logistinės regresijos, dvi atsitiktinio miško, dvi gradientinio stiprinimo ir dvi atsitiktinio miško su PageValues versijos. Kiekvienoje metodų šeimoje laimėtojas parinktas tik pagal validacijos AP. Galutinis testas iki pasirinkimų užfiksavimo nenaudotas.")
-    r.figure(ASSETS / "exam_workflow.png", "Eksperimento eiga ir duomenų atskyrimo principas")
-    r.heading("3.1. Atsitiktinio miško prognozė", 2)
-    r.formula("Čia T – medžių skaičius, x – vienos sesijos požymių vektorius, o pₜ(x) – t-ojo medžio apskaičiuota pirkimo tikimybė. Galutinė tikimybė yra medžių tikimybių vidurkis.")
+    r.figure(ASSETS / "exam_workflow.png", "Eksperimento eiga ir duomenų atskyrimo principas", width=135)
+    r.heading("3.1. Kaip kiekvienas metodas apskaičiuoja tikimybę", 2)
+    r.p("Visi keturi metodai grąžina įvertį intervale [0; 1], bet skiriasi būdu, kuriuo jį gauna. x žymi vienos sesijos pradinius požymius, o z – tą pačią sesiją po mokymo imtyje nustatyto paruošimo. Šios formulės aprašo prognozavimą jau išmokytu modeliu, o ne visą jo mokymo procedūrą.")
+    r.figure(ASSETS / "exam_model_mechanisms.png", "Keturių metodų principinė struktūra; medžių ir požymių vidus supaprastintas", width=128)
+    r.p("Pastovus mokymo pirkimų dažnis (angl. baseline) ignoruoja z ir visoms sesijoms priskiria vienodą mokymo pirkimų dalį (scikit-learn developers, n.d.-b):")
+    r.formula("N = 6 608 – mokymo sesijų skaičius, o yᵢ yra i-osios mokymo sesijos Revenue (1 – pirkta, 0 – nepirkta). Šiame bandyme p₀ = 731 / 6 608 ≈ 0,1106. Modelis vienodas tikimybes grąžina ir testo eilutėms; jo testo AP = 0,2066 sutampa su testo pirkimų dalimi, o ne su mokymo pirkimų dažniu.")
+    r.p("Logistinė regresija sudeda išmoktų požymių svorių poveikį ir rezultatą paverčia tikimybe sigmoidės funkcija:")
+    r.formula("w yra iš mokymo duomenų išmoktas požymių svorių vektorius, a – poslinkis; skliaustuose esantis wᵀz + a yra pradinis įvertis. Didesnis C reiškia silpnesnį koeficientų apribojimą; validacija pasirinko C = 1. Tai dvejetainio LogisticRegression predict_proba taisyklė (scikit-learn developers, n.d.-c).")
+    r.p("Tai primena vieną neuroną su sigmoidės aktyvavimo funkcija, tačiau paslėptų sluoksnių nėra. Įvestis šiame darbe nėra keturi skaičiai: naudojami 9 skaitiniai ir 6 kategoriniai pradiniai požymiai, o kategorijas užkodavus vektorius z turi daugiau komponentų. 4 įėjimų piešinys būtų tik mokomasis pavyzdys, ne šios programos architektūra.")
+    r.p("Atsitiktinis miškas kiekvieną paruoštą sesiją nuveda į kiekvieno medžio lapą; iš ten gautos teigiamos klasės tikimybės suvidurkinamos:")
+    r.formula("T = 200 – medžių skaičius, pₜ(z) – t-ojo medžio pasiekto lapo mokymo pavyzdžių pirkimų dalis. Tai tikimybių vidurkis, ne balsavimas pagal kiekvieno medžio 0/1 klasę (scikit-learn developers, n.d.-d).")
+    r.p("1 pav. rodo viso eksperimento duomenų eigą, o 2 pav. – supaprastintus modelių principus. Miško eilutėje nupiešti žodžiai „200 medžių“ nereiškia vieno konkretaus medžio struktūros: kiekviename iš 200 realių medžių yra daug vidinių skaidymų ir lapų. Todėl schemoje matomas tik medžių lygiagretumas ir jų išvesčių vidurkinimas.")
+    r.p("Histograminis gradientinis stiprinimas (angl. histogram-based gradient boosting) iš pradinio įverčio nuosekliai prideda medžių taisymus logaritminių šansų skalėje. Tikimybė gaunama pritaikius sigmoidę:")
+    r.formula("F₀ yra mokyme nustatytas pradinis įvertis, hₘ(z) – m-ojo medžio indėlis prieš žingsnio koeficientą, M = 150 – iteracijų skaičius, η = 0,05 – mokymosi žingsnis, σ(u) = 1 / (1 + exp(−u)). Tai skaičiavimo principo užrašas: tikslų lapų reikšmių ir jų taisymų mokymą įgyvendina scikit-learn. Šio modelio medžių tikimybės tiesiogiai nevidurkinamos (scikit-learn developers, n.d.-e).")
+    r.p("Skirtingą medžių skaičių lemia jų vaidmuo: miško 200 medžių išmokstami atskirai ir jų prognozės vidurkinamos, o stiprinimo 150 medžių kuriami paeiliui, po vieną mažą taisymą su η = 0,05. Skaičiai 200 ir 150 buvo iš anksto pasirinkti ribotam skaičiavimo biudžetui, o ne kaip vienodo sudėtingumo ar įrodyto optimalaus tikslumo reikšmės. Todėl vien medžių skaičius neleidžia spręsti, kuris modelis geresnis; tai parodo tik atskirtos imties metrikos.")
+    r.p("Visiems metodams dvejetainė išvestis gaunama palyginus jų grąžintą pirkimo tikimybę su tos metodų šeimos validacijoje parinktu slenksčiu τ: jei p ≥ τ, prognozė yra 1, kitu atveju – 0. Pastovus modelis slenksčio tinklelyje visus testo įrašus priskyrė teigiamai klasei.")
     r.heading("3.2. Vertinimo rodikliai", 2)
     r.p("Pagrindinė metrika yra AP (angl. average precision). Ji apibendrina teigiamų prognozių tikslumo (angl. precision) ir jautrumo (angl. recall) ryšį per visus unikalius slenksčius ir gerai tinka retai teigiamai klasei. Precision atsako, kokia teigiamų prognozių dalis buvo teisinga, o recall – kokia tikrų pirkimų dalis aptikta.")
     r.formula("Rₖ ir Pₖ yra recall bei precision k-ajame prognozės slenkstyje. Didesnė AP reikšmė reiškia geresnį sesijų surikiavimą.")
@@ -475,7 +521,11 @@ def build() -> None:
         "Saito, T., Rehmsmeier, M. (2015). The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets. PLOS ONE, 10(3), e0118432. https://doi.org/10.1371/journal.pone.0118432",
         "Sakar, C. O., Kastro, Y. (2018). Online Shoppers Purchasing Intention Dataset. UCI Machine Learning Repository. https://doi.org/10.24432/C5F88Q",
         "Sakar, C. O. ir kt. (2019). Real-time prediction of online shoppers’ purchasing intention using multilayer perceptron and LSTM recurrent neural networks. Neural Computing and Applications, 31, 6893–6908. https://doi.org/10.1007/s00521-018-3523-0",
-        "scikit-learn developers (n.d.). average_precision_score documentation. https://scikit-learn.org/stable/modules/generated/sklearn.metrics.average_precision_score.html",
+        "scikit-learn developers (n.d.-a). average_precision_score documentation (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html",
+        "scikit-learn developers (n.d.-b). DummyClassifier (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.dummy.DummyClassifier.html",
+        "scikit-learn developers (n.d.-c). Logistic Regression (version 1.8). https://scikit-learn.org/1.8/modules/linear_model.html#logistic-regression",
+        "scikit-learn developers (n.d.-d). RandomForestClassifier (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.RandomForestClassifier.html",
+        "scikit-learn developers (n.d.-e). HistGradientBoostingClassifier (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html",
     ]
     for i, source in enumerate(sources, 1):
         p = r.doc.add_paragraph()

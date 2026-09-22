@@ -154,10 +154,12 @@ eq('\\hat p_{\\mathrm{RF}}(x)=\\frac{1}{B}\\sum_{b=1}^{B}p_b(z),\\qquad B=200.')
 eq('\\hat y=\\begin{cases}1,&\\hat p_{\\mathrm{RF}}(x)\\geq\\tau,\\\\ 0,&\\hat p_{\\mathrm{RF}}(x)<\\tau.\\end{cases}')
 p('(6)-(7) formulėse B – medžių skaičius; τ – tik parinkimo imtyje parinktas sprendimo slenkstis (angl. <i>decision threshold</i>). scikit-learn RF vidurkina tikimybes, ne vien medžių 0/1 balsus (scikit-learn developers, n.d.-f). models.py funkcija forest_probability_by_formula apskaičiuoja atskirų medžių predict_proba rezultatų vidurkį; analysis.py jį palygina su viso miško predict_proba. Ši patikra tikrina vidurkinimą, bet nepriklausomai neatkuria bibliotekos medžio apėjimo. Leistina absoliuti skaitinė paklaida: 10⁻¹², be santykinės tolerancijos.')
 p('<b>Rankinis pavyzdys, ne rezultatas:</b> jei trijų medžių lapų tikimybės yra 0,2; 0,6; 0,4, jų vidurkis yra 0,4. Su τ = 0,3 prognozė lygi 1. Net jei tik vienas medis viršytų 0,5, sprendimas priklauso nuo tikimybių vidurkio ir pasirinkto τ.')
-h('6.4. Atskaitų formulės')
+h('6.4. Atskaitų ir gradientinio stiprinimo išvestys')
 eq('\\hat p_0=\\frac{1}{N}\\sum_{i=1}^{N}y_i.')
 eq('\\hat p_{\\mathrm{LR}}(z)=\\frac{1}{1+\\exp\\!\\left[-(w^{\\mathsf T}z+a)\\right]}.')
 p('(8)-(9) formulėse N - train sesijų skaičius; yᵢ - jų Revenue (0/1); p₀ - pastovi pirkimų dalis. w - regresijos išmokti svoriai, a - jos poslinkis; abu gaunami tik iš train. Modulis: models.py. Mokymo optimizavimo išvedimai neprivalomi: mokymą atliks biblioteka, o šiame plane tiksliai aprašyta prognozės taisyklė.')
+eq('\\hat p_{\\mathrm{GB}}(x)=\\sigma\\!\\left(F_0+\\eta\\sum_{m=1}^{M}h_m(z)\\right).')
+p('(10) formulėje F₀ – mokymo metu nustatytas pradinis įvertis logaritminių šansų skalėje, hₘ(z) – m-ojo medžio indėlis prieš žingsnio koeficientą, M = 150 – iteracijų skaičius, η = 0,05 – mokymosi žingsnis, o σ(u) = 1 / (1 + exp(−u)). Tai dvejetainio histograminio gradientinio stiprinimo prognozės principas, ne rankinis bibliotekos mokymo algoritmo perrašymas: medžiai paeiliui taiso bendrą įvertį, jų tikimybės nevidurkinamos. Bibliotekos numatytasis log_loss naudoja sigmoidę (scikit-learn developers, n.d.-b, n.d.-c). Išvestį apskaičiuoja models.py sukurto HistGradientBoostingClassifier predict_proba.')
 h('6.5. Simbolių ir programos realizacijos atitiktis')
 table(['Formulės simbolis','Reikšmė plane','Kur realizuojama'],[
 ['xᵢⱼ, yᵢ','i-osios sesijos požymis ir Revenue tikslas.','data.py: duomenų skaitymas ir tikrinimas'],
@@ -165,6 +167,7 @@ table(['Formulės simbolis','Reikšmė plane','Kur realizuojama'],[
 ['z','Po paruošimo gautas skaitinių ir one-hot požymių vektorius.','preprocessing.py: `ColumnTransformer`'],
 ['Lᵦ(z), nᵦ,₁, nᵦ','b-ojo medžio pasiektas lapas ir mokymo pavyzdžių svoriai.','scikit-learn medžio predict_proba; models.py vidurkina medžių tikimybes'],
 ['B, p̂RF, τ','200 medžių, vidutinė tikimybė ir validation parinktas slenkstis.','models.py, training.py, evaluation.py'],
+['F₀, hₘ, η, M, p̂GB','Gradientinio stiprinimo pradinis įvertis, medžių indėliai, žingsnis ir tikimybė.','models.py: HistGradientBoostingClassifier; predict_proba'],
 ['P, R, F₂, AP, Brier','Testo metrikos iš `TP`, `FP`, `FN` ir tikimybių.','evaluation.py: `metrics`'],
 ],[126,220,175])
 p('Lentelė nurodo, kuri programos dalis atlieka formulėje aprašytą veiksmą. Formulės raidė nebūtinai sutampa su kintamojo vardu kode. Tikrinama, iš kur gaunami duomenys, kaip jie transformuojami ir kaip apskaičiuojamas rezultatas. Pavyzdžiui, medžių tikimybių vidurkis turi sutapti su viso miško grąžinama tikimybe. Keičiant skaičiavimo logiką atnaujinamas aprašas ir AI žurnalas.')
@@ -174,10 +177,10 @@ h('7.1. Metrikos ir jų interpretacija')
 eq('P=\\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FP}}.')
 eq('R=\\frac{\\mathrm{TP}}{\\mathrm{TP}+\\mathrm{FN}}.')
 eq('F_2=\\frac{5PR}{4P+R}.')
-p('(10)-(12) formulėse TP – teisingai aptikti pirkimai; FP – prognozuoti pirkimai, kurių nebuvo; FN – praleisti pirkimai; TN – teisingai atmesti nepirkimai. P – teigiamų prognozių tikslumas (angl. <i>precision</i>), R – jautrumas (angl. <i>recall</i>), rodantis aptiktų pirkimų dalį. Kai vardiklis nulis, atitinkama metrika lygi 0. F2 daugiau svarbos teikia jautrumui; tai pasirinktas mokomasis prioritetas, ne finansinis optimumas.')
+p('(11)-(13) formulėse TP – teisingai aptikti pirkimai; FP – prognozuoti pirkimai, kurių nebuvo; FN – praleisti pirkimai; TN – teisingai atmesti nepirkimai. P – teigiamų prognozių tikslumas (angl. <i>precision</i>), R – jautrumas (angl. <i>recall</i>), rodantis aptiktų pirkimų dalį. Kai vardiklis nulis, atitinkama metrika lygi 0. F2 daugiau svarbos teikia jautrumui; tai pasirinktas mokomasis prioritetas, ne finansinis optimumas.')
 eq('\\mathrm{AP}=\\sum_{k}(R_k-R_{k-1})P_k.')
-eq('\\mathrm{Brier}=\\frac{1}{M}\\sum_{i=1}^{M}(p_i-y_i)^2.')
-p('(13) formulėje AP (angl. <i>average precision</i>) apskaičiuojamas mažinant sprendimo slenkstį ir didėjant jautrumui; k žymi kreivės tašką, R₀ = 0. Naudojama scikit-learn average_precision_score realizacija (scikit-learn developers, n.d.-a), o ne trapecinis plotas po precision–recall kreive. (14) formulėje M – vertinamos imties dydis, pᵢ – modelio tikimybė, yᵢ – tikras atsakymas. Didesnė AP ir mažesnis Brier rodiklis yra geriau. AP nėra procentinis klasifikavimo tikslumas.')
+eq('\\mathrm{Brier}=\\frac{1}{n}\\sum_{i=1}^{n}(p_i-y_i)^2.')
+p('(14) formulėje AP (angl. <i>average precision</i>) apskaičiuojamas mažinant sprendimo slenkstį ir didėjant jautrumui; k žymi kreivės tašką, R₀ = 0. Naudojama scikit-learn average_precision_score realizacija (scikit-learn developers, n.d.-a), o ne trapecinis plotas po precision–recall kreive. (15) formulėje n – vertinamos imties dydis, pᵢ – modelio tikimybė, yᵢ – tikras atsakymas. Didesnė AP ir mažesnis Brier rodiklis yra geriau. AP nėra procentinis klasifikavimo tikslumas.')
 p('Papildomai pateikti trapecinį PR-AUC, log loss, painiavos matricą, PR kreivę ir kalibracijos kreivę su 8 vienodo dažnio grupėmis. Kalibracijos grafikas tik vertins tikimybes; papildomas kalibratorius nebus mokomas. Modulis: evaluation.py; grafikai: plots.py.')
 p('Saito ir Rehmsmeier (2015) parodo, kodėl nesubalansuotoms klasėms svarbu vertinti teigiamų prognozių tikslumo ir jautrumo santykį: vien accuracy ar ROC vaizdas gali nuslėpti silpną teigiamų prognozių patikimumą. Tai pagrindžia PR kreivės įtraukimą į šį planą. Straipsnis nepagrindžia mūsų hipotezės 0,02 ribos, o konkreti AP skaičiavimo taisyklė remiama scikit-learn dokumentacija.')
 p('Geras klasių atskyrimas dar nereiškia, kad modelio tikimybės gerai kalibruotos (Niculescu-Mizil &amp; Caruana, 2005). Todėl kartu su AP vertinamas Brier rodiklis ir kalibracijos kreivė (angl. <i>reliability diagram</i>), lyginanti prognozuotas tikimybes su stebimu pirkimų dažniu. Šaltinis pagrindžia atskiro tikimybių vertinimo poreikį; pasirinktos 8 vienodo dažnio grupės yra šio plano nustatymas, o ne straipsnio taisyklė.')

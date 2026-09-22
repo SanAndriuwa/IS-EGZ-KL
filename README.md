@@ -93,7 +93,8 @@ Tai papildomos dokumento generavimo priklausomybės, nereikalingos modelių moky
 ## Egzamino pateikimas
 
 [Egzamino ataskaita PDF](docs/EGZAMINO_ATASKAITA.pdf) pateikia eksperimento metodiką,
-rezultatus, vizualizacijas, klaidų analizę, ribotumus ir išvadas be perteklinio kodo.
+rezultatus, keturių metodų veikimo principus, vizualizacijas, klaidų analizę,
+ribotumus ir išvadas be perteklinio kodo.
 [Egzamino ataskaitos DOCX](docs/EGZAMINO_ATASKAITA.docx) yra redaguojama versija,
 o [Markdown šaltinis](docs/EGZAMINO_ATASKAITA.md) leidžia greitai peržiūrėti turinį
 repozitorijoje. Ataskaitoje yra atskira skiltis su nuoroda į šią GitHub repozitoriją.

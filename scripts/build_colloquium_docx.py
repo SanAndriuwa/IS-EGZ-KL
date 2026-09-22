@@ -35,7 +35,7 @@ converted = subprocess.run(
 with ZipFile(BytesIO(converted.stdout)) as archive:
     math_xml = etree.fromstring(archive.read('word/document.xml'))
 math_nodes = math_xml.findall('.//' + qn('m:oMathPara'))
-assert len(math_nodes) == 14
+assert len(math_nodes) == 15
 
 doc = Document()
 section = doc.sections[0]
