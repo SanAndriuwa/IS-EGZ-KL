@@ -137,6 +137,7 @@ FORMULAS = [
     r"AP=\sum_{k}(R_k-R_{k-1})P_k",
     r"Brier=\frac{1}{n}\sum_{i=1}^{n}(\hat{p}_i-y_i)^2",
     r"F_2=\frac{5\,\mathrm{Precision}\,\mathrm{Recall}}{4\,\mathrm{Precision}+\mathrm{Recall}}",
+    r"F_1=\frac{2\,\mathrm{Precision}\,\mathrm{Recall}}{\mathrm{Precision}+\mathrm{Recall}}",
     r"\Delta AP=AP_{RF}-AP_{LR}=0.3411-0.3336=0.0076",
 ]
 
@@ -434,11 +435,13 @@ def build() -> None:
     r.p("Skirtingą medžių skaičių lemia jų vaidmuo: miško 200 medžių išmokstami atskirai ir jų prognozės vidurkinamos, o stiprinimo 150 medžių kuriami paeiliui, po vieną mažą taisymą su η = 0,05. Skaičiai 200 ir 150 buvo iš anksto pasirinkti ribotam skaičiavimo biudžetui, o ne kaip vienodo sudėtingumo ar įrodyto optimalaus tikslumo reikšmės. Todėl vien medžių skaičius neleidžia spręsti, kuris modelis geresnis; tai parodo tik atskirtos imties metrikos.")
     r.p("Visiems metodams dvejetainė išvestis gaunama palyginus jų grąžintą pirkimo tikimybę su tos metodų šeimos validacijoje parinktu slenksčiu τ: jei p ≥ τ, prognozė yra 1, kitu atveju – 0. Pastovus modelis slenksčio tinklelyje visus testo įrašus priskyrė teigiamai klasei.")
     r.heading("3.2. Vertinimo rodikliai", 2)
-    r.p("Pagrindinė metrika yra AP (angl. average precision). Ji apibendrina teigiamų prognozių tikslumo (angl. precision) ir jautrumo (angl. recall) ryšį per visus unikalius slenksčius ir gerai tinka retai teigiamai klasei. Precision atsako, kokia teigiamų prognozių dalis buvo teisinga, o recall – kokia tikrų pirkimų dalis aptikta.")
+    r.p("Pagrindinė metrika yra AP (angl. average precision). Ji apibendrina teigiamų prognozių tikslumo (angl. precision) ir jautrumo (angl. recall) ryšį per visus unikalius slenksčius ir gerai tinka retai teigiamai klasei. Jei TP yra teisingai aptikti pirkimai, FP – klaidingai pirkimais pavadintos sesijos, o FN – praleisti pirkimai, tai precision = TP / (TP + FP) ir recall = TP / (TP + FN). Pirmasis atsako, kokia teigiamų prognozių dalis teisinga, antrasis – kokia tikrų pirkimų dalis aptikta.")
     r.formula("Rₖ ir Pₖ yra recall bei precision k-ajame prognozės slenkstyje. Didesnė AP reikšmė reiškia geresnį sesijų surikiavimą.")
     r.formula("Čia n – vertintų sesijų skaičius, pᵢ – prognozuota tikimybė, yᵢ ∈ {0,1} – tikras pirkimo faktas. Mažesnis Brier nuostolis reiškia tikslesnes tikimybines prognozes.")
     r.p("Veiksmo slenkstis parenkamas validacijoje maksimizuojant F2, nes šiame demonstraciniame scenarijuje recall laikomas svarbesniu už precision. Tikrame diegime slenkstis turi būti siejamas su veiksmų biudžetu ir realiomis klaidų kainomis.")
-    r.formula("F2 recall suteikia keturis kartus didesnį svorį negu precision. Tai projekto taisyklė, o ne universalus verslo sprendimas.")
+    r.formula("F2 teikia pirmenybę recall: išreikštos per klaidų skaičius formulės vardiklyje FN koeficientas yra 4, o FP – 1 (scikit-learn developers, n.d.-f). Tai projekto taisyklė, o ne universali klaidų kainų proporcija.")
+    r.p("Palyginimui F1 vienoje reikšmėje vienodai derina precision ir recall:")
+    r.formula("Pakeitus tik skaičiavimo rodiklį iš F2 į F1, to paties modelio prognozės ir TP, FP, FN nepasikeičia; pasikeičia skaitinė vertinimo reikšmė. Jei pagal naują rodiklį iš naujo parenkamas slenkstis validacijoje, gali pasikeisti ir sprendimai, precision bei recall.")
 
     r.heading("4. Programos realizacija ir prieinamumas")
     r.p("Programa išskaidyta į atskirus modulius: duomenų gavimą, paruošimą, modelius, mokymą, vertinimą, analizę, grafikų kūrimą ir rezultatų įrašymą. Visą eksperimentą paleidžia viena komanda:")
@@ -462,6 +465,12 @@ def build() -> None:
     r.p("Porinio bootstrap 95 % intervalas skirtumui yra [−0,0113; 0,0284]. Jis apima nulį, o stebėtas 0,0076 pagerėjimas nesiekia iš anksto nustatytos 0,02 ribos. Todėl H1 nepatvirtinama. Tai nėra eksperimento nesėkmė: neigiamas rezultatas parodo, kad sudėtingesnis modelis šioje sąžiningai atskirtoje imtyje nesuteikė numatyto praktinio pranašumo.")
     r.heading("5.1. Slenkstis ir sumaišties matrica", 2)
     r.p("Atsitiktinio miško validacijoje parinktas 0,03 slenkstis. Galutiniame teste gauta TN=745, FP=3 004, FN=20 ir TP=956. Taigi aptikta 97,95 % pirkimų, tačiau iš 3 960 teigiamų prognozių teisingos buvo tik 956. Didelis recall nėra bendras tikslumas; toks žemas slenkstis tiktų tik pigiam veiksmui, kai praleisto pirkėjo kaina yra gerokai didesnė už nereikalingo kontakto kainą.")
+    r.p("Prie šio užfiksuoto slenksčio precision = 956 / (956 + 3 004) = 0,2414, recall = 956 / (956 + 20) = 0,9795, F1 = 0,3874, o F2 = 0,6078. Didesnis F2 šiuo atveju nereiškia, kad modelis pagerėjo: abu balai apskaičiuoti iš tų pačių prognozių, tik F2 labiau vertina didelį recall.")
+    r.table("To paties miško testo prognozės esant dviem iliustraciniams slenksčiams", ["Slenkstis", "TP", "FP", "FN", "Precision", "Recall", "F1", "F2"], [
+        ["0,03", "956", "3 004", "20", "0,2414", "0,9795", "0,3874", "0,6078"],
+        ["0,10", "857", "2 142", "119", "0,2858", "0,8781", "0,4312", "0,6207"],
+    ], [1.15, 0.7, 0.9, 0.7, 1.2, 1.0, 0.8, 0.8])
+    r.p("0,10 eilutė yra tik iliustracija, perskaičiuota pagal jau turimas testo tikimybes: keliant slenkstį sumažėja teigiamų prognozių, praleidžiama daugiau pirkimų, bet sumažėja nereikalingų kontaktų. Teste abiejų F reikšmių padidėjimas nesuteikia teisės pakeisti validacijoje nustatyto 0,03 slenksčio. Norint sąžiningai palyginti F1 ir F2 parenkamus slenksčius, juos reikia atskirai nustatyti išsaugotose validacijos prognozėse arba pakartotinai vykdant mokymą, o tada vieną kartą vertinti tame pačiame teste. Mūsų galutinė AP = 0,3411 nuo šių fiksuotų slenksčių nepriklauso.")
     r.heading("5.2. Kalibracija", 2)
     r.figure(ROOT / "results" / "evaluation.png", "Precision–recall ir tikimybių kalibracijos kreivės")
     r.p("Atsitiktinis miškas dažniausiai nuvertina pirkimo tikimybę. Pavyzdžiui, vienoje tikimybių grupėje vidutinė prognozė yra 0,183, o tikroji pirkimų dalis – 0,325; aukščiausioje grupėje atitinkamai 0,300 ir 0,379. Tai dera su tuo, kad testiniu laikotarpiu pirkimų dalis buvo didesnė negu mokymo laikotarpiu, tačiau vien šis sutapimas neįrodo priežasties.")
@@ -526,6 +535,7 @@ def build() -> None:
         "scikit-learn developers (n.d.-c). Logistic Regression (version 1.8). https://scikit-learn.org/1.8/modules/linear_model.html#logistic-regression",
         "scikit-learn developers (n.d.-d). RandomForestClassifier (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.RandomForestClassifier.html",
         "scikit-learn developers (n.d.-e). HistGradientBoostingClassifier (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html",
+        "scikit-learn developers (n.d.-f). fbeta_score documentation (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.fbeta_score.html",
     ]
     for i, source in enumerate(sources, 1):
         p = r.doc.add_paragraph()

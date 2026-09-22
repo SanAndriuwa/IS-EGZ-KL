@@ -379,3 +379,21 @@ plano DOCX – į 16 A4 puslapių PDF. Visi puslapiai renderinti ir vizualiai
 peržiūrėti, ypač nauji 3.1 bei 6.4 formulių skyriai. Patikrinta, kad egzamine
 yra 8, o plane 15 sunumeruotų redaguojamų OMML formulių. Markdown matematinės
 nuorodos `\\tag{}` sugeneruotos be atsitiktinių tabuliacijos simbolių.
+
+## 2026-09-22 — AP, precision, recall, F1 ir F2 paaiškinimas
+
+Autorius paprašė suprantamai paaiškinti AP, recall, F1 ir F2 bei kas pasikeistų
+vietoje F2 naudojant F1. AI patikrino `src/evaluation.py`: šiuo metu modelių
+kandidatai renkami pagal validacijos AP, o sprendimo slenkstis parenkamas pagal
+validacijos F2. Metrikų apibrėžimai sutikrinti su oficialia scikit-learn 1.8
+`average_precision_score` ir `fbeta_score` dokumentacija.
+
+Iš užfiksuotų `results/test_predictions.csv` tikimybių perskaičiuoti miško
+testo rodikliai: prie validacijoje nustatyto 0,03 slenksčio TP=956, FP=3004,
+FN=20, precision=0,2414, recall=0,9795, F1=0,3874, F2=0,6078. Papildomai
+iliustruotas 0,10 slenkstis (TP=857, FP=2142, FN=119, F1=0,4312,
+F2=0,6207); tai tik mokomasis testo prognozių perskaičiavimas, ne naujas
+validacijoje pasirinktas sprendimas. Ataskaitoje aiškiai atskirtas vien metrikos
+pavadinimo pakeitimas nuo pakartotinio slenksčio parinkimo. Testas
+nenaudotas naujam slenksčiui pasirinkti, modeliai nepermokyti ir
+`results/metrics.csv` nepakeistas.

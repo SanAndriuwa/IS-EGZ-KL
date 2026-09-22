@@ -87,7 +87,7 @@ Visiems metodams dvejetainė išvestis gaunama palyginus jų grąžintą pirkimo
 
 ### 3.2. Vertinimo rodikliai
 
-Pagrindinė metrika yra AP (angl. *average precision*). Ji apibendrina teigiamų prognozių tikslumo (angl. *precision*) ir jautrumo (angl. *recall*) ryšį per visus unikalius slenksčius ir gerai tinka retai teigiamai klasei. Precision atsako, kokia teigiamų prognozių dalis buvo teisinga, o *recall* – kokia tikrų pirkimų dalis aptikta.
+Pagrindinė metrika yra AP (angl. *average precision*). Ji apibendrina teigiamų prognozių tikslumo (angl. *precision*) ir jautrumo (angl. *recall*) ryšį per visus unikalius slenksčius ir gerai tinka retai teigiamai klasei. Jei TP yra teisingai aptikti pirkimai, FP – klaidingai pirkimais pavadintos sesijos, o FN – praleisti pirkimai, tai *precision* = TP / (TP + FP) ir *recall* = TP / (TP + FN). Pirmasis atsako, kokia teigiamų prognozių dalis teisinga, antrasis – kokia tikrų pirkimų dalis aptikta.
 
 $$ AP=\sum_{k}(R_k-R_{k-1})P_k \tag{5} $$
 
@@ -101,7 +101,13 @@ Veiksmo slenkstis parenkamas validacijoje maksimizuojant F2, nes šiame demonstr
 
 $$ F_2=\frac{5\,\mathrm{Precision}\,\mathrm{Recall}}{4\,\mathrm{Precision}+\mathrm{Recall}} \tag{7} $$
 
-F2 *recall* suteikia keturis kartus didesnį svorį negu *precision*. Tai projekto taisyklė, o ne universalus verslo sprendimas.
+F2 teikia pirmenybę *recall*: išreikštos per klaidų skaičius formulės vardiklyje FN koeficientas yra 4, o FP – 1 (scikit-learn developers, n.d.-f). Tai projekto taisyklė, o ne universali klaidų kainų proporcija.
+
+Palyginimui F1 vienoje reikšmėje vienodai derina *precision* ir *recall*:
+
+$$ F_1=\frac{2\,\mathrm{Precision}\,\mathrm{Recall}}{\mathrm{Precision}+\mathrm{Recall}} \tag{8} $$
+
+Pakeitus tik skaičiavimo rodiklį iš F2 į F1, to paties modelio prognozės ir TP, FP, FN nepasikeičia; pasikeičia skaitinė vertinimo reikšmė. Jei pagal naują rodiklį iš naujo parenkamas slenkstis validacijoje, gali pasikeisti ir sprendimai, *precision* bei *recall*.
 
 ## 4. Programos realizacija ir prieinamumas
 
@@ -140,7 +146,7 @@ Atkuriamumui užfiksuota Python ir bibliotekų aplinka, atsitiktinių skaičių 
 
 *3 pav. Pagrindinių modelių AP ir Brier palyginimas*
 
-$$ \Delta AP=AP_{RF}-AP_{LR}=0.3411-0.3336=0.0076 \tag{8} $$
+$$ \Delta AP=AP_{RF}-AP_{LR}=0.3411-0.3336=0.0076 \tag{9} $$
 
 Atsitiktinis miškas skaičiais yra geriausias pagrindinis modelis, tačiau jo AP persvara prieš logistinę regresiją tėra 0,0076, t. y. 0,76 procentinio punkto.
 
@@ -149,6 +155,17 @@ Porinio bootstrap 95 % intervalas skirtumui yra [−0,0113; 0,0284]. Jis apima n
 ### 5.1. Slenkstis ir sumaišties matrica
 
 Atsitiktinio miško validacijoje parinktas 0,03 slenkstis. Galutiniame teste gauta TN=745, FP=3 004, FN=20 ir TP=956. Taigi aptikta 97,95 % pirkimų, tačiau iš 3 960 teigiamų prognozių teisingos buvo tik 956. Didelis *recall* nėra bendras tikslumas; toks žemas slenkstis tiktų tik pigiam veiksmui, kai praleisto pirkėjo kaina yra gerokai didesnė už nereikalingo kontakto kainą.
+
+Prie šio užfiksuoto slenksčio *precision* = 956 / (956 + 3 004) = 0,2414, *recall* = 956 / (956 + 20) = 0,9795, F1 = 0,3874, o F2 = 0,6078. Didesnis F2 šiuo atveju nereiškia, kad modelis pagerėjo: abu balai apskaičiuoti iš tų pačių prognozių, tik F2 labiau vertina didelį *recall*.
+
+**4 lentelė. To paties miško testo prognozės esant dviem iliustraciniams slenksčiams**
+
+| Slenkstis | TP | FP | FN | Precision | Recall | F1 | F2 |
+|---|---|---|---|---|---|---|---|
+| 0,03 | 956 | 3 004 | 20 | 0,2414 | 0,9795 | 0,3874 | 0,6078 |
+| 0,10 | 857 | 2 142 | 119 | 0,2858 | 0,8781 | 0,4312 | 0,6207 |
+
+0,10 eilutė yra tik iliustracija, perskaičiuota pagal jau turimas testo tikimybes: keliant slenkstį sumažėja teigiamų prognozių, praleidžiama daugiau pirkimų, bet sumažėja nereikalingų kontaktų. Teste abiejų F reikšmių padidėjimas nesuteikia teisės pakeisti validacijoje nustatyto 0,03 slenksčio. Norint sąžiningai palyginti F1 ir F2 parenkamus slenksčius, juos reikia atskirai nustatyti išsaugotose validacijos prognozėse arba pakartotinai vykdant mokymą, o tada vieną kartą vertinti tame pačiame teste. Mūsų galutinė AP = 0,3411 nuo šių fiksuotų slenksčių nepriklauso.
 
 ### 5.2. Kalibracija
 
@@ -166,7 +183,7 @@ Pridėjus PageValues, atsitiktinio miško AP padidėjo iki 0,6715, o Brier suma�
 
 ### 6.2. Trūkstamų reikšmių atsparumas
 
-**4 lentelė. AP pokytis atsitiktinai paslėpus 9,87 % skaitinių langelių**
+**5 lentelė. AP pokytis atsitiktinai paslėpus 9,87 % skaitinių langelių**
 
 | Modelis | Pradinė AP | AP su trūkumais | Pokytis |
 |---|---|---|---|
@@ -180,7 +197,7 @@ Pridėjus PageValues, atsitiktinio miško AP padidėjo iki 0,6715, o Brier suma�
 
 Lapkričio atsitiktinio miško AP buvo 0,3868, gruodžio – 0,2900; tuo pat metu pirkimų dalys buvo 25,35 % ir 12,51 %. Kadangi AP priklauso nuo klasės dažnio, šis skirtumas nėra grynas modelio kokybės pablogėjimo matas. Naujiems lankytojams žemas slenkstis visas 754 sesijas priskyrė teigiamai klasei, todėl prieš realų naudojimą būtinas atskiras slenksčio auditas.
 
-**5 lentelė. Tipiniai atsitiktinio miško klaidų pavyzdžiai**
+**6 lentelė. Tipiniai atsitiktinio miško klaidų pavyzdžiai**
 
 | Šaltinio eilutė | Klaida | Tikimybė | Interpretacija |
 |---|---|---|---|
@@ -232,3 +249,4 @@ Duomenų SHA256 ir programos kontrolinės sumos sutampa su dabartiniais failais.
 12. scikit-learn developers (n.d.-c). Logistic Regression (version 1.8). https://scikit-learn.org/1.8/modules/linear_model.html#logistic-regression
 13. scikit-learn developers (n.d.-d). RandomForestClassifier (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.RandomForestClassifier.html
 14. scikit-learn developers (n.d.-e). HistGradientBoostingClassifier (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.ensemble.HistGradientBoostingClassifier.html
+15. scikit-learn developers (n.d.-f). fbeta_score documentation (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.fbeta_score.html
