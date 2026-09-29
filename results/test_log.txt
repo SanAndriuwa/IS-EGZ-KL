@@ -5,8 +5,9 @@ test_imputer_is_fit_on_training_only (test_core.CoreTests.test_imputer_is_fit_on
 test_invalid_schema_and_values_are_rejected (test_core.CoreTests.test_invalid_schema_and_values_are_rejected) ... ok
 test_no_target_or_suspect_feature_in_primary_input (test_core.CoreTests.test_no_target_or_suspect_feature_in_primary_input) ... ok
 test_threshold_uses_supplied_validation_labels (test_core.CoreTests.test_threshold_uses_supplied_validation_labels) ... ok
+test_summary_preserves_lithuanian_text_with_cp1251_default (test_reporting.ReportingTests.test_summary_preserves_lithuanian_text_with_cp1251_default) ... ok
 
 ----------------------------------------------------------------------
-Ran 7 tests in 0.830s
+Ran 8 tests in 0.292s
 
 OK

@@ -1,9 +1,50 @@
-"""Papildomi bandymai: trūkstamos reikšmės, RF klaidos ir AP skirtumo intervalas."""
+"""Papildomi bandymai: požymio abliacija, trūkstamos reikšmės ir RF analizė."""
+from pathlib import Path
 import numpy as np
 import pandas as pd
+from sklearn.metrics import average_precision_score
 from .data import prepare_features, NUMERIC
 from .evaluation import metrics, paired_ap_interval
-from .models import forest_probability_by_formula
+from .models import build_model, forest_probability_by_formula
+
+
+def evaluate_pagevalues_ablation(train, validation, test, seed, output):
+    """Compare fixed RF variants with and without PageValues; select nothing."""
+    rows = []
+    y_train = train['Revenue'].to_numpy()
+    y_validation = validation['Revenue'].to_numpy()
+    y_test = test['Revenue'].to_numpy()
+
+    for min_samples_leaf in [5, 20]:
+        for include_page_values in [False, True]:
+            model = build_model(
+                'random_forest',
+                seed,
+                {'min_samples_leaf': min_samples_leaf},
+                include_page_values,
+            )
+            model.fit(
+                prepare_features(train, include_page_values),
+                y_train,
+            )
+            validation_probability = model.predict_proba(
+                prepare_features(validation, include_page_values),
+            )[:, 1]
+            test_probability = model.predict_proba(
+                prepare_features(test, include_page_values),
+            )[:, 1]
+            rows.append({
+                'min_samples_leaf': min_samples_leaf,
+                'include_page_values': include_page_values,
+                'validation_ap': average_precision_score(
+                    y_validation, validation_probability,
+                ),
+                'test_ap': average_precision_score(y_test, test_probability),
+            })
+
+    result = pd.DataFrame(rows)
+    result.to_csv(Path(output) / 'pagevalues_ablation.csv', index=False)
+    return result
 
 def evaluate_missing(test, fitted, model_names, missing_fraction, seed):
     """Grąžina metrikų eilutes ir kaukę. Išmokytų modelių nekeičia."""

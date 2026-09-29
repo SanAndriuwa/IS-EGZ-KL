@@ -8,6 +8,10 @@ Programa vienai sesijai priskiria pirkimo tikimybę. Ji mokosi iš ankstesnių m
 
 Pirkimų dažnio baseline visoms sesijoms grąžina 0,1106. Jis nesugeba jų suranguoti. Logistinė regresija susumuoja transformuotus požymius su svoriais ir pritaiko sigmoidę. Miškas gali mokytis sudėtingesnių sąlygų, tačiau šiame teste jo papildoma nauda nedidelė.
 
+## Galutinio testo statusas
+
+Lapkričio–gruodžio imtis buvo validus nepriklausomas galutinis testas pirmojo vertinimo metu: modeliai, hiperparametrai ir slenksčiai buvo nustatyti prieš jį atveriant. Vėliau ši imtis naudota klaidų, pogrupių, kalibracijos ir slenksčio elgsenos analizei, todėl dabar tyrėjui ji jau žinoma. Dėl to jokio vėlesnio modelio pakeitimo negalima pateikti kaip naujai ir nepriklausomai patvirtinto tame pačiame teste; reikia naujo būsimo laikotarpio arba kitos iki tol neliestos *holdout* imties. Fiksuota `PageValues` abliacija taip pat yra tiriamoji analizė po testo peržiūros, ne naujas pagrindinės hipotezės patvirtinimas.
+
 ## Nematytos sesijos
 
 Po pagrindinio eksperimento dėstytojo pateiktą CSV su reikiamais požymiais paleiskite taip:

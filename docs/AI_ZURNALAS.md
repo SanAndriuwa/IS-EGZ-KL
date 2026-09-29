@@ -397,3 +397,51 @@ validacijoje pasirinktas sprendimas. Ataskaitoje aiškiai atskirtas vien metriko
 pavadinimo pakeitimas nuo pakartotinio slenksčio parinkimo. Testas
 nenaudotas naujam slenksčiui pasirinkti, modeliai nepermokyti ir
 `results/metrics.csv` nepakeistas.
+
+## 2026-09-29 — laikinis požymių auditas ir PageValues abliacija
+
+Vartotojas paprašė atlikti penkis tiksliai apibrėžtus pakeitimus: atnaujinti
+8 testų vykdymo įrodymą, dokumentuoti požymių prieinamumą laike, pridėti
+fiksuotų RF parametrų `PageValues` abliaciją, tiksliau pavadinti ribotą
+hiperparametrų palyginimą ir paaiškinti, kad po išsamios lapkričio–gruodžio
+testo analizės vėlesniems pakeitimams reikia naujos nematytos imties.
+
+AI perskaitė ankstesnio pokalbio kontekstą, patikrino dabartinį GitHub
+repozitorijos `main` ir palygino jį su vartotojo nurodyta išarchyvuota kopija
+`C:\Users\andre\Downloads\IS-EGZ-KL-main`. Pastaroji buvo senesnė ir neturėjo
+Git istorijos, todėl jos programos failai neperrašyti; panaudota tik joje esanti
+Python aplinka ir originalus CSV, kurio SHA256 sutapo su kode užfiksuota suma.
+Šiai užduočiai papildomi ar lygiagretūs AI agentai nebuvo paleisti.
+
+`analysis.py` pridėtas paprastas keturių iš anksto fiksuotų RF variantų
+palyginimas: `min_samples_leaf` 5 ir 20, kiekvienas su `PageValues` ir be jo.
+Testas nenaudotas parametrui ar variantui pasirinkti. Atskirame
+`pagevalues_ablation.csv` gauti rezultatai:
+
+| `min_samples_leaf` | `PageValues` | Validacijos AP | Testo AP |
+|---:|:---:|---:|---:|
+| 5 | ne | 0,3063 | 0,3345 |
+| 5 | taip | 0,7070 | 0,6715 |
+| 20 | ne | 0,3070 | 0,3411 |
+| 20 | taip | 0,6904 | 0,6611 |
+
+Pilnas eksperimentas paleistas į atskirą laikiną rezultatų katalogą, kad
+neperrašytų pagrindinių išsaugotų rezultatų. Visų penkių švarių variantų AP
+tiksliai sutapo su `results/metrics.csv`; nauja abliacijos lentelė taip pat
+atsikūrė tiksliai. Pagrindinis modelių parinkimas, laikinis skaidymas,
+validacijos AP ir F2 taisyklės, porinis bootstrap bei nepatvirtinta RF ≥ LR +
+0,02 hipotezė nepakeisti.
+
+Dokumentacijoje eksperimentas įvardytas kaip užbaigtų sesijų suvestinių
+*offline/post-session* klasifikavimas. Dešimčiai nurodytų požymių užrašyta,
+kada jie atsiranda ir ar galutinė reikšmė garantuotai žinoma tarpiniu prognozės
+momentu. Aiškiai pažymėta, kad vien `Revenue` ir `PageValues` pašalinimas
+neįrodo visiško temporalinio nutekėjimo nebuvimo. Lapkričio–gruodžio testas
+buvo validus pirmojo vertinimo metu, bet dabar tyrėjui žinomas; fiksuota
+`PageValues` abliacija dėl to yra tiriamoji, o ne naujas nepriklausomas
+patvirtinimas.
+
+Faktiniu Windows paleidimu visi 8 automatiniai testai baigėsi `OK`; pilnas
+išvesties tekstas išsaugotas `results/test_log.txt`. `git diff --check`
+formatavimo klaidų nerodė. Šiuos pakeitimus ir patikras atliko AI pagal
+vartotojo nurodymus; jie savaime neįrodo studento savarankiško paaiškinimo.

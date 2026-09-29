@@ -26,7 +26,9 @@ Naudotas UCI Online Shoppers Purchasing Intention duomenų rinkinys (Sakar ir Ka
 
 Skaidymas sąmoningai imituoja mokymą iš ankstesnių mėnesių ir vertinimą vėlesniu laikotarpiu. Mokymo imties medianos, kategorijų žodynas ir kitos transformacijos apskaičiuojamos tik iš mokymo dalies. Skaitinės tuščios reikšmės pakeičiamos mokymo mediana, kategorinės – mokyme dažniausia reikšme, o kategorijos koduojamos vienkartiniu kodavimu (angl. *one-hot encoding*). Nežinomos vėlesnių imčių kategorijos priimamos be klaidos.
 
-Pagrindiniame variante naudojama 15 pradinių požymių. PageValues pašalintas, nes jo apskaičiavimo momentas duomenų apraše nėra pakankamai aiškus realaus laiko prognozei. Šis požymis grąžinamas tik atskirame jautrumo bandyme. Visiškai sutampančios 125 eilutės paliktos, nes suvestinės sutapimas neįrodo, kad tai tas pats lankytojas; jos dėl mėnesio negali kirsti pasirinkto skaidymo ribų.
+Lapkričio–gruodžio imtis buvo validus nepriklausomas galutinis testas pirmojo vertinimo metu, nes modeliai, hiperparametrai ir slenksčiai buvo užfiksuoti prieš jį atveriant. Po klaidų, pogrupių, kalibracijos ir slenksčio elgsenos analizės ši imtis tyrėjui jau žinoma. Todėl vėlesni modelio pakeitimai negali būti laikomi nepriklausomai patvirtintais tame pačiame teste; jiems reikia naujo būsimo laikotarpio arba kitos iki tol neliestos *holdout* imties.
+
+Pagrindiniame variante naudojama 15 pradinių požymių. PageValues pašalintas, nes jo apskaičiavimo momentas duomenų apraše nėra pakankamai aiškus realaus laiko prognozei. Šis požymis grąžinamas tik atskirame jautrumo bandyme. Dabartinis eksperimentas yra užbaigtų sesijų suvestinių *offline/post-session* klasifikavimas, o ne patvirtintas tarpinės sesijos realaus laiko prognozavimas. Visiškai sutampančios 125 eilutės paliktos, nes suvestinės sutapimas neįrodo, kad tai tas pats lankytojas; jos dėl mėnesio negali kirsti pasirinkto skaidymo ribų.
 
 ## 3. Metodai ir eksperimento protokolas
 
@@ -39,7 +41,7 @@ Pagrindiniame variante naudojama 15 pradinių požymių. PageValues pašalintas,
 | Atsitiktinis miškas | Netiesinės sąveikos ir kelių medžių vidurkis | 200 medžių; min. lapas 20 |
 | Gradientinis stiprinimas | Nuosekliai taisomos ankstesnių medžių klaidos | 150 iteracijų; 7 lapai |
 
-Iš viso validacijoje išbandyti 9 iš anksto apibrėžti kandidatai: viena pastovi atskaita, dvi logistinės regresijos, dvi atsitiktinio miško, dvi gradientinio stiprinimo ir dvi atsitiktinio miško su PageValues versijos. Kiekvienoje metodų šeimoje laimėtojas parinktas tik pagal validacijos AP. Galutinis testas iki pasirinkimų užfiksavimo nenaudotas.
+Iš viso validacijoje išbandyti 9 iš anksto apibrėžti kandidatai: viena pastovi atskaita, dvi logistinės regresijos (`C ∈ {0,1; 1,0}`), dvi atsitiktinio miško (`min_samples_leaf ∈ {5; 20}`), dvi gradientinio stiprinimo (`max_leaf_nodes ∈ {7; 15}`) ir dvi atsitiktinio miško su PageValues versijos. Tai ribotas hiperparametrų palyginimas validacijos imtyje, o ne išsami hiperparametrų optimizacija. Kiekvienoje metodų šeimoje laimėtojas parinktas tik pagal validacijos AP. Galutinis testas iki pasirinkimų užfiksavimo nenaudotas.
 
 ![Eksperimento eiga ir duomenų atskyrimo principas](assets/exam_workflow.png)
 
@@ -179,11 +181,22 @@ Atsitiktinis miškas dažniausiai nuvertina pirkimo tikimybę. Pavyzdžiui, vien
 
 ### 6.1. PageValues jautrumas
 
-Pridėjus PageValues, atsitiktinio miško AP padidėjo iki 0,6715, o Brier sumažėjo iki 0,1158. Tai didelis skirtumas, bet jis neįrodo nei duomenų nutekėjimo, nei saugaus požymio naudojimo. Prieš diegimą būtina dokumentuoti, kada ir iš kokių įvykių šis rodiklis apskaičiuojamas. Dėl šio neapibrėžtumo pagrindinė išvada remiasi variantu be PageValues.
+Pridėjus PageValues, validacijoje parinkto atsitiktinio miško AP padidėjo iki 0,6715, o Brier sumažėjo iki 0,1158. Kadangi be šio požymio validacija pasirinko `min_samples_leaf=20`, o su juo – 5, šis pirmasis palyginimas apima ir požymio pridėjimą, ir pakartotinį hiperparametro parinkimą.
+
+**5 lentelė. Fiksuotų RF parametrų PageValues abliacija**
+
+| `min_samples_leaf` | `PageValues` | Validacijos AP | Testo AP |
+|---:|:---:|---:|---:|
+| 5 | ne | 0,3063 | 0,3345 |
+| 5 | taip | 0,7070 | 0,6715 |
+| 20 | ne | 0,3070 | 0,3411 |
+| 20 | taip | 0,6904 | 0,6611 |
+
+Parametrai šioje lentelėje nustatyti iš anksto, o testas nenaudojamas variantui pasirinkti. Abiem lapo dydžiais PageValues susijęs su dideliu AP padidėjimu, bet tai neįrodo nei duomenų nutekėjimo, nei saugaus požymio naudojimo. Abliacija atlikta po pirminės galutinio testo analizės, todėl yra papildoma tiriamoji analizė, o ne naujas nepriklausomas modelio kokybės patvirtinimas. Pagrindinė išvada lieka paremta iš anksto numatytu variantu be PageValues.
 
 ### 6.2. Trūkstamų reikšmių atsparumas
 
-**5 lentelė. AP pokytis atsitiktinai paslėpus 9,87 % skaitinių langelių**
+**6 lentelė. AP pokytis atsitiktinai paslėpus 9,87 % skaitinių langelių**
 
 | Modelis | Pradinė AP | AP su trūkumais | Pokytis |
 |---|---|---|---|
@@ -197,7 +210,7 @@ Pridėjus PageValues, atsitiktinio miško AP padidėjo iki 0,6715, o Brier suma�
 
 Lapkričio atsitiktinio miško AP buvo 0,3868, gruodžio – 0,2900; tuo pat metu pirkimų dalys buvo 25,35 % ir 12,51 %. Kadangi AP priklauso nuo klasės dažnio, šis skirtumas nėra grynas modelio kokybės pablogėjimo matas. Naujiems lankytojams žemas slenkstis visas 754 sesijas priskyrė teigiamai klasei, todėl prieš realų naudojimą būtinas atskiras slenksčio auditas.
 
-**6 lentelė. Tipiniai atsitiktinio miško klaidų pavyzdžiai**
+**7 lentelė. Tipiniai atsitiktinio miško klaidų pavyzdžiai**
 
 | Šaltinio eilutė | Klaida | Tikimybė | Interpretacija |
 |---|---|---|---|
@@ -217,6 +230,23 @@ Paleisti 8 automatiniai testai; visi baigėsi sėkmingai. Jie tikrina laiko tvar
 Duomenų SHA256 ir programos kontrolinės sumos sutampa su dabartiniais failais. Atsitiktinio miško medžių tikimybių vidurkio bei bibliotekos predict_proba išvesties didžiausias absoliutus skirtumas teste yra 0. Skaitinių prieštaravimų tarp manifest.json, metrics.csv, split_summary.csv ir šioje ataskaitoje pateiktų pagrindinių rezultatų nerasta.
 
 ## 8. Diskusija ir ribotumai
+
+UCI aprašymas nurodo, kad puslapių skaičius ir trukmė gali būti atnaujinami naršant, tačiau pateiktas CSV neturi tarpinių momentinių kopijų. Todėl galutinių sesijos suvestinės reikšmių prieinamumas konkrečiu realaus laiko prognozės momentu nėra įrodytas.
+
+| Požymis | Ką reiškia | Kada atsiranda | Ar garantuotas tarpiniu prognozės momentu? | Sesijos pabaigos informacijos rizika |
+|---|---|---|---|---|
+| `Administrative` | administracinių puslapių skaičius | kaupiasi naršant | tik dalinė reikšmė; galutinė negarantuota | vidutinė |
+| `Administrative_Duration` | laikas administraciniuose puslapiuose | kaupiasi naršant | galutinė reikšmė negarantuota | vidutinė |
+| `Informational` | informacinių puslapių skaičius | kaupiasi naršant | tik dalinė reikšmė; galutinė negarantuota | vidutinė |
+| `Informational_Duration` | laikas informaciniuose puslapiuose | kaupiasi naršant | galutinė reikšmė negarantuota | vidutinė |
+| `ProductRelated` | produktų puslapių skaičius | kaupiasi naršant | tik dalinė reikšmė; galutinė negarantuota | vidutinė |
+| `ProductRelated_Duration` | laikas produktų puslapiuose | kaupiasi per visą sesiją | ne; galutinė trukmė priklauso nuo vėlesnio naršymo | **didelė** |
+| `BounceRates` | aplankytų puslapių atmetimo rodiklių agregatas | analitikos sistemoje ir agreguojant aplankytus puslapius | CSV momentinės reikšmės neįrodo | **didelė** |
+| `ExitRates` | aplankytų puslapių išėjimo rodiklių agregatas | analitikos sistemoje ir agreguojant aplankytus puslapius | CSV momentinės reikšmės neįrodo | **didelė** |
+| `SpecialDay` | datos artumas specialiai dienai | žinomas iš kalendoriaus prieš sesiją | taip | maža |
+| `PageValues` | aplankytų puslapių komercinės vertės agregatas | analitikos sistemoje; tikslus skaičiavimo langas CSV neatskleistas | neįrodyta | **labai didelė** |
+
+`Revenue` nepatenka į įvestį, o `PageValues` pašalintas iš pagrindinio varianto, tačiau vien tai neįrodo, kad temporalinis informacijos nutekėjimas visiškai pašalintas: galutinės trukmės, `BounceRates` ir `ExitRates` taip pat reikalauja kilmės ir prieinamumo audito.
 
 - Duomenys apima vieną anoniminę parduotuvę ir vienų metų laikotarpį, todėl išvados automatiškai neperkeliamos kitoms parduotuvėms ar sezonams.
 - Mėnuo suteikia tik apytikslę laiko tvarką; nėra tikslių laiko žymų ir lankytojo identifikatoriaus.

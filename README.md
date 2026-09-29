@@ -121,7 +121,7 @@ iš DOCX naudojant dokumentų renderinimo scenarijų.
 - `src/preprocessing.py` – skaitinių ir kategorinių požymių paruošimas.
 - `src/models.py` – keturi klasifikatoriai, parametrų variantai ir RF formulė.
 - `src/training.py` – kandidatų mokymas ir pasirinkimas validacijoje.
-- `src/analysis.py` – atsparumas, RF klaidos, pogrupiai ir AP intervalas.
+- `src/analysis.py` – fiksuotų parametrų PageValues abliacija, atsparumas, RF klaidos, pogrupiai ir AP intervalas.
 - `src/plots.py` – grafikai; galima paleisti atskirai iš rezultatų CSV.
 - `src/reporting.py` – lentelių, santraukos ir vykdymo aprašo įrašymas.
 - `src/evaluation.py` – AP, PR-AUC, precision, recall, kalibracijos nuostoliai, slenkstis ir bootstrap.
@@ -130,7 +130,7 @@ iš DOCX naudojant dokumentų renderinimo scenarijų.
 - `config.json` – mėnesiai, sėkla, atsparumo kaukė ir bootstrap kiekis.
 - `results/` – tikrai įvykdyto eksperimento lentelės, prognozės, grafikai ir vykdymo aprašas.
 
-Testas niekur nenaudojamas hiperparametrams parinkti. Visiems pagrindiniams modeliams taikomos tos pačios imtys ir metrikos. AP ir trapecinis PR-AUC dokumentacijoje atskirti: pastoviam prognozuotojui trapecinis plotas gali klaidinti. Aukštas recall prie žemo slenksčio nėra aukštas bendras tikslumas.
+Atliktas ribotas hiperparametrų palyginimas validacijos imtyje, o ne išsami ar optimalių nustatymų paieška. Testas niekur nenaudojamas hiperparametrams parinkti. Visiems pagrindiniams modeliams taikomos tos pačios imtys ir metrikos. AP ir trapecinis PR-AUC dokumentacijoje atskirti: pastoviam prognozuotojui trapecinis plotas gali klaidinti. Aukštas recall prie žemo slenksčio nėra aukštas bendras tikslumas.
 
 ## Duomenų šaltinis
 

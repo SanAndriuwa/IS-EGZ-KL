@@ -12,7 +12,7 @@ from threadpoolctl import threadpool_limits
 from .data import load_and_split, prepare_features
 from .training import train_and_select
 from .evaluation import metrics
-from .analysis import evaluate_missing, analyze_forest
+from .analysis import evaluate_missing, evaluate_pagevalues_ablation, analyze_forest
 from .plots import save_plots
 from .reporting import save_splits, save_tables, save_manifest, save_summary
 
@@ -45,6 +45,11 @@ def run(config_path=ROOT / 'config.json', output=ROOT / 'results'):
     y_test = test['Revenue'].to_numpy()
 
     save_splits(parts, config, output)
+
+    # Papildoma fiksuotų RF parametrų abliacija nieko neparenka pagal testą.
+    evaluate_pagevalues_ablation(
+        train, validation, test, config['seed'], output,
+    )
 
     # 3. Pagrindiniai modeliai ir atskiras PageValues jautrumo bandymas.
     selection = []       # Visų kandidatų validacijos AP ir parametrai.

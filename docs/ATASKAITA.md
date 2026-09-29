@@ -20,9 +20,11 @@ Iš viso yra 12 330 sesijų, 1 908 pirkimai, 125 visiškai sutampančios eilutė
 
 Pirkimų dažnis mokyme ir teste beveik padvigubėja. Tai realus šio skaidymo poslinkis, o ne atsitiktinio skaidymo triukšmas. Turimas mėnuo leidžia apytikslį laikinį atskyrimą, bet ne tikslų įvykių eiliškumą mėnesio viduje. Laikoma, kad įrašai atitinka UCI aprašytą vienų metų laikotarpį. `Returning_Visitor` nebuvo naudojamas kaip grupės ID.
 
+Lapkričio–gruodžio imtis buvo validus nepriklausomas galutinis testas pirmojo vertinimo metu, nes modeliai, hiperparametrai ir slenksčiai buvo užfiksuoti prieš jį atveriant. Po to ši imtis panaudota klaidų, pogrupių, kalibracijos ir slenksčio elgsenos analizei, todėl dabar jos rezultatai tyrėjui žinomi. Vėlesni modelio pakeitimai nebegali būti laikomi nepriklausomai patvirtintais tame pačiame teste: jiems reikia naujo būsimo laikotarpio arba kitos iki tol neliestos *holdout* imties.
+
 ## Rezultatai
 
-Pagrindinė metrika – AP (average precision). Trapecinis PR-AUC taip pat pateiktas visoje [automatinėje rezultatų lentelėje](../results/RESULTS.md), tačiau šios dvi metrikos nėra tapačios. Visi pagrindiniai modeliai naudoja tas pačias eilutes ir 15 tų pačių pradinių požymių. RF parinktas minimalus lapas 20, logistinei regresijai C=1, stiprinimui – 7 lapai.
+Pagrindinė metrika – AP (average precision). Trapecinis PR-AUC taip pat pateiktas visoje [automatinėje rezultatų lentelėje](../results/RESULTS.md), tačiau šios dvi metrikos nėra tapačios. Visi pagrindiniai modeliai naudoja tas pačias eilutes ir 15 tų pačių pradinių požymių. Atliktas ribotas hiperparametrų palyginimas validacijos imtyje, o ne išsami hiperparametrų optimizacija: logistinei regresijai `C ∈ {0,1; 1,0}`, RF `min_samples_leaf ∈ {5; 20}`, stiprinimui `max_leaf_nodes ∈ {7; 15}`. RF parinktas minimalus lapas 20, logistinei regresijai C=1, stiprinimui – 7 lapai.
 
 | Modelis be PageValues | AP | Precision | Recall | Brier |
 |---|---:|---:|---:|---:|
@@ -53,7 +55,18 @@ RF dažniausiai nuvertina pirkimų tikimybę: vienoje grupėje vidutiniškai pro
 
 ## Požymio jautrumas ir atsparumas
 
-Pridėjus `PageValues`, RF AP pakilo iki 0,6715, Brier sumažėjo iki 0,1158. Abiem RF taikytas toks pats dviejų kandidatų tinklas; su šiuo požymiu validacija pasirinko lapo dydį 5. Todėl tai požymių rinkinio jautrumo bandymas su vienodu parinkimo biudžetu, o ne grynas vieno požymio efektas užfiksavus visus parametrus. Rezultatas rodo didelę priklausomybę nuo šio signalo. Nei pats pakilimas, nei jo dydis neįrodo nutekėjimo. Reikėtų patikrinti rodiklio apskaičiavimo langą ir ar nebuvo naudota dabartinė ar būsima transakcija. Pagrindinės išvados remiasi variantu be jo.
+Pridėjus `PageValues`, validacijoje parinkto RF testo AP pakilo iki 0,6715, Brier sumažėjo iki 0,1158. Abiem RF taikytas toks pats dviejų kandidatų tinklas, bet be šio požymio validacija pasirinko lapo dydį 20, o su juo – 5. Todėl šis palyginimas kartu atspindi požymio pridėjimą ir pakartotinį hiperparametro parinkimą.
+
+Papildoma fiksuotų parametrų abliacija atskiria šiuos veiksnius; kiekvienoje eilutėje keičiamas tik `PageValues` įtraukimas, o testo rezultatas nenaudojamas jokiam variantui pasirinkti:
+
+| `min_samples_leaf` | `PageValues` | Validacijos AP | Testo AP |
+|---:|:---:|---:|---:|
+| 5 | ne | 0,3063 | 0,3345 |
+| 5 | taip | 0,7070 | 0,6715 |
+| 20 | ne | 0,3070 | 0,3411 |
+| 20 | taip | 0,6904 | 0,6611 |
+
+Abiem fiksuotais lapo dydžiais `PageValues` susijęs su dideliu AP padidėjimu, bet nei pats pakilimas, nei jo dydis neįrodo nutekėjimo ar saugaus prieinamumo. Ši abliacija atlikta jau po pirminės galutinio testo analizės, todėl yra tiriamoji analizė, o ne naujas nepriklausomas modelio kokybės patvirtinimas. Pagrindinės išvados ir pagrindiniai rezultatai lieka paremti iš anksto numatytu variantu be `PageValues`.
 
 Atsparumo bandyme ta pati atsitiktinė kaukė pašalino 4 197 skaitines reikšmes iš 42 525 (9,87 %, nustatyta tikimybė 10 %). Transformacijos ir slenksčiai liko užfiksuoti. RF AP sumažėjo nuo 0,3411 iki 0,3386, logistinės regresijos – nuo 0,3336 iki 0,3298, stiprinimo – nuo 0,3392 iki 0,3360. Taigi atsitiktiniam nedidelės dalies langelių praradimui šios realizacijos gana atsparios. Bandymas neapima viso stulpelio dingimo ar nuo klasės priklausančio duomenų trūkumo.
 
@@ -80,6 +93,21 @@ Aštuoni automatiniai testai tikrina laiko tvarką, imčių atskyrimą, neleisti
 
 ## Praktinis tinkamumas ir tolesnis darbas
 
-Pateikta veikianti mokomoji sesijų klasifikavimo sistema. Realaus laiko diegimui dar reikia įvykių laiko žymų, požymių momentinių kopijų iki prognozės, patikrintos analitinių agregatų kilmės, būsimo laikotarpio testo ir intervencijų kaštų. Net pašalinus `PageValues`, sesijos galutinės trukmės bei `BounceRates` ir `ExitRates` prieinamumas turi būti audituojamas. Be tokio audito negalima teigti, kad nutekėjimas visiškai pašalintas.
+Šis eksperimentas aiškiai apibrėžiamas kaip užbaigtų sesijų suvestinių *offline/post-session* klasifikavimas. UCI aprašymas nurodo, kad puslapių skaičius ir trukmė gali būti atnaujinami naršant, tačiau pateiktas CSV neturi tarpinių momentinių kopijų ir neįrodo, kokios galutinės reikšmės buvo žinomos konkrečiu realaus laiko prognozės momentu.
+
+| Požymis | Ką reiškia | Kada atsiranda | Ar garantuotas tarpiniu prognozės momentu? | Sesijos pabaigos informacijos rizika |
+|---|---|---|---|---|
+| `Administrative` | administracinių puslapių skaičius | kaupiasi naršant | tik dalinė reikšmė; galutinė negarantuota | vidutinė |
+| `Administrative_Duration` | laikas administraciniuose puslapiuose | kaupiasi naršant | galutinė reikšmė negarantuota | vidutinė |
+| `Informational` | informacinių puslapių skaičius | kaupiasi naršant | tik dalinė reikšmė; galutinė negarantuota | vidutinė |
+| `Informational_Duration` | laikas informaciniuose puslapiuose | kaupiasi naršant | galutinė reikšmė negarantuota | vidutinė |
+| `ProductRelated` | produktų puslapių skaičius | kaupiasi naršant | tik dalinė reikšmė; galutinė negarantuota | vidutinė |
+| `ProductRelated_Duration` | laikas produktų puslapiuose | kaupiasi per visą sesiją | ne; galutinė trukmė priklauso nuo vėlesnio naršymo | **didelė** |
+| `BounceRates` | aplankytų puslapių atmetimo rodiklių agregatas | analitikos sistemoje ir agreguojant aplankytus puslapius | CSV momentinės reikšmės neįrodo | **didelė** |
+| `ExitRates` | aplankytų puslapių išėjimo rodiklių agregatas | analitikos sistemoje ir agreguojant aplankytus puslapius | CSV momentinės reikšmės neįrodo | **didelė** |
+| `SpecialDay` | datos artumas specialiai dienai | žinomas iš kalendoriaus prieš sesiją | taip | maža |
+| `PageValues` | aplankytų puslapių komercinės vertės agregatas | analitikos sistemoje; tikslus skaičiavimo langas CSV neatskleistas | neįrodyta | **labai didelė** |
+
+Pateikta veikianti mokomoji sesijų klasifikavimo sistema. Realaus laiko diegimui dar reikia įvykių laiko žymų, požymių momentinių kopijų iki prognozės, patikrintos analitinių agregatų kilmės, būsimo laikotarpio testo ir intervencijų kaštų. Tiesioginis `Revenue` nepatenka į įvestį, o `PageValues` pašalintas iš pagrindinio varianto, tačiau vien tai neįrodo, kad temporalinis informacijos nutekėjimas visiškai pašalintas: galutinės trukmės, `BounceRates` ir `ExitRates` taip pat turi būti audituojami.
 
 Gyvas gynimas ir dėstytojo tikrai nematytas bandymas šiame darbe dar neįvyko. Jiems paruošta programa bei [gynimo instrukcija](GYNIMAS.md); šios dalies balų ar sėkmės negalima laikyti jau pasiektais.
