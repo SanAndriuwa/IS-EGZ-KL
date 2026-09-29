@@ -445,3 +445,6 @@ Faktiniu Windows paleidimu visi 8 automatiniai testai baigėsi `OK`; pilnas
 išvesties tekstas išsaugotas `results/test_log.txt`. `git diff --check`
 formatavimo klaidų nerodė. Šiuos pakeitimus ir patikras atliko AI pagal
 vartotojo nurodymus; jie savaime neįrodo studento savarankiško paaiškinimo.
+Senas `results/manifest.json` neperrašytas: jame esančios kodo kontrolinės
+sumos liudija pirminį pagrindinį paleidimą, todėl po šio `src/` papildymo
+nebeatitinka dabartinio kodo. Ši riba patikslinta abiejose ataskaitose.
