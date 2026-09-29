@@ -145,7 +145,7 @@ FORMULAS = [
 def math_nodes():
     source = "\n\n".join("$$\n" + f + "\n$$" for f in FORMULAS)
     converted = subprocess.run(
-        ["pandoc", "-f", "markdown", "-t", "docx"],
+        ["pandoc", "-f", "markdown", "-t", "docx", "-o", "-"],
         input=source.encode(), capture_output=True, check=True,
     )
     with ZipFile(BytesIO(converted.stdout)) as archive:
@@ -340,6 +340,7 @@ class Report:
             widths = [1] * len(headers)
         actual = [160 * w / sum(widths) for w in widths]
         for i, row in enumerate([headers] + rows):
+            table.rows[i]._tr.get_or_add_trPr().append(OxmlElement("w:cantSplit"))
             for j, value in enumerate(row):
                 cell = table.cell(i, j)
                 cell.width = Mm(actual[j])
@@ -398,7 +399,8 @@ def build() -> None:
     r.p("Šioje ataskaitoje aprašomas elektroninės parduotuvės sesijos pirkimo ketinimo tyrimas: duomenų gavimas ir paruošimas, modelių mokymas, parinkimas, galutinis vertinimas, klaidų analizė ir praktinio naudojimo ribos. Tyrimo tikslas – pagal užbaigtų sesijų suvestines apskaičiuoti pirkimo tikimybės įvertį ir palyginti, ar atsitiktinis miškas suteikia praktiškai pastebimą pranašumą prieš paprastesnes atskaitas. Šio bandymo požymių prieinamumas dar vykstant naršymui nepatvirtintas. Ataskaitoje pateikiami jau įvykdyto eksperimento rezultatai; visas programos kodas nekartojamas.")
     r.p("Praktinė vertė – galimybė rikiuoti sesijas pagal tikėtiną pirkimą ir nukreipti ribotus veiksmus, pavyzdžiui, konsultanto dėmesį ar priminimą. Prognozė pati savaime nenusako, kokį veiksmą taikyti: tam dar reikia žinoti klaidingo teigiamo sprendimo, praleisto pirkėjo ir intervencijos kainą.")
     r.heading("1.1. Tyrimo klausimas ir hipotezė", 2)
-    r.p("Pagrindinis klausimas: ar modelis, gebantis aprašyti netiesines požymių sąveikas, vėlesnių mėnesių sesijas surikiuoja geriau už logistinę regresiją? Iš anksto nustatyta H1 hipotezė: nenaudojant neaiškaus prieinamumo požymio PageValues, atsitiktinio miško galutinio testo AP turi būti bent 0,02, t. y. 2 procentiniais punktais, didesnė už logistinės regresijos AP. 0,02 riba yra projekto minimalus praktiškai pastebimas pagerėjimas, o ne literatūroje garantuotas efektas.")
+    r.p("Pagrindinis klausimas: ar modelis, gebantis aprašyti netiesines požymių sąveikas, vėlesnių mėnesių sesijas surikiuoja geriau už logistinę regresiją? Iš anksto nustatyta H1 hipotezė: nenaudojant neaiškaus prieinamumo požymio PageValues, atsitiktinio miško galutinio testo AP turi būti bent 0,02, t. y. 2 procentiniais punktais, didesnė už logistinės regresijos AP.")
+    r.p("0,02 buvo iš anksto pasirinkta mokomojo darbo praktiškai pastebimos persvaros riba, kad, pavyzdžiui, 0,002 AP (0,2 procentinio punkto) nebūtų laikoma pakankamu pagrindu rinktis sudėtingesnį mišką. Tai nėra statistinio reikšmingumo slenkstis, universali literatūros norma ar pinigais pagrįsta verslo riba. Jei būtų žinomos FP, FN ir intervencijos kainos, ribą reikėtų sieti su jomis. Todėl išvada vertinama ir pagal porinio bootstrap AP skirtumo intervalą.")
 
     r.heading("2. Duomenys ir jų paruošimas")
     r.p("Naudotas UCI Online Shoppers Purchasing Intention duomenų rinkinys (Sakar ir Kastro, 2018). Viena eilutė yra anoniminė internetinės parduotuvės sesijos suvestinė, o tikslas Revenue nurodo, ar sesija baigėsi pirkimu. Rinkinyje yra 12 330 sesijų ir 1 908 pirkimai. Lankytojo identifikatoriaus bei tikslių laiko žymų nėra, todėl mėnuo taikomas tik apytiksliam laikiniam atskyrimui.")
@@ -408,7 +410,9 @@ def build() -> None:
         ["Galutinis testas", "Lapkritis–gruodis", "4 725", "976", "20,66 %"],
     ], [1.2, 1.7, 1, 1, 1.2])
     r.p("Skaidymas sąmoningai imituoja mokymą iš ankstesnių mėnesių ir vertinimą vėlesniu laikotarpiu. Mokymo imties medianos, kategorijų žodynas ir kitos transformacijos apskaičiuojamos tik iš mokymo dalies. Skaitinės tuščios reikšmės pakeičiamos mokymo mediana, kategorinės – mokyme dažniausia reikšme, o kategorijos koduojamos vienkartiniu kodavimu (angl. one-hot encoding). Nežinomos vėlesnių imčių kategorijos priimamos be klaidos.")
-    r.p("Pagrindiniame variante naudojama 15 pradinių požymių. PageValues pašalintas, nes jo apskaičiavimo momentas duomenų apraše nėra pakankamai aiškus realaus laiko prognozei. Šis požymis grąžinamas tik atskirame jautrumo bandyme. Visiškai sutampančios 125 eilutės paliktos, nes suvestinės sutapimas neįrodo, kad tai tas pats lankytojas; jos dėl mėnesio negali kirsti pasirinkto skaidymo ribų.")
+    r.p("Mokymo imtyje modeliai išmoksta parametrus, validacijoje parenkami hiperparametrai ir sprendimo slenkstis, o testas naudojamas jau užfiksuotam sprendimui įvertinti. Validacija nėra papildoma mokymo imtis: pasirinktas modelis po jos nepermokomas sujungus mokymą ir validaciją.")
+    r.p("Lapkričio–gruodžio imtis buvo validus nepriklausomas galutinis testas pirmojo vertinimo metu, nes modeliai, hiperparametrai ir slenksčiai buvo užfiksuoti prieš jį atveriant. Po klaidų, pogrupių, kalibracijos ir slenksčio elgsenos analizės ši imtis tyrėjui jau žinoma. Todėl vėlesni modelio pakeitimai negali būti laikomi nepriklausomai patvirtintais tame pačiame teste; jiems reikia naujo būsimo laikotarpio arba kitos iki tol neliestos holdout imties.")
+    r.p("Pagrindiniame variante naudojama 15 pradinių požymių. PageValues pašalintas, nes jo apskaičiavimo momentas duomenų apraše nėra pakankamai aiškus realaus laiko prognozei. Šis požymis grąžinamas tik atskirame jautrumo bandyme. Dabartinis eksperimentas yra užbaigtų sesijų suvestinių offline/post-session klasifikavimas, o ne patvirtintas tarpinės sesijos realaus laiko prognozavimas. Visiškai sutampančios 125 eilutės paliktos, nes suvestinės sutapimas neįrodo, kad tai tas pats lankytojas; jos dėl mėnesio negali kirsti pasirinkto skaidymo ribų.")
 
     r.heading("3. Metodai ir eksperimento protokolas")
     r.table("Lyginti metodai", ["Metodas", "Paskirtis", "Parinkti nustatymai"], [
@@ -417,13 +421,14 @@ def build() -> None:
         ["Atsitiktinis miškas", "Netiesinės sąveikos ir kelių medžių vidurkis", "200 medžių; min. lapas 20"],
         ["Gradientinis stiprinimas", "Nuosekliai taisomos ankstesnių medžių klaidos", "150 iteracijų; 7 lapai"],
     ], [1.3, 2.5, 1.7])
-    r.p("Iš viso validacijoje išbandyti 9 iš anksto apibrėžti kandidatai: viena pastovi atskaita, dvi logistinės regresijos, dvi atsitiktinio miško, dvi gradientinio stiprinimo ir dvi atsitiktinio miško su PageValues versijos. Kiekvienoje metodų šeimoje laimėtojas parinktas tik pagal validacijos AP. Galutinis testas iki pasirinkimų užfiksavimo nenaudotas.")
+    r.p("Iš viso validacijoje išbandyti 9 iš anksto apibrėžti kandidatai: viena pastovi atskaita, dvi logistinės regresijos (C ∈ {0,1; 1,0}), dvi atsitiktinio miško (min_samples_leaf ∈ {5; 20}), dvi gradientinio stiprinimo (max_leaf_nodes ∈ {7; 15}) ir dvi atsitiktinio miško su PageValues versijos. Tai ribotas hiperparametrų palyginimas validacijos imtyje, o ne išsami optimizacija. Kiekvienoje metodų šeimoje laimėtojas parinktas tik pagal validacijos AP. Galutinis testas iki pasirinkimų užfiksavimo nenaudotas.")
+    r.p("Miško 200 medžių ir stiprinimo 150 iteracijų bei mokymosi žingsnis 0,05 buvo nustatyti iš anksto pagal ribotą skaičiavimo biudžetą; optimalumas neįrodytas. Miško medžiai mokomi atskirai, o stiprinimo medžiai kuriami nuosekliai, todėl jų skaičių tiesiogiai lyginti negalima. Atsitiktinių skaičių pradžios reikšmė 42 pasirinkta tik atkuriamumui, ne kokybei gerinti.")
     r.figure(ASSETS / "exam_workflow.png", "Eksperimento eiga ir duomenų atskyrimo principas", width=135)
     r.heading("3.1. Kaip kiekvienas metodas apskaičiuoja tikimybę", 2)
     r.p("Visi keturi metodai grąžina įvertį intervale [0; 1], bet skiriasi būdu, kuriuo jį gauna. x žymi vienos sesijos pradinius požymius, o z – tą pačią sesiją po mokymo imtyje nustatyto paruošimo. Šios formulės aprašo prognozavimą jau išmokytu modeliu, o ne visą jo mokymo procedūrą.")
     r.figure(ASSETS / "exam_model_mechanisms.png", "Keturių metodų principinė struktūra; medžių ir požymių vidus supaprastintas", width=128)
     r.p("Pastovus mokymo pirkimų dažnis (angl. baseline) ignoruoja z ir visoms sesijoms priskiria vienodą mokymo pirkimų dalį (scikit-learn developers, n.d.-b):")
-    r.formula("N = 6 608 – mokymo sesijų skaičius, o yᵢ yra i-osios mokymo sesijos Revenue (1 – pirkta, 0 – nepirkta). Šiame bandyme p₀ = 731 / 6 608 ≈ 0,1106. Modelis vienodas tikimybes grąžina ir testo eilutėms; jo testo AP = 0,2066 sutampa su testo pirkimų dalimi, o ne su mokymo pirkimų dažniu.")
+    r.formula("N = 6 608 – mokymo sesijų skaičius, o yᵢ yra i-osios mokymo sesijos Revenue (1 – pirkta, 0 – nepirkta). Šiame bandyme p₀ = 731 / 6 608 ≈ 0,1106 yra mokymo pirkimų dalis: ją modelis grąžina kaip tikimybę kiekvienai sesijai. Visoms eilutėms skiriamas tas pats balas, todėl baseline jų neranguoja. Jo testo AP = 0,2066 yra testo pirkimų dalis. Baseline AP nėra 0,1106, nes AP skaičiuojama testo imtyje, o pastovaus balo AP lygi vertinamos imties teigiamos klasės daliai.")
     r.p("Logistinė regresija sudeda išmoktų požymių svorių poveikį ir rezultatą paverčia tikimybe sigmoidės funkcija:")
     r.formula("w yra iš mokymo duomenų išmoktas požymių svorių vektorius, a – poslinkis; skliaustuose esantis wᵀz + a yra pradinis įvertis. Didesnis C reiškia silpnesnį koeficientų apribojimą; validacija pasirinko C = 1. Tai dvejetainio LogisticRegression predict_proba taisyklė (scikit-learn developers, n.d.-c).")
     r.p("Tai primena vieną neuroną su sigmoidės aktyvavimo funkcija, tačiau paslėptų sluoksnių nėra. Įvestis šiame darbe nėra keturi skaičiai: naudojami 9 skaitiniai ir 6 kategoriniai pradiniai požymiai, o kategorijas užkodavus vektorius z turi daugiau komponentų. 4 įėjimų piešinys būtų tik mokomasis pavyzdys, ne šios programos architektūra.")
@@ -437,11 +442,25 @@ def build() -> None:
     r.heading("3.2. Vertinimo rodikliai", 2)
     r.p("Pagrindinė metrika yra AP (angl. average precision). Ji apibendrina teigiamų prognozių tikslumo (angl. precision) ir jautrumo (angl. recall) ryšį per visus unikalius slenksčius ir gerai tinka retai teigiamai klasei. Jei TP yra teisingai aptikti pirkimai, FP – klaidingai pirkimais pavadintos sesijos, o FN – praleisti pirkimai, tai precision = TP / (TP + FP) ir recall = TP / (TP + FN). Pirmasis atsako, kokia teigiamų prognozių dalis teisinga, antrasis – kokia tikrų pirkimų dalis aptikta.")
     r.formula("Rₖ ir Pₖ yra recall bei precision k-ajame prognozės slenkstyje. Didesnė AP reikšmė reiškia geresnį sesijų surikiavimą.")
-    r.formula("Čia n – vertintų sesijų skaičius, pᵢ – prognozuota tikimybė, yᵢ ∈ {0,1} – tikras pirkimo faktas. Mažesnis Brier nuostolis reiškia tikslesnes tikimybines prognozes.")
-    r.p("Veiksmo slenkstis parenkamas validacijoje maksimizuojant F2, nes šiame demonstraciniame scenarijuje recall laikomas svarbesniu už precision. Tikrame diegime slenkstis turi būti siejamas su veiksmų biudžetu ir realiomis klaidų kainomis.")
+    r.p("AP atsako, kaip gerai modelis surikiuoja sesijas pagal pirkimo tikimybę. Pagal validacijos AP pasirenkamas kandidatas; ši metrika nepriklauso nuo vieno fiksuoto sprendimo slenksčio. F2 naudojamas tik parinkti slenkstį jau pasirinktam kandidatui. Užfiksavus slenkstį, precision, recall, F1 ir F2 apibūdina konkrečius dvejetainius sprendimus.")
+    r.formula("Čia n – vertintų sesijų skaičius, pᵢ – prognozuota tikimybė, yᵢ ∈ {0,1} – tikras pirkimo faktas. Kai p = 0,9 ir pirkimas įvyksta, kvadratinė klaida maža; kai pirkimo nėra, ji didelė. Brier yra šių klaidų vidurkis, todėl mažesnis geresnis. Jis vertina tikimybines prognozes apskritai; kalibracijos kreivė atskirai lygina prognozes su stebėtais dažniais.")
+    r.p("Log loss taip pat vertina tikimybes, bet ypač stipriai baudžia už labai užtikrintas klaidingas prognozes. Mažesnis log loss geresnis; šiame darbe jis yra papildomas rodiklis, ne modelio parinkimo kriterijus.")
+    r.p("AP ir trapecinis PR-AUC apibūdina precision–recall kreivę, bet skaičiuojami skirtingai. Pastoviam modeliui trapecinis plotas čia yra 0,6033 dėl kreivės galinio taško, nors modelis sesijų neranguoja. Todėl pagrindiniam palyginimui naudojama AP, o trapecinis PR-AUC pateikiamas tik papildomai.")
+    r.p("Veiksmo slenkstis parenkamas validacijoje maksimizuojant F2. Šiame mokomajame scenarijuje potencialaus pirkėjo praleidimas laikomas mažiau pageidaujamu nei papildomas klaidingas signalas. Tai tinka pigiam veiksmui, pavyzdžiui, priminimui; brangiai nuolaidai ar konsultanto skambučiui toks prioritetas gali netikti. Tikrųjų FP, FN ir intervencijos kainų nėra, todėl F2 nėra įrodytas verslo optimumas.")
     r.formula("F2 teikia pirmenybę recall: išreikštos per klaidų skaičius formulės vardiklyje FN koeficientas yra 4, o FP – 1 (scikit-learn developers, n.d.-f). Tai projekto taisyklė, o ne universali klaidų kainų proporcija.")
     r.p("Palyginimui F1 vienoje reikšmėje vienodai derina precision ir recall:")
     r.formula("Pakeitus tik skaičiavimo rodiklį iš F2 į F1, to paties modelio prognozės ir TP, FP, FN nepasikeičia; pasikeičia skaitinė vertinimo reikšmė. Jei pagal naują rodiklį iš naujo parenkamas slenkstis validacijoje, gali pasikeisti ir sprendimai, precision bei recall.")
+    r.table("Rodiklių paskirtis ir interpretacija", ["Rodiklis", "Kam naudojamas", "Geriau", "Svarbiausia interpretacija"], [
+        ["AP", "Modelių rangavimo palyginimas", "Didesnis", "Ne accuracy; nepriklauso nuo vieno slenksčio"],
+        ["Precision", "Teigiamų sprendimų vertinimas", "Didesnis", "Kokia prognozuotų pirkimų dalis tikra"],
+        ["Recall", "Aptiktų pirkimų vertinimas", "Didesnis", "Kokia tikrų pirkimų dalis rasta"],
+        ["F1", "Papildomas sprendimų rodiklis", "Didesnis", "Vienodai derina precision ir recall"],
+        ["F2", "Validacijos slenksčio parinkimas", "Didesnis", "Teikia pirmenybę recall; ne finansinis optimumas"],
+        ["Brier", "Tikimybių klaida", "Mažesnis", "Vidutinė kvadratinė tikimybės klaida"],
+        ["Log loss", "Papildoma tikimybių klaida", "Mažesnis", "Stipriai baudžia už užtikrintas klaidas"],
+        ["Trapecinis PR-AUC", "Papildoma PR kreivės charakteristika", "Didesnis", "Pastovaus modelio reikšmė gali klaidinti"],
+        ["Bootstrap 95 % intervalas", "RF ir LR AP skirtumo neapibrėžtumas", "—", "Jei apima 0, RF persvara neįrodyta"],
+    ], [1.25, 2.0, 0.8, 2.2])
 
     r.heading("4. Programos realizacija ir prieinamumas")
     r.p("Programa išskaidyta į atskirus modulius: duomenų gavimą, paruošimą, modelius, mokymą, vertinimą, analizę, grafikų kūrimą ir rezultatų įrašymą. Visą eksperimentą paleidžia viena komanda:")
@@ -451,7 +470,7 @@ def build() -> None:
     r.p("Ji paima teigiamos klasės, t. y. pirkimo, tikimybę kiekvienai sesijai. Toliau tos tikimybės naudojamos AP, Brier, precision, recall ir klaidų analizei.")
     r.heading("4.1. GitHub repozitorija", 2)
     r.link_paragraph("Programos kodas, konfigūracija, testai, rezultatai ir atkūrimo instrukcijos pateikti repozitorijoje: ", "SanAndriuwa/IS-EGZ-KL", GITHUB, ".")
-    r.p("Atkuriamumui užfiksuota Python ir bibliotekų aplinka, atsitiktinių skaičių pradžios reikšmė 42, vienas skaičiavimo srautas, duomenų SHA256 bei programos failų kontrolinės sumos. Vykdymo aprašas saugomas results/manifest.json.")
+    r.p("Atkuriamumui užfiksuota Python ir bibliotekų aplinka, atsitiktinių skaičių pradžios reikšmė 42, vienas skaičiavimo srautas, duomenų SHA256 bei pradinio pagrindinio paleidimo programos failų kontrolinės sumos. Vykdymo aprašas saugomas results/manifest.json; po papildomos abliacijos kodo pakeitimo jo kodo sumos nėra dabartinių src/ failų sumos.")
 
     r.heading("5. Pagrindiniai rezultatai")
     r.table("Pagrindinių modelių galutinio testo rezultatai", ["Modelis", "AP", "Precision", "Recall", "Brier"], [
@@ -460,11 +479,21 @@ def build() -> None:
         ["Atsitiktinis miškas", "0,3411", "0,2414", "0,9795", "0,1555"],
         ["Gradientinis stiprinimas", "0,3392", "0,2311", "0,9877", "0,1572"],
     ], [2.2, 1, 1, 1, 1])
+    r.heading("Kaip skaityti pagrindinius rezultatus", 2)
+    r.bullets([
+        "Pastovaus modelio AP = 0,2066 atitinka testo pirkimų dalį; jis sesijų neranguoja.",
+        "Logistinės regresijos AP = 0,3336 rodo geresnį pirkimų rangavimą už pastovų modelį.",
+        "RF turi didžiausią stebėtą pagrindinių modelių AP = 0,3411; gradientinio stiprinimo AP = 0,3392 yra labai artima.",
+        "RF ir logistinės regresijos skirtumas 0,0076 yra mažesnis už iš anksto pasirinktą 0,02 ribą.",
+        "Porinio bootstrap intervalas apima 0, todėl tvirto RF pranašumo ši imtis neparodo.",
+    ])
+    r.p("AP yra rodiklis nuo maždaug 0 iki 1: didesnis reiškia geresnį rangavimą, tačiau 0,3411 nereiškia 34,11 % teisingų atsakymų. RF AP viršija pastovaus modelio AP apie 0,1346 (skirtumas skaičiuotas iš neapvalintų reikšmių), o logistinę regresiją – tik 0,0076.")
     r.figure(ASSETS / "exam_model_comparison.png", "Pagrindinių modelių AP ir Brier palyginimas")
-    r.formula("Atsitiktinis miškas skaičiais yra geriausias pagrindinis modelis, tačiau jo AP persvara prieš logistinę regresiją tėra 0,0076, t. y. 0,76 procentinio punkto.")
-    r.p("Porinio bootstrap 95 % intervalas skirtumui yra [−0,0113; 0,0284]. Jis apima nulį, o stebėtas 0,0076 pagerėjimas nesiekia iš anksto nustatytos 0,02 ribos. Todėl H1 nepatvirtinama. Tai nėra eksperimento nesėkmė: neigiamas rezultatas parodo, kad sudėtingesnis modelis šioje sąžiningai atskirtoje imtyje nesuteikė numatyto praktinio pranašumo.")
+    r.formula("RF turi didžiausią stebėtą AP šiame teste, tačiau jo persvara prieš logistinę regresiją tėra 0,0076, t. y. 0,76 procentinio punkto. Tai neįrodo bendro metodo pranašumo.")
+    r.p("Porinis bootstrap 500 kartų su grąžinimu perrenka testo eilutes ir kiekvieną kartą abiejų modelių AP skaičiuoja toms pačioms eilutėms. Iš AP_RF − AP_LR skirtumų gautas centrinis 95 % intervalas [−0,0113; 0,0284]. Jis apima 0, todėl šiame bandyme negalima tvirtai teigti, kad RF geresnis; stebėta persvara taip pat nesiekia 0,02, todėl H1 nepatvirtinama. Intervalas nereiškia 95 % tikimybės, kad tikrasis skirtumas būtinai yra jo viduje, ir neapima kitų parduotuvių, sezonų ar naujų mokymo pradžios reikšmių. 500 pakartojimų yra pasirinktas skaičiavimo biudžetas: daugiau pakartojimų galėtų stabilizuoti intervalo ribas, bet 500 nėra privalomas standartas.")
     r.heading("5.1. Slenkstis ir sumaišties matrica", 2)
-    r.p("Atsitiktinio miško validacijoje parinktas 0,03 slenkstis. Galutiniame teste gauta TN=745, FP=3 004, FN=20 ir TP=956. Taigi aptikta 97,95 % pirkimų, tačiau iš 3 960 teigiamų prognozių teisingos buvo tik 956. Didelis recall nėra bendras tikslumas; toks žemas slenkstis tiktų tik pigiam veiksmui, kai praleisto pirkėjo kaina yra gerokai didesnė už nereikalingo kontakto kainą.")
+    r.p("Atsitiktinio miško 0,03 slenkstis nebuvo ranka parinktas peržiūrėjus testą. Kode tikrintas tinklelis nuo 0,01 iki 0,99 kas 0,01; kiekvienam slenksčiui validacijoje apskaičiuotas F2. Pasirinkto RF didžiausią validacijos F2 davė 0,03. Šis slenkstis užfiksuotas prieš galutinį testą.")
+    r.p("Teste gauta TN=745, FP=3 004, FN=20 ir TP=956. Modelis aptiko 956 iš 976 pirkimų, tačiau klaidingai pažymėjo 3 004 nepirkusias sesijas. Jis beveik nepraleidžia pirkėjų, bet teigiamą signalą duoda labai dažnai: recall = 0,9795, o precision = 0,2414. Didelis recall nėra bendras tikslumas.")
     r.p("Prie šio užfiksuoto slenksčio precision = 956 / (956 + 3 004) = 0,2414, recall = 956 / (956 + 20) = 0,9795, F1 = 0,3874, o F2 = 0,6078. Didesnis F2 šiuo atveju nereiškia, kad modelis pagerėjo: abu balai apskaičiuoti iš tų pačių prognozių, tik F2 labiau vertina didelį recall.")
     r.table("To paties miško testo prognozės esant dviem iliustraciniams slenksčiams", ["Slenkstis", "TP", "FP", "FN", "Precision", "Recall", "F1", "F2"], [
         ["0,03", "956", "3 004", "20", "0,2414", "0,9795", "0,3874", "0,6078"],
@@ -477,14 +506,21 @@ def build() -> None:
 
     r.heading("6. Papildomi bandymai")
     r.heading("6.1. PageValues jautrumas", 2)
-    r.p("Pridėjus PageValues, atsitiktinio miško AP padidėjo iki 0,6715, o Brier sumažėjo iki 0,1158. Tai didelis skirtumas, bet jis neįrodo nei duomenų nutekėjimo, nei saugaus požymio naudojimo. Prieš diegimą būtina dokumentuoti, kada ir iš kokių įvykių šis rodiklis apskaičiuojamas. Dėl šio neapibrėžtumo pagrindinė išvada remiasi variantu be PageValues.")
+    r.p("Validacijoje parinkto RF testo AP be PageValues buvo 0,3411, o su juo – 0,6715; Brier sumažėjo iki 0,1158. Pirmajame palyginime kartu keitėsi požymis ir validacijoje parinktas lapo dydis: be PageValues jis buvo 20, su juo – 5.")
+    r.table("Fiksuotų RF parametrų PageValues abliacija", ["Lapo dydis", "PageValues", "Validacijos AP", "Testo AP"], [
+        ["5", "Ne", "0,3063", "0,3345"],
+        ["5", "Taip", "0,7070", "0,6715"],
+        ["20", "Ne", "0,3070", "0,3411"],
+        ["20", "Taip", "0,6904", "0,6611"],
+    ], [1.1, 1.4, 1.4, 1.2])
+    r.p("Fiksuojant lapo dydį 20, testo AP padidėja nuo 0,3411 iki 0,6611; fiksuojant 5 – nuo 0,3345 iki 0,6715. Taigi stiprus signalas išlieka ir nekeičiant šio parametro. Testas nenaudotas variantui pasirinkti. Abliacija atlikta po pirminės testo analizės, todėl yra tiriamoji, o ne naujas nepriklausomas patvirtinimas. Rezultatas neįrodo nei nutekėjimo, nei PageValues prieinamumo realiu laiku; būtina patikrinti jo skaičiavimo langą. Pagrindinė išvada lieka paremta variantu be šio požymio.")
     r.heading("6.2. Trūkstamų reikšmių atsparumas", 2)
     r.table("AP pokytis atsitiktinai paslėpus 9,87 % skaitinių langelių", ["Modelis", "Pradinė AP", "AP su trūkumais", "Pokytis"], [
         ["Logistinė regresija", "0,3336", "0,3298", "−0,0038"],
         ["Atsitiktinis miškas", "0,3411", "0,3386", "−0,0025"],
         ["Gradientinis stiprinimas", "0,3392", "0,3360", "−0,0032"],
     ], [2, 1.2, 1.4, 1.1])
-    r.p("Šis bandymas rodo nedidelį jautrumą atsitiktinai išsibarsčiusioms tuščioms skaitinėms reikšmėms. Jis neapima viso stulpelio dingimo, sisteminio matavimo sutrikimo ar trūkumo, priklausančio nuo pirkimo klasės.")
+    r.p("Iš anksto pasirinktas 10 % skaitinių langelių paslėpimas yra kontroliuojamas atsparumo scenarijus, ne realaus diegimo trūkumo dažnio įvertis. Ta pati atsitiktinė kaukė taikyta visiems pagrindiniams modeliams; dėl atsitiktinės atrankos faktiškai paslėpta 4 197 iš 42 525 langelių, arba 9,87 %. Tikslas – patikrinti vidutinio masto atsitiktinių trūkumų poveikį. Bandymas neapima viso stulpelio dingimo, sisteminio trūkumo ar trūkumo, priklausančio nuo pirkimo klasės.")
     r.heading("6.3. Pogrupiai ir klaidų pavyzdžiai", 2)
     r.p("Lapkričio atsitiktinio miško AP buvo 0,3868, gruodžio – 0,2900; tuo pat metu pirkimų dalys buvo 25,35 % ir 12,51 %. Kadangi AP priklauso nuo klasės dažnio, šis skirtumas nėra grynas modelio kokybės pablogėjimo matas. Naujiems lankytojams žemas slenkstis visas 754 sesijas priskyrė teigiamai klasei, todėl prieš realų naudojimą būtinas atskiras slenksčio auditas.")
     r.table("Tipiniai atsitiktinio miško klaidų pavyzdžiai", ["Šaltinio eilutė", "Klaida", "Tikimybė", "Interpretacija"], [
@@ -498,9 +534,23 @@ def build() -> None:
     r.heading("7. Klaidų ir nuoseklumo patikra")
     r.p("Prieš rengiant šią ataskaitą rezultatai patikrinti nepriklausomai nuo suvestinio teksto. Visų keturių pagrindinių modelių sumaišties matricų elementai sudaro po 4 725 testines sesijas, o teigiamų klasių suma yra 976. Iš matricų perskaičiuoti precision ir recall sutampa su metrics.csv. Skaidymo lentelėje sesijų suma yra 12 330, o pirkimų – 1 908. Dubliuotų modelio ir scenarijaus rezultatų eilučių nėra.")
     r.p("Paleisti 8 automatiniai testai; visi baigėsi sėkmingai. Jie tikrina laiko tvarką, imčių atskyrimą, neleistinų požymių pašalinimą, mokymo medianas, naujas kategorijas ir tuščias reikšmes, atsitiktinio miško formulę, AP savybę, slenkstį, blogą įvestį ir UTF‑8 rezultatų įrašymą. Eksperimento manifeste užfiksuotas 6,45 s vykdymo laikas autoriaus Windows aplinkoje. Ankstesniame ataskaitos juodraštyje buvo likę pasenę teiginiai apie 9,4 s ir 7 testus; šioje redakcijoje jie ištaisyti.")
-    r.p("Duomenų SHA256 ir programos kontrolinės sumos sutampa su dabartiniais failais. Atsitiktinio miško medžių tikimybių vidurkio bei bibliotekos predict_proba išvesties didžiausias absoliutus skirtumas teste yra 0. Skaitinių prieštaravimų tarp manifest.json, metrics.csv, split_summary.csv ir šioje ataskaitoje pateiktų pagrindinių rezultatų nerasta.")
+    r.p("Duomenų SHA256 sutampa su naudotu CSV. manifest.json programos kontrolinės sumos aprašo pradinį pagrindinį paleidimą, o ne dabartinius src/ failus po papildomos abliacijos; atskirame pakartotiniame paleidime visi pagrindinių variantų AP tiksliai sutapo su išsaugotais rezultatais. Atsitiktinio miško medžių tikimybių vidurkio bei bibliotekos predict_proba išvesties didžiausias absoliutus skirtumas teste yra 0. Skaitinių prieštaravimų tarp manifest.json, metrics.csv, split_summary.csv ir šioje ataskaitoje pateiktų pagrindinių rezultatų nerasta.")
 
     r.heading("8. Diskusija ir ribotumai")
+    r.p("UCI aprašymas nurodo, kad puslapių skaičius ir trukmė gali būti atnaujinami naršant, tačiau pateiktas CSV neturi tarpinių momentinių kopijų. Todėl galutinių sesijos suvestinės reikšmių prieinamumas konkrečiu realaus laiko prognozės momentu nėra įrodytas.")
+    r.table("Požymių prieinamumas prognozės momentu", ["Požymis", "Ką reiškia", "Kada atsiranda", "Tarpiniu momentu", "Pabaigos rizika"], [
+        ["Administrative", "Administracinių puslapių skaičius", "Kaupiasi naršant", "Galutinė reikšmė negarantuota", "Vidutinė"],
+        ["Administrative_Duration", "Laikas administraciniuose puslapiuose", "Kaupiasi naršant", "Galutinė reikšmė negarantuota", "Vidutinė"],
+        ["Informational", "Informacinių puslapių skaičius", "Kaupiasi naršant", "Galutinė reikšmė negarantuota", "Vidutinė"],
+        ["Informational_Duration", "Laikas informaciniuose puslapiuose", "Kaupiasi naršant", "Galutinė reikšmė negarantuota", "Vidutinė"],
+        ["ProductRelated", "Produktų puslapių skaičius", "Kaupiasi naršant", "Galutinė reikšmė negarantuota", "Vidutinė"],
+        ["ProductRelated_Duration", "Laikas produktų puslapiuose", "Kaupiasi per sesiją", "Galutinė reikšmė negarantuota", "Didelė"],
+        ["BounceRates", "Puslapių atmetimo rodiklių agregatas", "Analitikos sistemoje", "CSV neįrodo prieinamumo", "Didelė"],
+        ["ExitRates", "Puslapių išėjimo rodiklių agregatas", "Analitikos sistemoje", "CSV neįrodo prieinamumo", "Didelė"],
+        ["SpecialDay", "Datos artumas specialiai dienai", "Žinomas iš kalendoriaus", "Taip", "Maža"],
+        ["PageValues", "Puslapių komercinės vertės agregatas", "Analitikos sistemoje", "CSV neįrodo prieinamumo", "Labai didelė"],
+    ], [1.4, 2.2, 1.45, 1.7, 0.9])
+    r.p("Revenue nepatenka į įvestį, o PageValues pašalintas iš pagrindinio varianto, tačiau vien tai neįrodo, kad temporalinis informacijos nutekėjimas visiškai pašalintas. Galutinės trukmės, BounceRates ir ExitRates taip pat reikalauja kilmės ir prieinamumo audito.")
     r.bullets([
         "Duomenys apima vieną anoniminę parduotuvę ir vienų metų laikotarpį, todėl išvados automatiškai neperkeliamos kitoms parduotuvėms ar sezonams.",
         "Mėnuo suteikia tik apytikslę laiko tvarką; nėra tikslių laiko žymų ir lankytojo identifikatoriaus.",
@@ -512,11 +562,11 @@ def build() -> None:
 
     r.heading("9. Išvados")
     r.bullets([
-        "Atsitiktinis miškas be PageValues pasiekė didžiausią pagrindinių modelių AP – 0,3411 – ir mažiausią Brier nuostolį – 0,1555.",
+        "Mokomi modeliai rikiavo pirkimus geriau už pastovų modelį (AP = 0,2066). RF turėjo didžiausią stebėtą pagrindinių modelių AP – 0,3411 – ir mažiausią Brier nuostolį – 0,1555.",
         "Jo AP persvara prieš logistinę regresiją buvo 0,0076, o 95 % bootstrap intervalas [−0,0113; 0,0284], todėl iš anksto nustatyta bent 0,02 persvaros hipotezė nepatvirtinta.",
-        "0,03 slenkstis aptiko 956 iš 976 pirkimų, bet sukūrė 3 004 klaidingus teigiamus atvejus; prieš naudojimą būtinos realios klaidų kainos arba veiksmų biudžetas.",
-        "PageValues smarkiai pagerino rezultatą, tačiau jo laikinė kilmė nepatvirtinta, todėl jis neįtrauktas į pagrindinę išvadą.",
-        "Programa ir ataskaitos skaičiai yra tarpusavyje nuoseklūs, visi 8 automatiniai testai praeina, tačiau realaus laiko tinkamumui dar reikia požymių kilmės audito ir naujo būsimo laikotarpio bandymo.",
+        "Validacijoje parinktas 0,03 slenkstis aptiko 956 iš 976 pirkimų, bet sukūrė 3 004 klaidingus teigiamus atvejus. Aukštas recall gautas mažo precision kaina; prieš naudojimą reikia žinoti klaidų kainas arba veiksmų biudžetą.",
+        "PageValues suteikė stiprų prognozavimo signalą ir esant vienodam RF lapo dydžiui, tačiau jo laikinė kilmė nepatvirtinta, todėl jis neįtrauktas į pagrindinę išvadą.",
+        "Programa patikrinta 8 automatiniais testais. Rezultatai pagrindžia offline/post-session tyrimą; realaus laiko taikymui reikia požymių prieinamumo audito ir naujo būsimo laikotarpio testo.",
     ])
 
     r.heading("10. Šaltiniai")

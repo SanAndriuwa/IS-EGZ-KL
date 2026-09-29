@@ -448,3 +448,14 @@ vartotojo nurodymus; jie savaime neįrodo studento savarankiško paaiškinimo.
 Senas `results/manifest.json` neperrašytas: jame esančios kodo kontrolinės
 sumos liudija pirminį pagrindinį paleidimą, todėl po šio `src/` papildymo
 nebeatitinka dabartinio kodo. Ši riba patikslinta abiejose ataskaitose.
+
+## 2026-09-29 — egzamino ataskaitos aiškumo redakcija
+
+Vartotojas paprašė labai paprastos ataskaitos: šabloną ir galutinį vizualinį
+apipavidalinimą tvarkys pats. AI patikslino `EGZAMINO_ATASKAITA.md` tekstą apie
+hipotezės 0,02 ribą, AP ir F2 vaidmenis, rodiklių interpretaciją, slenkstį,
+porinį bootstrap, fiksuotų parametrų `PageValues` abliaciją ir galutinio testo
+ribas. Turimi eksperimento rezultatai, modelių kodas ir duomenų skaidymas
+nepakeisti. Ataskaita atkurta iš `scripts/build_exam_report.py`, todėl MD,
+DOCX ir PDF turi tą patį turinį. PDF puslapiai peržiūrėti; pataisytas lentelės
+eilutės skilimas tarp puslapių. Papildomi AI agentai nenaudoti.

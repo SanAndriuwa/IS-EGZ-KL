@@ -10,7 +10,9 @@ Praktinė vertė – galimybė rikiuoti sesijas pagal tikėtiną pirkimą ir nuk
 
 ### 1.1. Tyrimo klausimas ir hipotezė
 
-Pagrindinis klausimas: ar modelis, gebantis aprašyti netiesines požymių sąveikas, vėlesnių mėnesių sesijas surikiuoja geriau už logistinę regresiją? Iš anksto nustatyta H1 hipotezė: nenaudojant neaiškaus prieinamumo požymio PageValues, atsitiktinio miško galutinio testo AP turi būti bent 0,02, t. y. 2 procentiniais punktais, didesnė už logistinės regresijos AP. 0,02 riba yra projekto minimalus praktiškai pastebimas pagerėjimas, o ne literatūroje garantuotas efektas.
+Pagrindinis klausimas: ar modelis, gebantis aprašyti netiesines požymių sąveikas, vėlesnių mėnesių sesijas surikiuoja geriau už logistinę regresiją? Iš anksto nustatyta H1 hipotezė: nenaudojant neaiškaus prieinamumo požymio PageValues, atsitiktinio miško galutinio testo AP turi būti bent 0,02, t. y. 2 procentiniais punktais, didesnė už logistinės regresijos AP.
+
+0,02 buvo iš anksto pasirinkta mokomojo darbo praktiškai pastebimos persvaros riba, kad, pavyzdžiui, 0,002 AP (0,2 procentinio punkto) nebūtų laikoma pakankamu pagrindu rinktis sudėtingesnį mišką. Tai nėra statistinio reikšmingumo slenkstis, universali literatūros norma ar pinigais pagrįsta verslo riba. Jei būtų žinomos FP, FN ir intervencijos kainos, ribą reikėtų sieti su jomis. Todėl išvada vertinama ir pagal porinio bootstrap AP skirtumo intervalą.
 
 ## 2. Duomenys ir jų paruošimas
 
@@ -26,9 +28,11 @@ Naudotas UCI Online Shoppers Purchasing Intention duomenų rinkinys (Sakar ir Ka
 
 Skaidymas sąmoningai imituoja mokymą iš ankstesnių mėnesių ir vertinimą vėlesniu laikotarpiu. Mokymo imties medianos, kategorijų žodynas ir kitos transformacijos apskaičiuojamos tik iš mokymo dalies. Skaitinės tuščios reikšmės pakeičiamos mokymo mediana, kategorinės – mokyme dažniausia reikšme, o kategorijos koduojamos vienkartiniu kodavimu (angl. *one-hot encoding*). Nežinomos vėlesnių imčių kategorijos priimamos be klaidos.
 
-Lapkričio–gruodžio imtis buvo validus nepriklausomas galutinis testas pirmojo vertinimo metu, nes modeliai, hiperparametrai ir slenksčiai buvo užfiksuoti prieš jį atveriant. Po klaidų, pogrupių, kalibracijos ir slenksčio elgsenos analizės ši imtis tyrėjui jau žinoma. Todėl vėlesni modelio pakeitimai negali būti laikomi nepriklausomai patvirtintais tame pačiame teste; jiems reikia naujo būsimo laikotarpio arba kitos iki tol neliestos *holdout* imties.
+Mokymo imtyje modeliai išmoksta parametrus, validacijoje parenkami hiperparametrai ir sprendimo slenkstis, o testas naudojamas jau užfiksuotam sprendimui įvertinti. Validacija nėra papildoma mokymo imtis: pasirinktas modelis po jos nepermokomas sujungus mokymą ir validaciją.
 
-Pagrindiniame variante naudojama 15 pradinių požymių. PageValues pašalintas, nes jo apskaičiavimo momentas duomenų apraše nėra pakankamai aiškus realaus laiko prognozei. Šis požymis grąžinamas tik atskirame jautrumo bandyme. Dabartinis eksperimentas yra užbaigtų sesijų suvestinių *offline/post-session* klasifikavimas, o ne patvirtintas tarpinės sesijos realaus laiko prognozavimas. Visiškai sutampančios 125 eilutės paliktos, nes suvestinės sutapimas neįrodo, kad tai tas pats lankytojas; jos dėl mėnesio negali kirsti pasirinkto skaidymo ribų.
+Lapkričio–gruodžio imtis buvo validus nepriklausomas galutinis testas pirmojo vertinimo metu, nes modeliai, hiperparametrai ir slenksčiai buvo užfiksuoti prieš jį atveriant. Po klaidų, pogrupių, kalibracijos ir slenksčio elgsenos analizės ši imtis tyrėjui jau žinoma. Todėl vėlesni modelio pakeitimai negali būti laikomi nepriklausomai patvirtintais tame pačiame teste; jiems reikia naujo būsimo laikotarpio arba kitos iki tol neliestos holdout imties.
+
+Pagrindiniame variante naudojama 15 pradinių požymių. PageValues pašalintas, nes jo apskaičiavimo momentas duomenų apraše nėra pakankamai aiškus realaus laiko prognozei. Šis požymis grąžinamas tik atskirame jautrumo bandyme. Dabartinis eksperimentas yra užbaigtų sesijų suvestinių offline/post-session klasifikavimas, o ne patvirtintas tarpinės sesijos realaus laiko prognozavimas. Visiškai sutampančios 125 eilutės paliktos, nes suvestinės sutapimas neįrodo, kad tai tas pats lankytojas; jos dėl mėnesio negali kirsti pasirinkto skaidymo ribų.
 
 ## 3. Metodai ir eksperimento protokolas
 
@@ -41,7 +45,9 @@ Pagrindiniame variante naudojama 15 pradinių požymių. PageValues pašalintas,
 | Atsitiktinis miškas | Netiesinės sąveikos ir kelių medžių vidurkis | 200 medžių; min. lapas 20 |
 | Gradientinis stiprinimas | Nuosekliai taisomos ankstesnių medžių klaidos | 150 iteracijų; 7 lapai |
 
-Iš viso validacijoje išbandyti 9 iš anksto apibrėžti kandidatai: viena pastovi atskaita, dvi logistinės regresijos (`C ∈ {0,1; 1,0}`), dvi atsitiktinio miško (`min_samples_leaf ∈ {5; 20}`), dvi gradientinio stiprinimo (`max_leaf_nodes ∈ {7; 15}`) ir dvi atsitiktinio miško su PageValues versijos. Tai ribotas hiperparametrų palyginimas validacijos imtyje, o ne išsami hiperparametrų optimizacija. Kiekvienoje metodų šeimoje laimėtojas parinktas tik pagal validacijos AP. Galutinis testas iki pasirinkimų užfiksavimo nenaudotas.
+Iš viso validacijoje išbandyti 9 iš anksto apibrėžti kandidatai: viena pastovi atskaita, dvi logistinės regresijos (C ∈ {0,1; 1,0}), dvi atsitiktinio miško (min_samples_leaf ∈ {5; 20}), dvi gradientinio stiprinimo (max_leaf_nodes ∈ {7; 15}) ir dvi atsitiktinio miško su PageValues versijos. Tai ribotas hiperparametrų palyginimas validacijos imtyje, o ne išsami optimizacija. Kiekvienoje metodų šeimoje laimėtojas parinktas tik pagal validacijos AP. Galutinis testas iki pasirinkimų užfiksavimo nenaudotas.
+
+Miško 200 medžių ir stiprinimo 150 iteracijų bei mokymosi žingsnis 0,05 buvo nustatyti iš anksto pagal ribotą skaičiavimo biudžetą; optimalumas neįrodytas. Miško medžiai mokomi atskirai, o stiprinimo medžiai kuriami nuosekliai, todėl jų skaičių tiesiogiai lyginti negalima. Atsitiktinių skaičių pradžios reikšmė 42 pasirinkta tik atkuriamumui, ne kokybei gerinti.
 
 ![Eksperimento eiga ir duomenų atskyrimo principas](assets/exam_workflow.png)
 
@@ -59,7 +65,7 @@ Pastovus mokymo pirkimų dažnis (angl. baseline) ignoruoja z ir visoms sesijoms
 
 $$ \hat p_0=\frac{1}{N}\sum_{i=1}^{N}y_i \tag{1} $$
 
-N = 6 608 – mokymo sesijų skaičius, o yᵢ yra i-osios mokymo sesijos Revenue (1 – pirkta, 0 – nepirkta). Šiame bandyme p₀ = 731 / 6 608 ≈ 0,1106. Modelis vienodas tikimybes grąžina ir testo eilutėms; jo testo AP = 0,2066 sutampa su testo pirkimų dalimi, o ne su mokymo pirkimų dažniu.
+N = 6 608 – mokymo sesijų skaičius, o yᵢ yra i-osios mokymo sesijos Revenue (1 – pirkta, 0 – nepirkta). Šiame bandyme p₀ = 731 / 6 608 ≈ 0,1106 yra mokymo pirkimų dalis: ją modelis grąžina kaip tikimybę kiekvienai sesijai. Visoms eilutėms skiriamas tas pats balas, todėl baseline jų neranguoja. Jo testo AP = 0,2066 yra testo pirkimų dalis. Baseline AP nėra 0,1106, nes AP skaičiuojama testo imtyje, o pastovaus balo AP lygi vertinamos imties teigiamos klasės daliai.
 
 Logistinė regresija sudeda išmoktų požymių svorių poveikį ir rezultatą paverčia tikimybe sigmoidės funkcija:
 
@@ -95,11 +101,17 @@ $$ AP=\sum_{k}(R_k-R_{k-1})P_k \tag{5} $$
 
 Rₖ ir Pₖ yra *recall* bei *precision* k-ajame prognozės slenkstyje. Didesnė AP reikšmė reiškia geresnį sesijų surikiavimą.
 
+AP atsako, kaip gerai modelis surikiuoja sesijas pagal pirkimo tikimybę. Pagal validacijos AP pasirenkamas kandidatas; ši metrika nepriklauso nuo vieno fiksuoto sprendimo slenksčio. F2 naudojamas tik parinkti slenkstį jau pasirinktam kandidatui. Užfiksavus slenkstį, *precision*, *recall*, F1 ir F2 apibūdina konkrečius dvejetainius sprendimus.
+
 $$ Brier=\frac{1}{n}\sum_{i=1}^{n}(\hat{p}_i-y_i)^2 \tag{6} $$
 
-Čia n – vertintų sesijų skaičius, pᵢ – prognozuota tikimybė, yᵢ ∈ {0,1} – tikras pirkimo faktas. Mažesnis Brier nuostolis reiškia tikslesnes tikimybines prognozes.
+Čia n – vertintų sesijų skaičius, pᵢ – prognozuota tikimybė, yᵢ ∈ {0,1} – tikras pirkimo faktas. Kai p = 0,9 ir pirkimas įvyksta, kvadratinė klaida maža; kai pirkimo nėra, ji didelė. Brier yra šių klaidų vidurkis, todėl mažesnis geresnis. Jis vertina tikimybines prognozes apskritai; kalibracijos kreivė atskirai lygina prognozes su stebėtais dažniais.
 
-Veiksmo slenkstis parenkamas validacijoje maksimizuojant F2, nes šiame demonstraciniame scenarijuje *recall* laikomas svarbesniu už *precision*. Tikrame diegime slenkstis turi būti siejamas su veiksmų biudžetu ir realiomis klaidų kainomis.
+Log loss taip pat vertina tikimybes, bet ypač stipriai baudžia už labai užtikrintas klaidingas prognozes. Mažesnis log loss geresnis; šiame darbe jis yra papildomas rodiklis, ne modelio parinkimo kriterijus.
+
+AP ir trapecinis PR-AUC apibūdina *precision*–*recall* kreivę, bet skaičiuojami skirtingai. Pastoviam modeliui trapecinis plotas čia yra 0,6033 dėl kreivės galinio taško, nors modelis sesijų neranguoja. Todėl pagrindiniam palyginimui naudojama AP, o trapecinis PR-AUC pateikiamas tik papildomai.
+
+Veiksmo slenkstis parenkamas validacijoje maksimizuojant F2. Šiame mokomajame scenarijuje potencialaus pirkėjo praleidimas laikomas mažiau pageidaujamu nei papildomas klaidingas signalas. Tai tinka pigiam veiksmui, pavyzdžiui, priminimui; brangiai nuolaidai ar konsultanto skambučiui toks prioritetas gali netikti. Tikrųjų FP, FN ir intervencijos kainų nėra, todėl F2 nėra įrodytas verslo optimumas.
 
 $$ F_2=\frac{5\,\mathrm{Precision}\,\mathrm{Recall}}{4\,\mathrm{Precision}+\mathrm{Recall}} \tag{7} $$
 
@@ -110,6 +122,20 @@ Palyginimui F1 vienoje reikšmėje vienodai derina *precision* ir *recall*:
 $$ F_1=\frac{2\,\mathrm{Precision}\,\mathrm{Recall}}{\mathrm{Precision}+\mathrm{Recall}} \tag{8} $$
 
 Pakeitus tik skaičiavimo rodiklį iš F2 į F1, to paties modelio prognozės ir TP, FP, FN nepasikeičia; pasikeičia skaitinė vertinimo reikšmė. Jei pagal naują rodiklį iš naujo parenkamas slenkstis validacijoje, gali pasikeisti ir sprendimai, *precision* bei *recall*.
+
+**3 lentelė. Rodiklių paskirtis ir interpretacija**
+
+| Rodiklis | Kam naudojamas | Geriau | Svarbiausia interpretacija |
+|---|---|---|---|
+| AP | Modelių rangavimo palyginimas | Didesnis | Ne accuracy; nepriklauso nuo vieno slenksčio |
+| Precision | Teigiamų sprendimų vertinimas | Didesnis | Kokia prognozuotų pirkimų dalis tikra |
+| Recall | Aptiktų pirkimų vertinimas | Didesnis | Kokia tikrų pirkimų dalis rasta |
+| F1 | Papildomas sprendimų rodiklis | Didesnis | Vienodai derina precision ir recall |
+| F2 | Validacijos slenksčio parinkimas | Didesnis | Teikia pirmenybę recall; ne finansinis optimumas |
+| Brier | Tikimybių klaida | Mažesnis | Vidutinė kvadratinė tikimybės klaida |
+| Log loss | Papildoma tikimybių klaida | Mažesnis | Stipriai baudžia už užtikrintas klaidas |
+| Trapecinis PR-AUC | Papildoma PR kreivės charakteristika | Didesnis | Pastovaus modelio reikšmė gali klaidinti |
+| Bootstrap 95 % intervalas | RF ir LR AP skirtumo neapibrėžtumas | — | Jei apima 0, RF persvara neįrodyta |
 
 ## 4. Programos realizacija ir prieinamumas
 
@@ -131,11 +157,11 @@ Ji paima teigiamos klasės, t. y. pirkimo, tikimybę kiekvienai sesijai. Toliau 
 
 Programos kodas, konfigūracija, testai, rezultatai ir atkūrimo instrukcijos pateikti repozitorijoje: [SanAndriuwa/IS-EGZ-KL](https://github.com/SanAndriuwa/IS-EGZ-KL).
 
-Atkuriamumui užfiksuota Python ir bibliotekų aplinka, atsitiktinių skaičių pradžios reikšmė 42, vienas skaičiavimo srautas, duomenų SHA256 bei pradinio pagrindinio paleidimo programos failų kontrolinės sumos. Vykdymo aprašas saugomas results/manifest.json; po papildomos abliacijos kodo pakeitimo jo kodo sumos nėra dabartinių `src/` failų sumos.
+Atkuriamumui užfiksuota Python ir bibliotekų aplinka, atsitiktinių skaičių pradžios reikšmė 42, vienas skaičiavimo srautas, duomenų SHA256 bei pradinio pagrindinio paleidimo programos failų kontrolinės sumos. Vykdymo aprašas saugomas results/manifest.json; po papildomos abliacijos kodo pakeitimo jo kodo sumos nėra dabartinių src/ failų sumos.
 
 ## 5. Pagrindiniai rezultatai
 
-**3 lentelė. Pagrindinių modelių galutinio testo rezultatai**
+**4 lentelė. Pagrindinių modelių galutinio testo rezultatai**
 
 | Modelis | AP | Precision | Recall | Brier |
 |---|---|---|---|---|
@@ -144,23 +170,35 @@ Atkuriamumui užfiksuota Python ir bibliotekų aplinka, atsitiktinių skaičių 
 | Atsitiktinis miškas | 0,3411 | 0,2414 | 0,9795 | 0,1555 |
 | Gradientinis stiprinimas | 0,3392 | 0,2311 | 0,9877 | 0,1572 |
 
+### Kaip skaityti pagrindinius rezultatus
+
+- Pastovaus modelio AP = 0,2066 atitinka testo pirkimų dalį; jis sesijų neranguoja.
+- Logistinės regresijos AP = 0,3336 rodo geresnį pirkimų rangavimą už pastovų modelį.
+- RF turi didžiausią stebėtą pagrindinių modelių AP = 0,3411; gradientinio stiprinimo AP = 0,3392 yra labai artima.
+- RF ir logistinės regresijos skirtumas 0,0076 yra mažesnis už iš anksto pasirinktą 0,02 ribą.
+- Porinio bootstrap intervalas apima 0, todėl tvirto RF pranašumo ši imtis neparodo.
+
+AP yra rodiklis nuo maždaug 0 iki 1: didesnis reiškia geresnį rangavimą, tačiau 0,3411 nereiškia 34,11 % teisingų atsakymų. RF AP viršija pastovaus modelio AP apie 0,1346 (skirtumas skaičiuotas iš neapvalintų reikšmių), o logistinę regresiją – tik 0,0076.
+
 ![Pagrindinių modelių AP ir Brier palyginimas](assets/exam_model_comparison.png)
 
 *3 pav. Pagrindinių modelių AP ir Brier palyginimas*
 
 $$ \Delta AP=AP_{RF}-AP_{LR}=0.3411-0.3336=0.0076 \tag{9} $$
 
-Atsitiktinis miškas skaičiais yra geriausias pagrindinis modelis, tačiau jo AP persvara prieš logistinę regresiją tėra 0,0076, t. y. 0,76 procentinio punkto.
+RF turi didžiausią stebėtą AP šiame teste, tačiau jo persvara prieš logistinę regresiją tėra 0,0076, t. y. 0,76 procentinio punkto. Tai neįrodo bendro metodo pranašumo.
 
-Porinio bootstrap 95 % intervalas skirtumui yra [−0,0113; 0,0284]. Jis apima nulį, o stebėtas 0,0076 pagerėjimas nesiekia iš anksto nustatytos 0,02 ribos. Todėl H1 nepatvirtinama. Tai nėra eksperimento nesėkmė: neigiamas rezultatas parodo, kad sudėtingesnis modelis šioje sąžiningai atskirtoje imtyje nesuteikė numatyto praktinio pranašumo.
+Porinis bootstrap 500 kartų su grąžinimu perrenka testo eilutes ir kiekvieną kartą abiejų modelių AP skaičiuoja toms pačioms eilutėms. Iš AP_RF − AP_LR skirtumų gautas centrinis 95 % intervalas [−0,0113; 0,0284]. Jis apima 0, todėl šiame bandyme negalima tvirtai teigti, kad RF geresnis; stebėta persvara taip pat nesiekia 0,02, todėl H1 nepatvirtinama. Intervalas nereiškia 95 % tikimybės, kad tikrasis skirtumas būtinai yra jo viduje, ir neapima kitų parduotuvių, sezonų ar naujų mokymo pradžios reikšmių. 500 pakartojimų yra pasirinktas skaičiavimo biudžetas: daugiau pakartojimų galėtų stabilizuoti intervalo ribas, bet 500 nėra privalomas standartas.
 
 ### 5.1. Slenkstis ir sumaišties matrica
 
-Atsitiktinio miško validacijoje parinktas 0,03 slenkstis. Galutiniame teste gauta TN=745, FP=3 004, FN=20 ir TP=956. Taigi aptikta 97,95 % pirkimų, tačiau iš 3 960 teigiamų prognozių teisingos buvo tik 956. Didelis *recall* nėra bendras tikslumas; toks žemas slenkstis tiktų tik pigiam veiksmui, kai praleisto pirkėjo kaina yra gerokai didesnė už nereikalingo kontakto kainą.
+Atsitiktinio miško 0,03 slenkstis nebuvo ranka parinktas peržiūrėjus testą. Kode tikrintas tinklelis nuo 0,01 iki 0,99 kas 0,01; kiekvienam slenksčiui validacijoje apskaičiuotas F2. Pasirinkto RF didžiausią validacijos F2 davė 0,03. Šis slenkstis užfiksuotas prieš galutinį testą.
+
+Teste gauta TN=745, FP=3 004, FN=20 ir TP=956. Modelis aptiko 956 iš 976 pirkimų, tačiau klaidingai pažymėjo 3 004 nepirkusias sesijas. Jis beveik nepraleidžia pirkėjų, bet teigiamą signalą duoda labai dažnai: *recall* = 0,9795, o *precision* = 0,2414. Didelis *recall* nėra bendras tikslumas.
 
 Prie šio užfiksuoto slenksčio *precision* = 956 / (956 + 3 004) = 0,2414, *recall* = 956 / (956 + 20) = 0,9795, F1 = 0,3874, o F2 = 0,6078. Didesnis F2 šiuo atveju nereiškia, kad modelis pagerėjo: abu balai apskaičiuoti iš tų pačių prognozių, tik F2 labiau vertina didelį *recall*.
 
-**4 lentelė. To paties miško testo prognozės esant dviem iliustraciniams slenksčiams**
+**5 lentelė. To paties miško testo prognozės esant dviem iliustraciniams slenksčiams**
 
 | Slenkstis | TP | FP | FN | Precision | Recall | F1 | F2 |
 |---|---|---|---|---|---|---|---|
@@ -181,22 +219,22 @@ Atsitiktinis miškas dažniausiai nuvertina pirkimo tikimybę. Pavyzdžiui, vien
 
 ### 6.1. PageValues jautrumas
 
-Pridėjus PageValues, validacijoje parinkto atsitiktinio miško AP padidėjo iki 0,6715, o Brier sumažėjo iki 0,1158. Kadangi be šio požymio validacija pasirinko `min_samples_leaf=20`, o su juo – 5, šis pirmasis palyginimas apima ir požymio pridėjimą, ir pakartotinį hiperparametro parinkimą.
+Validacijoje parinkto RF testo AP be PageValues buvo 0,3411, o su juo – 0,6715; Brier sumažėjo iki 0,1158. Pirmajame palyginime kartu keitėsi požymis ir validacijoje parinktas lapo dydis: be PageValues jis buvo 20, su juo – 5.
 
-**5 lentelė. Fiksuotų RF parametrų PageValues abliacija**
+**6 lentelė. Fiksuotų RF parametrų PageValues abliacija**
 
-| `min_samples_leaf` | `PageValues` | Validacijos AP | Testo AP |
-|---:|:---:|---:|---:|
-| 5 | ne | 0,3063 | 0,3345 |
-| 5 | taip | 0,7070 | 0,6715 |
-| 20 | ne | 0,3070 | 0,3411 |
-| 20 | taip | 0,6904 | 0,6611 |
+| Lapo dydis | PageValues | Validacijos AP | Testo AP |
+|---|---|---|---|
+| 5 | Ne | 0,3063 | 0,3345 |
+| 5 | Taip | 0,7070 | 0,6715 |
+| 20 | Ne | 0,3070 | 0,3411 |
+| 20 | Taip | 0,6904 | 0,6611 |
 
-Parametrai šioje lentelėje nustatyti iš anksto, o testas nenaudojamas variantui pasirinkti. Abiem lapo dydžiais PageValues susijęs su dideliu AP padidėjimu, bet tai neįrodo nei duomenų nutekėjimo, nei saugaus požymio naudojimo. Abliacija atlikta po pirminės galutinio testo analizės, todėl yra papildoma tiriamoji analizė, o ne naujas nepriklausomas modelio kokybės patvirtinimas. Pagrindinė išvada lieka paremta iš anksto numatytu variantu be PageValues.
+Fiksuojant lapo dydį 20, testo AP padidėja nuo 0,3411 iki 0,6611; fiksuojant 5 – nuo 0,3345 iki 0,6715. Taigi stiprus signalas išlieka ir nekeičiant šio parametro. Testas nenaudotas variantui pasirinkti. Abliacija atlikta po pirminės testo analizės, todėl yra tiriamoji, o ne naujas nepriklausomas patvirtinimas. Rezultatas neįrodo nei nutekėjimo, nei PageValues prieinamumo realiu laiku; būtina patikrinti jo skaičiavimo langą. Pagrindinė išvada lieka paremta variantu be šio požymio.
 
 ### 6.2. Trūkstamų reikšmių atsparumas
 
-**6 lentelė. AP pokytis atsitiktinai paslėpus 9,87 % skaitinių langelių**
+**7 lentelė. AP pokytis atsitiktinai paslėpus 9,87 % skaitinių langelių**
 
 | Modelis | Pradinė AP | AP su trūkumais | Pokytis |
 |---|---|---|---|
@@ -204,13 +242,13 @@ Parametrai šioje lentelėje nustatyti iš anksto, o testas nenaudojamas variant
 | Atsitiktinis miškas | 0,3411 | 0,3386 | −0,0025 |
 | Gradientinis stiprinimas | 0,3392 | 0,3360 | −0,0032 |
 
-Šis bandymas rodo nedidelį jautrumą atsitiktinai išsibarsčiusioms tuščioms skaitinėms reikšmėms. Jis neapima viso stulpelio dingimo, sisteminio matavimo sutrikimo ar trūkumo, priklausančio nuo pirkimo klasės.
+Iš anksto pasirinktas 10 % skaitinių langelių paslėpimas yra kontroliuojamas atsparumo scenarijus, ne realaus diegimo trūkumo dažnio įvertis. Ta pati atsitiktinė kaukė taikyta visiems pagrindiniams modeliams; dėl atsitiktinės atrankos faktiškai paslėpta 4 197 iš 42 525 langelių, arba 9,87 %. Tikslas – patikrinti vidutinio masto atsitiktinių trūkumų poveikį. Bandymas neapima viso stulpelio dingimo, sisteminio trūkumo ar trūkumo, priklausančio nuo pirkimo klasės.
 
 ### 6.3. Pogrupiai ir klaidų pavyzdžiai
 
 Lapkričio atsitiktinio miško AP buvo 0,3868, gruodžio – 0,2900; tuo pat metu pirkimų dalys buvo 25,35 % ir 12,51 %. Kadangi AP priklauso nuo klasės dažnio, šis skirtumas nėra grynas modelio kokybės pablogėjimo matas. Naujiems lankytojams žemas slenkstis visas 754 sesijas priskyrė teigiamai klasei, todėl prieš realų naudojimą būtinas atskiras slenksčio auditas.
 
-**7 lentelė. Tipiniai atsitiktinio miško klaidų pavyzdžiai**
+**8 lentelė. Tipiniai atsitiktinio miško klaidų pavyzdžiai**
 
 | Šaltinio eilutė | Klaida | Tikimybė | Interpretacija |
 |---|---|---|---|
@@ -227,26 +265,28 @@ Prieš rengiant šią ataskaitą rezultatai patikrinti nepriklausomai nuo suvest
 
 Paleisti 8 automatiniai testai; visi baigėsi sėkmingai. Jie tikrina laiko tvarką, imčių atskyrimą, neleistinų požymių pašalinimą, mokymo medianas, naujas kategorijas ir tuščias reikšmes, atsitiktinio miško formulę, AP savybę, slenkstį, blogą įvestį ir UTF‑8 rezultatų įrašymą. Eksperimento manifeste užfiksuotas 6,45 s vykdymo laikas autoriaus Windows aplinkoje. Ankstesniame ataskaitos juodraštyje buvo likę pasenę teiginiai apie 9,4 s ir 7 testus; šioje redakcijoje jie ištaisyti.
 
-Duomenų SHA256 sutampa su naudotu CSV. `manifest.json` programos kontrolinės sumos aprašo pradinį pagrindinį paleidimą, o ne dabartinius `src/` failus po papildomos abliacijos; atskirame pakartotiniame paleidime visi pagrindinių variantų AP tiksliai sutapo su išsaugotais rezultatais. Atsitiktinio miško medžių tikimybių vidurkio bei bibliotekos predict_proba išvesties didžiausias absoliutus skirtumas teste yra 0. Skaitinių prieštaravimų tarp manifest.json, metrics.csv, split_summary.csv ir šioje ataskaitoje pateiktų pagrindinių rezultatų nerasta.
+Duomenų SHA256 sutampa su naudotu CSV. manifest.json programos kontrolinės sumos aprašo pradinį pagrindinį paleidimą, o ne dabartinius src/ failus po papildomos abliacijos; atskirame pakartotiniame paleidime visi pagrindinių variantų AP tiksliai sutapo su išsaugotais rezultatais. Atsitiktinio miško medžių tikimybių vidurkio bei bibliotekos predict_proba išvesties didžiausias absoliutus skirtumas teste yra 0. Skaitinių prieštaravimų tarp manifest.json, metrics.csv, split_summary.csv ir šioje ataskaitoje pateiktų pagrindinių rezultatų nerasta.
 
 ## 8. Diskusija ir ribotumai
 
 UCI aprašymas nurodo, kad puslapių skaičius ir trukmė gali būti atnaujinami naršant, tačiau pateiktas CSV neturi tarpinių momentinių kopijų. Todėl galutinių sesijos suvestinės reikšmių prieinamumas konkrečiu realaus laiko prognozės momentu nėra įrodytas.
 
-| Požymis | Ką reiškia | Kada atsiranda | Ar garantuotas tarpiniu prognozės momentu? | Sesijos pabaigos informacijos rizika |
-|---|---|---|---|---|
-| `Administrative` | administracinių puslapių skaičius | kaupiasi naršant | tik dalinė reikšmė; galutinė negarantuota | vidutinė |
-| `Administrative_Duration` | laikas administraciniuose puslapiuose | kaupiasi naršant | galutinė reikšmė negarantuota | vidutinė |
-| `Informational` | informacinių puslapių skaičius | kaupiasi naršant | tik dalinė reikšmė; galutinė negarantuota | vidutinė |
-| `Informational_Duration` | laikas informaciniuose puslapiuose | kaupiasi naršant | galutinė reikšmė negarantuota | vidutinė |
-| `ProductRelated` | produktų puslapių skaičius | kaupiasi naršant | tik dalinė reikšmė; galutinė negarantuota | vidutinė |
-| `ProductRelated_Duration` | laikas produktų puslapiuose | kaupiasi per visą sesiją | ne; galutinė trukmė priklauso nuo vėlesnio naršymo | **didelė** |
-| `BounceRates` | aplankytų puslapių atmetimo rodiklių agregatas | analitikos sistemoje ir agreguojant aplankytus puslapius | CSV momentinės reikšmės neįrodo | **didelė** |
-| `ExitRates` | aplankytų puslapių išėjimo rodiklių agregatas | analitikos sistemoje ir agreguojant aplankytus puslapius | CSV momentinės reikšmės neįrodo | **didelė** |
-| `SpecialDay` | datos artumas specialiai dienai | žinomas iš kalendoriaus prieš sesiją | taip | maža |
-| `PageValues` | aplankytų puslapių komercinės vertės agregatas | analitikos sistemoje; tikslus skaičiavimo langas CSV neatskleistas | neįrodyta | **labai didelė** |
+**9 lentelė. Požymių prieinamumas prognozės momentu**
 
-`Revenue` nepatenka į įvestį, o `PageValues` pašalintas iš pagrindinio varianto, tačiau vien tai neįrodo, kad temporalinis informacijos nutekėjimas visiškai pašalintas: galutinės trukmės, `BounceRates` ir `ExitRates` taip pat reikalauja kilmės ir prieinamumo audito.
+| Požymis | Ką reiškia | Kada atsiranda | Tarpiniu momentu | Pabaigos rizika |
+|---|---|---|---|---|
+| Administrative | Administracinių puslapių skaičius | Kaupiasi naršant | Galutinė reikšmė negarantuota | Vidutinė |
+| Administrative_Duration | Laikas administraciniuose puslapiuose | Kaupiasi naršant | Galutinė reikšmė negarantuota | Vidutinė |
+| Informational | Informacinių puslapių skaičius | Kaupiasi naršant | Galutinė reikšmė negarantuota | Vidutinė |
+| Informational_Duration | Laikas informaciniuose puslapiuose | Kaupiasi naršant | Galutinė reikšmė negarantuota | Vidutinė |
+| ProductRelated | Produktų puslapių skaičius | Kaupiasi naršant | Galutinė reikšmė negarantuota | Vidutinė |
+| ProductRelated_Duration | Laikas produktų puslapiuose | Kaupiasi per sesiją | Galutinė reikšmė negarantuota | Didelė |
+| BounceRates | Puslapių atmetimo rodiklių agregatas | Analitikos sistemoje | CSV neįrodo prieinamumo | Didelė |
+| ExitRates | Puslapių išėjimo rodiklių agregatas | Analitikos sistemoje | CSV neįrodo prieinamumo | Didelė |
+| SpecialDay | Datos artumas specialiai dienai | Žinomas iš kalendoriaus | Taip | Maža |
+| PageValues | Puslapių komercinės vertės agregatas | Analitikos sistemoje | CSV neįrodo prieinamumo | Labai didelė |
+
+Revenue nepatenka į įvestį, o PageValues pašalintas iš pagrindinio varianto, tačiau vien tai neįrodo, kad temporalinis informacijos nutekėjimas visiškai pašalintas. Galutinės trukmės, BounceRates ir ExitRates taip pat reikalauja kilmės ir prieinamumo audito.
 
 - Duomenys apima vieną anoniminę parduotuvę ir vienų metų laikotarpį, todėl išvados automatiškai neperkeliamos kitoms parduotuvėms ar sezonams.
 - Mėnuo suteikia tik apytikslę laiko tvarką; nėra tikslių laiko žymų ir lankytojo identifikatoriaus.
@@ -257,11 +297,11 @@ UCI aprašymas nurodo, kad puslapių skaičius ir trukmė gali būti atnaujinami
 
 ## 9. Išvados
 
-- Atsitiktinis miškas be PageValues pasiekė didžiausią pagrindinių modelių AP – 0,3411 – ir mažiausią Brier nuostolį – 0,1555.
+- Mokomi modeliai rikiavo pirkimus geriau už pastovų modelį (AP = 0,2066). RF turėjo didžiausią stebėtą pagrindinių modelių AP – 0,3411 – ir mažiausią Brier nuostolį – 0,1555.
 - Jo AP persvara prieš logistinę regresiją buvo 0,0076, o 95 % bootstrap intervalas [−0,0113; 0,0284], todėl iš anksto nustatyta bent 0,02 persvaros hipotezė nepatvirtinta.
-- 0,03 slenkstis aptiko 956 iš 976 pirkimų, bet sukūrė 3 004 klaidingus teigiamus atvejus; prieš naudojimą būtinos realios klaidų kainos arba veiksmų biudžetas.
-- PageValues smarkiai pagerino rezultatą, tačiau jo laikinė kilmė nepatvirtinta, todėl jis neįtrauktas į pagrindinę išvadą.
-- Programa ir ataskaitos skaičiai yra tarpusavyje nuoseklūs, visi 8 automatiniai testai praeina, tačiau realaus laiko tinkamumui dar reikia požymių kilmės audito ir naujo būsimo laikotarpio bandymo.
+- Validacijoje parinktas 0,03 slenkstis aptiko 956 iš 976 pirkimų, bet sukūrė 3 004 klaidingus teigiamus atvejus. Aukštas recall gautas mažo precision kaina; prieš naudojimą reikia žinoti klaidų kainas arba veiksmų biudžetą.
+- PageValues suteikė stiprų prognozavimo signalą ir esant vienodam RF lapo dydžiui, tačiau jo laikinė kilmė nepatvirtinta, todėl jis neįtrauktas į pagrindinę išvadą.
+- Programa patikrinta 8 automatiniais testais. Rezultatai pagrindžia offline/post-session tyrimą; realaus laiko taikymui reikia požymių prieinamumo audito ir naujo būsimo laikotarpio testo.
 
 ## 10. Šaltiniai
 
