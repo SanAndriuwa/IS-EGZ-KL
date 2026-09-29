@@ -461,6 +461,9 @@ def build() -> None:
         ["Trapecinis PR-AUC", "Papildoma PR kreivės charakteristika", "Didesnis", "Pastovaus modelio reikšmė gali klaidinti"],
         ["Bootstrap 95 % intervalas", "RF ir LR AP skirtumo neapibrėžtumas", "—", "Jei apima 0, RF persvara neįrodyta"],
     ], [1.25, 2.0, 0.8, 2.2])
+    r.heading("3.3. Naujausi literatūroje taikomi metodai", 2)
+    r.p("Abdullah-All-Tanvir ir kt. (2023) artimai pirkimo ketinimo užduočiai taikė XGBoost, požymių atranką ir balansavimą. Satu ir Islam (2023) tam pačiam UCI rinkiniui tyrė RF su transformacijomis, SMOTE ir atranka. Setyawan ir Himawan (2026) palygino XGBoost, LightGBM ir CatBoost su platesne optimizacija. Tai pagrindas svarstyti metodus, bet ne įrodymas, kad jų skelbti kitų skaidymų accuracy ar ROC-AUC persikeltų į mūsų temporal AP.")
+    r.p("Pasirinktas vienas papildomas CPU XGBoost bandymas: nuoseklūs medžiai tinka lenteliniams sesijų požymiams, o train pirkimų disbalansą galima tikrinti teigiamos klasės svoriu. Šis metodas sudėtingesnis už LR, bet paaiškinamas ir telpa į mažą tinklą. SMOTE su požymių atranka atmestas, nes keistų kelias grandis ir reikalautų atsargiai tvarkyti kategorijas; stacking atmestas dėl papildomo meta-modelio skaidymo ir gynimo sudėtingumo. Tai supaprastintas literatūra motyvuotas bandymas, ne straipsnių metodikos reprodukcija. Išsamus šaltinių palyginimas pateiktas docs/NAUJA_LITERATURA.md.")
 
     r.heading("4. Programos realizacija ir prieinamumas")
     r.p("Programa išskaidyta į atskirus modulius: duomenų gavimą, paruošimą, modelius, mokymą, vertinimą, analizę, grafikų kūrimą ir rezultatų įrašymą. Visą eksperimentą paleidžia viena komanda:")
@@ -530,6 +533,26 @@ def build() -> None:
         ["7600", "FN", "0,0052", "Nulinė trukmė, tačiau pirkta"],
     ], [1.3, 0.8, 1, 2.8])
     r.p("Klaidos rodo, kad naršymo intensyvumas nėra pirkimo garantija, o trumpa sesija nėra patikimas nesusidomėjimo įrodymas. Nulinė trukmė kartu su pirkimu taip pat kelia duomenų matavimo taisyklių klausimą.")
+    r.heading("6.4. Tiriamasis rezultato gerinimas po pradinio testo", 2)
+    r.p("Pradinė seka: pastovios atskaitos AP = 0,2066, LR = 0,3336, RF = 0,3411, GB = 0,3392. RF persvara prieš LR tėra 0,0076, todėl po šio rezultato atskirai tikrinta, ar mažas RF parametrų pakeitimas arba literatūroje taikomas XGBoost pagerintų rangavimą. Tai post-test exploratory improvement experiment, ne pradinės H1 dalis. Visuose variantuose PageValues nenaudotas, paruošimas ir modelis mokyti tik train, kandidatas parinktas pagal validation AP, slenkstis pagal validation F2; tik tada vieną kartą įvertintas pasirinktas kiekvienos šeimos variantas teste.")
+    r.p("RF iš anksto apibrėžtame papildomame tinkle min_samples_leaf = 20, max_depth ∈ {be ribos; 8}, max_features ∈ {sqrt; 0,5}. XGBoost tinkle 150 medžių, learning_rate = 0,05, max_depth ∈ {3; 5}, scale_pos_weight ∈ {1; 8,04}; 8,04 yra tik train neigiamų ir teigiamų sesijų santykis. Šie maži tinklai riboja skaičiavimą; optimalumo neįrodo. Visi kandidatai išsaugoti results/improvement_experiments.csv.")
+    r.table("Papildomų variantų validacijos AP", ["Metodas ir parametrai", "Validacijos AP", "Parinktas", "Testo AP"], [
+        ["RF: gylis ∞, pož. sqrt", "0,3070", "Ne", "—"],
+        ["RF: gylis ∞, pož. 0,5", "0,3073", "Taip", "0,3297"],
+        ["RF: gylis 8, pož. sqrt", "0,3034", "Ne", "—"],
+        ["RF: gylis 8, pož. 0,5", "0,3041", "Ne", "—"],
+        ["XGB: gylis 3, svoris 1", "0,2760", "Ne", "—"],
+        ["XGB: gylis 3, svoris 8,04", "0,2817", "Ne", "—"],
+        ["XGB: gylis 5, svoris 1", "0,2801", "Ne", "—"],
+        ["XGB: gylis 5, svoris 8,04", "0,2830", "Taip", "0,3324"],
+    ], [2.5, 1.2, 0.8, 0.9])
+    r.p("Brūkšnys reiškia, kad papildomame palyginime neparinkto kandidato testas neskaičiuotas; pradinio RF rezultatas jau buvo žinomas iš pagrindinio eksperimento. Kiekvienos šeimos validacijos laimėtojui slenkstis nustatytas validacijoje, ne teste.")
+    r.table("Parinktų tiriamųjų variantų testinės metrikos", ["Variantas", "AP", "Brier", "Precision", "Recall", "F2", "Log loss"], [
+        ["RF variantas", "0,3297", "0,1586", "0,2428", "0,9764", "0,6086", "0,4972"],
+        ["XGBoost", "0,3324", "0,2185", "0,2329", "0,9826", "0,5977", "0,6147"],
+    ], [1.6, 0.8, 0.9, 1, 0.9, 0.8, 1])
+    r.figure(ROOT / "results" / "improvement_comparison.png", "Pagrindinių ir tiriamųjų variantų testo AP; nauji variantai nėra nepriklausomai patvirtinti", width=145)
+    r.p("Pagal validaciją parinktas RF variantas teste neviršijo pradinio RF (0,3297 prieš 0,3411). XGBoost taip pat neviršijo jo (0,3324), o jo Brier ir log loss buvo blogesni. RF variantas šiek tiek pakeitė precision, recall ir F2 kompromisą, bet aiškaus rangavimo pagerėjimo nėra. Skirtingų šeimų negalima paskelbti laimėtojais renkantis pagal jau žinomą testą. Net jei naujas skaičius būtų didesnis, tai būtų tiriamoji, o ne nauja nepriklausoma generalizacijos patikra; jai reikia būsimo arba iki tol neliesto holdout laikotarpio.")
 
     r.heading("7. Klaidų ir nuoseklumo patikra")
     r.p("Prieš rengiant šią ataskaitą rezultatai patikrinti nepriklausomai nuo suvestinio teksto. Visų keturių pagrindinių modelių sumaišties matricų elementai sudaro po 4 725 testines sesijas, o teigiamų klasių suma yra 976. Iš matricų perskaičiuoti precision ir recall sutampa su metrics.csv. Skaidymo lentelėje sesijų suma yra 12 330, o pirkimų – 1 908. Dubliuotų modelio ir scenarijaus rezultatų eilučių nėra.")
@@ -566,11 +589,13 @@ def build() -> None:
         "Jo AP persvara prieš logistinę regresiją buvo 0,0076, o 95 % bootstrap intervalas [−0,0113; 0,0284], todėl iš anksto nustatyta bent 0,02 persvaros hipotezė nepatvirtinta.",
         "Validacijoje parinktas 0,03 slenkstis aptiko 956 iš 976 pirkimų, bet sukūrė 3 004 klaidingus teigiamus atvejus. Aukštas recall gautas mažo precision kaina; prieš naudojimą reikia žinoti klaidų kainas arba veiksmų biudžetą.",
         "PageValues suteikė stiprų prognozavimo signalą ir esant vienodam RF lapo dydžiui, tačiau jo laikinė kilmė nepatvirtinta, todėl jis neįtrauktas į pagrindinę išvadą.",
+        "Po pradinio testo atlikti RF parametrų ir literatūra motyvuoto XGBoost bandymai neparodė aiškaus AP pagerėjimo: parinktų variantų testo AP buvo 0,3297 ir 0,3324. Tai tiriamieji, o ne naujas nepriklausomas patvirtinimas.",
         "Programa patikrinta 8 automatiniais testais. Rezultatai pagrindžia offline/post-session tyrimą; realaus laiko taikymui reikia požymių prieinamumo audito ir naujo būsimo laikotarpio testo.",
     ])
 
     r.heading("10. Šaltiniai")
     sources = [
+        "Abdullah-All-Tanvir, Khandokar, I. A., Islam, A. K. M. M., Islam, S., Shatabda, S. (2023). A gradient boosting classifier for purchase intention prediction of online shoppers. Heliyon, 9(4), e15163. https://doi.org/10.1016/j.heliyon.2023.e15163",
         "Breiman, L. (2001). Random Forests. Machine Learning, 45, 5–32. https://doi.org/10.1023/A:1010933404324",
         "Cawley, G. C., Talbot, N. L. C. (2010). On Over-fitting in Model Selection and Subsequent Selection Bias in Performance Evaluation. Journal of Machine Learning Research, 11, 2079–2107. https://www.jmlr.org/papers/v11/cawley10a.html",
         "Friedman, J. H. (2001). Greedy Function Approximation: A Gradient Boosting Machine. The Annals of Statistics, 29(5), 1189–1232. https://doi.org/10.1214/aos/1013203451",
@@ -578,6 +603,8 @@ def build() -> None:
         "Niculescu-Mizil, A., Caruana, R. (2005). Predicting Good Probabilities with Supervised Learning. ICML. https://www.cs.cornell.edu/~alexn/papers/calibration.icml05.crc.rev3.pdf",
         "Pedregosa, F. ir kt. (2011). Scikit-learn: Machine Learning in Python. Journal of Machine Learning Research, 12, 2825–2830. https://www.jmlr.org/papers/v12/pedregosa11a.html",
         "Saito, T., Rehmsmeier, M. (2015). The Precision-Recall Plot Is More Informative than the ROC Plot When Evaluating Binary Classifiers on Imbalanced Datasets. PLOS ONE, 10(3), e0118432. https://doi.org/10.1371/journal.pone.0118432",
+        "Satu, M. S., Islam, S. F. (2023). Modeling online customer purchase intention behavior applying different feature engineering and classification techniques. Discover Artificial Intelligence, 3, 36. https://doi.org/10.1007/s44163-023-00086-0",
+        "Setyawan, I. B., Himawan, H. (2026). Optimasi Bayesian pada Gradient Boosting untuk Prediksi Niat Beli E-Commerce pada Dataset dengan Ketidakseimbangan Kelas. Building of Informatics, Technology and Science, 8(1), 51–61. https://doi.org/10.47065/bits.v8i1.9710",
         "Sakar, C. O., Kastro, Y. (2018). Online Shoppers Purchasing Intention Dataset. UCI Machine Learning Repository. https://doi.org/10.24432/C5F88Q",
         "Sakar, C. O. ir kt. (2019). Real-time prediction of online shoppers’ purchasing intention using multilayer perceptron and LSTM recurrent neural networks. Neural Computing and Applications, 31, 6893–6908. https://doi.org/10.1007/s00521-018-3523-0",
         "scikit-learn developers (n.d.-a). average_precision_score documentation (version 1.8). https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html",

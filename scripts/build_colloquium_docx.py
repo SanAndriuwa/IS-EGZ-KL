@@ -29,7 +29,7 @@ blocks = [block for section in content['pages'] for block in section]
 formulas = [value for kind, value in blocks if kind == 'eq']
 math_markdown = '\n\n'.join('$$\n' + formula + '\n$$' for formula in formulas)
 converted = subprocess.run(
-    ['pandoc', '-f', 'markdown', '-t', 'docx'],
+    ['pandoc', '-f', 'markdown', '-t', 'docx', '-o', '-'],
     input=math_markdown.encode(), capture_output=True, check=True,
 )
 with ZipFile(BytesIO(converted.stdout)) as archive:
@@ -152,12 +152,13 @@ for kind, value in blocks:
         caption = doc.add_paragraph(f'{table_number} lentelė. ' + {
             1: 'Pagrindiniai neaiškumai ir numatyti sprendimai',
             2: 'Projekto etapai ir jų rezultatai',
-            3: 'Atsitiktinio miško ir alternatyvų palyginimas',
-            4: 'Programos veiksmų seka',
-            5: 'Formulių ir programos dalių ryšys',
-            6: 'Papildomi bandymai',
-            7: 'Grėsmės išvadų galiojimui',
-            8: 'AI pasiūlymų ir rezultatų patikra',
+            3: 'Naujausių metodų tinkamumas šiam projektui',
+            4: 'Atsitiktinio miško ir alternatyvų palyginimas',
+            5: 'Programos veiksmų seka',
+            6: 'Formulių ir programos dalių ryšys',
+            7: 'Papildomi bandymai',
+            8: 'Grėsmės išvadų galiojimui',
+            9: 'AI pasiūlymų ir rezultatų patikra',
         }[table_number], style='Caption')
         caption.paragraph_format.keep_with_next = True
         table = doc.add_table(rows=len(rows) + 1, cols=len(headers))

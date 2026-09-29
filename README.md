@@ -112,6 +112,8 @@ iš DOCX naudojant dokumentų renderinimo scenarijų.
 | [Egzamino ataskaita](docs/EGZAMINO_ATASKAITA.pdf) | Pateikimui parengta DOCX/PDF ataskaita su vizualizacijomis ir patikros išvadomis |
 | [Automatinė rezultatų lentelė](results/RESULTS.md) | Visų metodų ir bandymų metrikos |
 | [AI žurnalas](docs/AI_ZURNALAS.md) | Priimti sprendimai, aptiktos klaidos ir patikros |
+| [Nauja literatūra](docs/NAUJA_LITERATURA.md) | 2023–2026 m. pirkimo ketinimo metodai ir pasirinkimo argumentai |
+| [Dėstytojo kriterijų patikra](docs/KRITERIJU_ATITIKTIS.md) | Kolokviumo ir egzamino punktai, įrodymai ir likę darbai |
 | [Gynimo instrukcija](docs/GYNIMAS.md) | Formulės paaiškinimas, nematytas CSV ir kodo pakeitimas |
 | [Reikalavimų atitiktis](docs/REIKALAVIMAI.md) | Užduoties punktai ir jų įrodymai |
 
@@ -126,6 +128,7 @@ iš DOCX naudojant dokumentų renderinimo scenarijų.
 - `src/reporting.py` – lentelių, santraukos ir vykdymo aprašo įrašymas.
 - `src/evaluation.py` – AP, PR-AUC, precision, recall, kalibracijos nuostoliai, slenkstis ir bootstrap.
 - `src/experiment.py` – nuosekli eiga, iškviečianti atskirų modulių funkcijas.
+- `src/improvement.py` – atskiras literatūra grįstas ir RF pagerinimo post-test bandymas.
 - `src/predict.py` – naujų sesijų prognozė.
 - `config.json` – mėnesiai, sėkla, atsparumo kaukė ir bootstrap kiekis.
 - `results/` – tikrai įvykdyto eksperimento lentelės, prognozės, grafikai ir vykdymo aprašas.
@@ -137,3 +140,5 @@ Atliktas ribotas hiperparametrų palyginimas validacijos imtyje, o ne išsami ar
 C. Sakar ir Y. Kastro (2018), *Online Shoppers Purchasing Intention Dataset*, UCI, [DOI 10.24432/C5F88Q](https://doi.org/10.24432/C5F88Q), CC BY 4.0. Rezultatuose pateikiami iš šių duomenų gauti skaičiai ir nedidelė klaidų įrašų ištrauka. Modelių metodiniai šaltiniai ir patikros ribos nurodyti plane bei AI žurnale.
 
 Darbas parengtas su AI pagalba. Gyvas gynimas ir dėstytojo nematytas bandymas dar turi būti atlikti studento.
+
+Papildomus tiriamuosius bandymus galima atkurti komanda `python -m src.improvement` (įdiegus `requirements.txt`). Ji nekeičia pagrindinio `metrics.csv`: išsaugo visus aštuonis validacijos kandidatus `results/improvement_experiments.csv` ir AP grafiką `results/improvement_comparison.png`. Šio darbo Nov–Dec testas jau buvo analizuotas, todėl šie vėlesni rezultatai nėra naujas nepriklausomas patvirtinimas.

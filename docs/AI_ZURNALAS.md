@@ -470,3 +470,13 @@ Izoliuotame pakartotiniame paleidime `pagevalues_ablation.csv` sutapo baitas į
 baitą; `metrics.csv` skyrėsi tik vykdymo laiko `selection_seconds` laukai,
 visos modelių metrikos sutapo. Visi 8 automatiniai testai baigėsi `OK`.
 Papildomi AI agentai nenaudoti.
+
+## 2026-09-30 — dėstytojo pastabų įgyvendinimas
+
+Vartotojas paprašė rasti naują 2022–2026 m. šiai užduočiai artimą literatūrą ir atlikti ribotą pagerinimo bandymą, nekeičiant pirminio RF–LR eksperimento. AI patikrino Abdullah-All-Tanvir ir kt. (2023), Satu ir Islam (2023), Karakaya ir kt. (2023), Setyawan ir Himawan (2026) publikacijų bibliografiją, duomenis ir metodus; DOI, skirtumai ir įgyvendinimo ribos surašyti `NAUJA_LITERATURA.md`. Tai nėra įrodymas, kad jų rezultatai persikels į mūsų temporal split.
+
+AI svarstė XGBoost, RF su SMOTE / požymių atranka ir stacking. Pasirinktas tik vienas naujas metodas — CPU XGBoost: artimas sesijos duomenų uždaviniui, turi paprastą fiksuotą keturių variantų tinklelį ir leidžia atskirai tikrinti klasės svorį. SMOTE / atranka atmesti, nes vienu metu keistų daugiau grandžių ir komplikuotų kategorinių požymių apdorojimą; stacking atmestas dėl papildomo meta-modelio, duomenų dalijimo ir gynimo sudėtingumo. Tai supaprastintas literatūros motyvuotas bandymas, ne straipsnio algoritmo reprodukcija.
+
+Taip pat patikrinti keturi RF `max_depth` × `max_features` variantai su fiksuotu `min_samples_leaf=20`. Visų aštuonių kandidatų validation AP įrašyti `results/improvement_experiments.csv`; tik kiekvienos šeimos validation laimėtojui nustatytas validation F2 slenkstis ir apskaičiuotos test metrikos. RF variantas: validation AP 0.3073, test AP 0.3297; XGBoost variantas: validation AP 0.2830, test AP 0.3324. Abu mažesni už pirminį RF test AP 0.3411; pagerėjimo įrodymo nėra. Grafiką žr. `results/improvement_comparison.png`.
+
+AI prielaida, kurią reikėjo patikrinti: straipsnių geresni rodikliai reikštų geresnį mūsų AP. Tai nepagrįsta, nes skiriasi skaidymas, požymiai ir metrikos; dokumentuose ši prielaida atmesta. Kitas apribojimas: Nov–Dec testas po ankstesnių analizių jau žinomas tyrėjui. Todėl bandymai aiškiai vadinami **post-test exploratory** ir nepretenduoja į nepriklausomą patvirtinimą. Pradinė hipotezė, pagrindinės metrikos ir `PageValues` analizė nepakeistos. AI patikrino pirminio `metrics.csv` ir `pagevalues_ablation.csv` kontrolines sumas, pakartotinį paleidimą, 8 unit testus ir dokumentų puslapius. Papildomi AI agentai nenaudoti; gyvas gynimas lieka studentui.

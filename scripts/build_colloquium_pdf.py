@@ -94,6 +94,14 @@ p('Histograminis gradientinis stiprinimas (angl. <i>histogram-based gradient boo
 p('Friedman (2001) yra bendro gradientinio stiprinimo metodo pirminis šaltinis. Jo pilnas tekstas šios patikros metu nebuvo prieinamas, todėl konkretaus mechanizmo paaiškinimas ir histograminės realizacijos savybės šiame plane remiami oficialia bibliotekos dokumentacija (scikit-learn developers, n.d.-b, n.d.-c). Reikia atsižvelgti į mokymosi žingsnio, iteracijų skaičiaus ir medžių sudėtingumo sąveiką; tai savaime nereiškia, kad metodas blogesnis už mišką.')
 h('3.5. Pagrindimo ribos')
 p('Duomenų šaltinis (Sakar &amp; Kastro, 2018) patvirtina klasifikavimo uždavinį ir įvesčių pobūdį. Pirminiai straipsniai ir bibliotekos dokumentacija pagrindžia mechanizmus, o jų pritaikymas šiai schemai yra argumentuota projektavimo išvada. Nei pirminis straipsnis, nei algoritmo populiarumas negarantuoja pranašumo šiame eksperimente.')
+h('3.6. Naujausi literatūroje taikomi metodai — atnaujinimas pagal dėstytojo pastabas')
+p('Šis poskyris pridėtas po pirminio plano; jis nekeičia anksčiau pasirinktų RF, LR, GB ir H1 statuso. Abdullah-All-Tanvir ir kt. (2023) artimam sesijų pirkimo ketinimo uždaviniui taiko XGBoost su požymių atranka ir balansavimu. Satu ir Islam (2023) tam pačiam UCI rinkiniui tiria RF, transformacijas, SMOTE ir požymių atranką. Setyawan ir Himawan (2026) lygina XGBoost, LightGBM ir CatBoost su SMOTE bei platesne optimizacija. Tai task-specific pavyzdžiai, bet jų vertinimo taisyklės ir galimai kitokie požymiai neįrodo geresnio AP mūsų laikiniame skaidyme.')
+table(['Svarstytas kelias','Kodėl tinka','Sprendimas šiame plane'],[
+['CPU XGBoost','Tinka sesijų lentelei; klasės svoris tikrina disbalanso įtaką.','Pasirinktas vienam ribotam bandymui; telpa į CPU biudžetą, bet brangesnis už LR.'],
+['RF su SMOTE ir atranka','Galėtų mažinti disbalanso ir nereikalingų požymių poveikį.','Dabar atmestas: kelios keičiamos grandys, sintetinės kategorijos ir sunkesnė interpretacija.'],
+['Stacking / balsavimas','Gali jungti skirtingų modelių signalus.','Atmestas: papildomas meta-modelio skaidymas, kaina ir sudėtingesnis gynimas.']
+],[110,170,215])
+p('<b>Papildomų bandymų planas:</b> nekeisti pagrindinio eksperimento. Po jo atskirai mokyti XGBoost ir RF parametrų variantus tik train; kiekvienos šeimos kandidatą parinkti pagal validation AP, slenkstį — pagal validation F2, testą vertinti tik po pasirinkimo. Išsaugoti visų kandidatų validacijos AP ir neigiamą rezultatą, jei pagerėjimo nėra. Kadangi pagrindinis testas jau žinomas, tai būtų <i>post-test exploratory</i> bandymas; nepriklausomam patvirtinimui reikėtų naujo būsimo laikotarpio. Breiman (2001) ir Friedman (2001) paaiškina mechanizmą, bet nėra šiuolaikinio pranašumo šiam rinkiniui įrodymas. Detalesnė šaltinių patikra pateikta NAUJA_LITERATURA.md.')
 
 page('4. Pagrindinis sprendimas ir hipotezė')
 h('4.1. Pasirinkimas')
@@ -217,6 +225,7 @@ p('Priėmimo sąlyga: kitas programuotojas pagal 2, 5-7 skyrius gali įgyvendint
 
 page('9. Šaltiniai')
 refs=[
+('Abdullah-All-Tanvir, Khandokar, I. A., Islam, A. K. M. M., Islam, S., &amp; Shatabda, S. (2023). A gradient boosting classifier for purchase intention prediction of online shoppers. <i>Heliyon, 9</i>(4), e15163. https://doi.org/10.1016/j.heliyon.2023.e15163','https://doi.org/10.1016/j.heliyon.2023.e15163'),
 ('Breiman, L. (2001). Random forests. <i>Machine Learning, 45</i>, 5–32. https://doi.org/10.1023/A:1010933404324','https://doi.org/10.1023/A:1010933404324'),
 ('Cawley, G. C., &amp; Talbot, N. L. C. (2010). On over-fitting in model selection and subsequent selection bias in performance evaluation. <i>Journal of Machine Learning Research, 11</i>, 2079–2107.','https://www.jmlr.org/papers/v11/cawley10a.html'),
 ('Friedman, J. H. (2001). Greedy function approximation: A gradient boosting machine. <i>Annals of Statistics, 29</i>(5), 1189–1232. https://doi.org/10.1214/aos/1013203451','https://doi.org/10.1214/aos/1013203451'),
@@ -224,6 +233,8 @@ refs=[
 ('Niculescu-Mizil, A., &amp; Caruana, R. (2005). Predicting good probabilities with supervised learning. <i>Proceedings of the 22nd International Conference on Machine Learning</i>.','https://www.cs.cornell.edu/~alexn/papers/calibration.icml05.crc.rev3.pdf'),
 ('Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cournapeau, D., Brucher, M., Perrot, M., &amp; Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. <i>Journal of Machine Learning Research, 12</i>, 2825–2830.','https://www.jmlr.org/papers/v12/pedregosa11a.html'),
 ('Saito, T., &amp; Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. <i>PLOS ONE, 10</i>(3), e0118432. https://doi.org/10.1371/journal.pone.0118432','https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0118432'),
+('Satu, M. S., &amp; Islam, S. F. (2023). Modeling online customer purchase intention behavior applying different feature engineering and classification techniques. <i>Discover Artificial Intelligence, 3</i>, 36. https://doi.org/10.1007/s44163-023-00086-0','https://doi.org/10.1007/s44163-023-00086-0'),
+('Setyawan, I. B., &amp; Himawan, H. (2026). Optimasi Bayesian pada Gradient Boosting untuk Prediksi Niat Beli E-Commerce pada Dataset dengan Ketidakseimbangan Kelas. <i>Building of Informatics, Technology and Science, 8</i>(1), 51–61. https://doi.org/10.47065/bits.v8i1.9710','https://doi.org/10.47065/bits.v8i1.9710'),
 ('Sakar, C., &amp; Kastro, Y. (2018). <i>Online Shoppers Purchasing Intention Dataset</i> [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5F88Q','https://doi.org/10.24432/C5F88Q'),
 ('Sakar, C. O., Polat, S. O., Katircioglu, M., &amp; Kastro, Y. (2019). Real-time prediction of online shoppers’ purchasing intention using multilayer perceptron and LSTM recurrent neural networks. <i>Neural Computing and Applications, 31</i>, 6893–6908. https://doi.org/10.1007/s00521-018-3523-0','https://link.springer.com/article/10.1007/s00521-018-3523-0'),
 ('scikit-learn developers. (n.d.-a). <i>average_precision_score</i> (Version 1.8) [Documentation].','https://scikit-learn.org/1.8/modules/generated/sklearn.metrics.average_precision_score.html'),

@@ -1,0 +1,9 @@
+experiment_name,model,parameters,validation_ap,selected,test_ap,brier,precision,recall,f2,log_loss,threshold,notes
+rf_parameter_improvement,random_forest,"{""max_depth"": null, ""max_features"": ""sqrt"", ""min_samples_leaf"": 20}",0.30699681466742,False,,,,,,,,Post-test exploratory; no PageValues; train-only fit.
+rf_parameter_improvement,random_forest,"{""max_depth"": null, ""max_features"": 0.5, ""min_samples_leaf"": 20}",0.30726419273911887,True,0.3297431073264682,0.15862324700150163,0.24280254777070065,0.9764344262295082,0.6086345638012518,0.4972466366022637,0.02,Post-test exploratory; no PageValues; train-only fit.
+rf_parameter_improvement,random_forest,"{""max_depth"": 8, ""max_features"": ""sqrt"", ""min_samples_leaf"": 20}",0.3034326119027149,False,,,,,,,,Post-test exploratory; no PageValues; train-only fit.
+rf_parameter_improvement,random_forest,"{""max_depth"": 8, ""max_features"": 0.5, ""min_samples_leaf"": 20}",0.30407785579101787,False,,,,,,,,Post-test exploratory; no PageValues; train-only fit.
+literature_xgboost,xgboost,"{""max_depth"": 3, ""scale_pos_weight"": 1.0}",0.27597649104389704,False,,,,,,,,Post-test exploratory; no PageValues; train-only fit.
+literature_xgboost,xgboost,"{""max_depth"": 3, ""scale_pos_weight"": 8.039671682626539}",0.2816885237915867,False,,,,,,,,Post-test exploratory; no PageValues; train-only fit.
+literature_xgboost,xgboost,"{""max_depth"": 5, ""scale_pos_weight"": 1.0}",0.2801327535878919,False,,,,,,,,Post-test exploratory; no PageValues; train-only fit.
+literature_xgboost,xgboost,"{""max_depth"": 5, ""scale_pos_weight"": 8.039671682626539}",0.28301044045554513,True,0.3323891328179724,0.21849294006824493,0.23288003885381253,0.9825819672131147,0.5977312390924956,0.6147111560857702,0.04,Post-test exploratory; no PageValues; train-only fit.

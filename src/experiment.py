@@ -13,6 +13,7 @@ from .data import load_and_split, prepare_features
 from .training import train_and_select
 from .evaluation import metrics
 from .analysis import evaluate_missing, evaluate_pagevalues_ablation, analyze_forest
+from .improvement import run_improvements
 from .plots import save_plots
 from .reporting import save_splits, save_tables, save_manifest, save_summary
 
@@ -136,6 +137,9 @@ def run(config_path=ROOT / 'config.json', output=ROOT / 'results'):
                   missing_mask, started, output)
     # 10. Iš tų pačių skaičių sukuriame žmogui skaitomą Markdown lentelę.
     save_summary(table, delta, interval, formula_error, output)
+    # 11. Tik po užbaigto pagrindinio testo: literatūra grįsti tiriamieji bandymai.
+    # Jų validacijos parinkimas nekeičia ankstesnės RF–LR hipotezės ar lentelių.
+    run_improvements(train, validation, test, config['seed'], result, output)
     print('Experiment complete:', output, flush=True)
 
 

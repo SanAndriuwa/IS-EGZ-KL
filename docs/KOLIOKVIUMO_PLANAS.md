@@ -89,6 +89,18 @@ Friedman (2001) yra bendro gradientinio stiprinimo metodo pirminis šaltinis. Jo
 
 Duomenų šaltinis (Sakar & Kastro, 2018) patvirtina klasifikavimo uždavinį ir įvesčių pobūdį. Pirminiai straipsniai ir bibliotekos dokumentacija pagrindžia mechanizmus, o jų pritaikymas šiai schemai yra argumentuota projektavimo išvada. Nei pirminis straipsnis, nei algoritmo populiarumas negarantuoja pranašumo šiame eksperimente.
 
+### 3.6. Naujausi literatūroje taikomi metodai — atnaujinimas pagal dėstytojo pastabas
+
+Šis poskyris pridėtas po pirminio plano; jis nekeičia anksčiau pasirinktų RF, LR, GB ir H1 statuso. [Abdullah-All-Tanvir ir kt. (2023)](https://doi.org/10.1016/j.heliyon.2023.e15163) artimam sesijų pirkimo ketinimo uždaviniui taiko XGBoost su požymių atranka ir balansavimu. [Satu ir Islam (2023)](https://doi.org/10.1007/s44163-023-00086-0) tam pačiam UCI rinkiniui tiria RF, transformacijas, SMOTE ir požymių atranką. [Setyawan ir Himawan (2026)](https://doi.org/10.47065/bits.v8i1.9710) lygina XGBoost, LightGBM ir CatBoost su SMOTE bei platesne optimizacija. Tai task-specific pavyzdžiai, bet jų vertinimo taisyklės ir galimai kitokie požymiai neįrodo geresnio AP mūsų laikiniame skaidyme.
+
+| Svarstytas kelias | Kodėl tinka | Kodėl šiam papildomam bandymui pasirinktas arba atmestas |
+|---|---|---|
+| CPU XGBoost su mažu svorio ir gylio tinklu | Medžių stiprinimas tinka sesijų lentelei, svoris leidžia tikrinti klasių disbalanso įtaką. | **Pasirinktas** vienam aiškiam, atkuriamam bandymui; brangesnis už LR, bet telpa į CPU biudžetą ir paaiškinamas kaip nuoseklus medžių taisymas. |
+| RF su SMOTE ir požymių atranka | Gali spręsti disbalansą ir mažinti nereikalingų požymių kiekį. | Atmestas dabar: kelios vienu metu keičiamos grandys, sintetinių kategorijų tvarkymo rizika ir sunkesnė rezultatų interpretacija. Vietoj to planuojamas mažas RF parametrų palyginimas. |
+| Stacking / balsavimo ansamblis | Gali derinti skirtingų modelių signalus. | Atmestas: reikia papildomo meta-modelio skaidymo, didesnės skaičiavimo kainos ir sudėtingesnio gynimo. |
+
+**Papildomų bandymų planas:** nekeisti pagrindinio eksperimento. Po jo atskirai mokyti XGBoost ir RF parametrų variantus tik train; kiekvienos šeimos kandidatą parinkti pagal validation AP, slenkstį — pagal validation F2, testą vertinti tik po pasirinkimo. Išsaugoti visų kandidatų validacijos AP, pasirinkto varianto testines metrikas ir neigiamą rezultatą, jei pagerėjimo nėra. Kadangi pagrindinis testas po analizės jau žinomas, tai būtų *post-test exploratory* bandymas; nepriklausomam patvirtinimui reikėtų naujo būsimo laikotarpio. Breiman (2001) ir Friedman (2001) paaiškina mechanizmą, bet nėra šiuolaikinio pranašumo šiam rinkiniui įrodymas. Detalesnė šaltinių ir alternatyvų patikra: [naujos literatūros peržiūra](NAUJA_LITERATURA.md).
+
 ## 4. Pagrindinis sprendimas ir hipotezė
 
 ### 4.1. Pasirinkimas
@@ -330,6 +342,8 @@ Priėmimo sąlyga: kitas programuotojas pagal 2, 5-7 skyrius gali įgyvendinti g
 
 ## 9. Šaltiniai
 
+Abdullah-All-Tanvir, Khandokar, I. A., Islam, A. K. M. M., Islam, S., & Shatabda, S. (2023). A gradient boosting classifier for purchase intention prediction of online shoppers. *Heliyon, 9*(4), e15163. https://doi.org/10.1016/j.heliyon.2023.e15163
+
 Breiman, L. (2001). Random forests. *Machine Learning, 45*, 5–32. https://doi.org/10.1023/A:1010933404324 [Atverti šaltinį](https://doi.org/10.1023/A:1010933404324)
 
 Cawley, G. C., & Talbot, N. L. C. (2010). On over-fitting in model selection and subsequent selection bias in performance evaluation. *Journal of Machine Learning Research, 11*, 2079–2107. [Atverti šaltinį](https://www.jmlr.org/papers/v11/cawley10a.html)
@@ -343,6 +357,10 @@ Niculescu-Mizil, A., & Caruana, R. (2005). Predicting good probabilities with su
 Pedregosa, F., Varoquaux, G., Gramfort, A., Michel, V., Thirion, B., Grisel, O., Blondel, M., Prettenhofer, P., Weiss, R., Dubourg, V., Vanderplas, J., Passos, A., Cournapeau, D., Brucher, M., Perrot, M., & Duchesnay, É. (2011). Scikit-learn: Machine learning in Python. *Journal of Machine Learning Research, 12*, 2825–2830. [Atverti šaltinį](https://www.jmlr.org/papers/v12/pedregosa11a.html)
 
 Saito, T., & Rehmsmeier, M. (2015). The precision-recall plot is more informative than the ROC plot when evaluating binary classifiers on imbalanced datasets. *PLOS ONE, 10*(3), e0118432. https://doi.org/10.1371/journal.pone.0118432 [Atverti šaltinį](https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0118432)
+
+Satu, M. S., & Islam, S. F. (2023). Modeling online customer purchase intention behavior applying different feature engineering and classification techniques. *Discover Artificial Intelligence, 3*, 36. https://doi.org/10.1007/s44163-023-00086-0
+
+Setyawan, I. B., & Himawan, H. (2026). Optimasi Bayesian pada Gradient Boosting untuk Prediksi Niat Beli E-Commerce pada Dataset dengan Ketidakseimbangan Kelas. *Building of Informatics, Technology and Science, 8*(1), 51–61. https://doi.org/10.47065/bits.v8i1.9710
 
 Sakar, C., & Kastro, Y. (2018). *Online Shoppers Purchasing Intention Dataset* [Dataset]. UCI Machine Learning Repository. https://doi.org/10.24432/C5F88Q [Atverti šaltinį](https://doi.org/10.24432/C5F88Q)
 
