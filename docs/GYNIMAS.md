@@ -42,10 +42,53 @@ Kitas paprastas pakeitimas – `config.json` pakeisti `missing_fraction` iš 0.1
 
 ## Klausimai, kuriuos reikia gebėti atsakyti
 
-1. Kodėl vien accuracy nepakanka? Retą pirkimą visada atmetantis modelis gali atrodyti tikslus, bet neaptiks nė vieno pirkimo.
-2. Kodėl nėra atsitiktinio skaidymo? Turime mėnesį ir norime įvertinti vėlesnį laikotarpį.
-3. Kodėl be PageValues? Jo prieinamumas iki prognozės nėra patvirtintas; jautrumas jam didelis.
-4. Ar RF laimėjo? Skaitinė persvara maža, išankstinė hipotezė nepasitvirtino, intervalas apima nulį.
-5. Kodėl recall aukštas, bet precision žemas? Validacijos F2 taisyklė pasirinko žemą slenkstį, todėl daug sesijų pažymimos teigiamai.
-6. Ar tikimybės kalibruotos? Kalibracija įvertinta, RF dažnai nuvertina pirkimų dažnį. Papildomas kalibratorius nemokytas.
-7. Ko trūksta realiam laikui? Įvykių sekų, prieinamumo prognozės momentu audito ir būsimo laikotarpio bandymo.
+Trumpi atsakymai yra atmintinė kalbėjimui, ne visas metodikos aprašas.
+
+### Duomenys ir modeliai
+
+1. **Kas yra X ir y?** X – sesijos įvesties požymiai; y – `Revenue`, ar sesija baigėsi pirkimu (1), ar ne (0). `Revenue` nėra X dalis.
+2. **Kiek pradinių požymių?** Pagrindiniame variante 15: 9 skaitiniai ir 6 kategoriniai. *One-hot* kiekvieną kategoriją paverčia atskirais stulpeliais, todėl paruoštame X jų daugiau.
+3. **Ar logistinė regresija turi paslėptų sluoksnių?** Ne. Ji skaičiuoja svertinę požymių sumą, tada sigmoidę ir tikimybę.
+4. **Kas yra sigmoidė?** Funkcija, paverčianti bet kokį realų skaičių reikšme tarp 0 ir 1.
+5. **Ką reiškia `C=1`?** Tai atvirkštinis regularizacijos stiprumas. Mažesnis C stipriau ribotų koeficientus; `C=1` pasirinkta pagal validacijos AP, ne kaip universalus optimumas.
+6. **Kaip vienas RF medis gauna tikimybę?** Sesija patenka į lapą, o medis grąžina tame lape buvusių mokymo pirkimų dalį. Miškas vidurkina medžių tikimybes.
+7. **Kodėl 200 RF medžių?** Skaičius iš anksto fiksuotas pagal ribotą skaičiavimo biudžetą; neteigiama, kad 200 optimalu.
+8. **Ką reiškia `min_samples_leaf=20`?** Kiekviename galutiniame medžio lape turi būti bent 20 mokymo pavyzdžių; tai riboja labai smulkius skaidymus.
+9. **Kodėl boosting turi 150 iteracijų, o RF 200 medžių?** RF medžiai mokomi atskirai, boosting medžiai nuosekliai taiso ankstesnį modelį. Skaičiai iš anksto fiksuoti ir tiesiogiai nelyginami.
+10. **Ką reiškia `learning_rate=0.05`?** Kiekvieno naujo boosting medžio indėlis pridedamas su 0,05 žingsniu.
+11. **Ką reiškia `max_leaf_nodes=7`?** Vienam boosting medžiui leidžiama daugiausia 7 galutiniai lapai, todėl vienas medis lieka paprastas.
+12. **Kam iš pradžių tikimybė, o tada klasė?** Tikimybė leidžia rikiuoti sesijas ir pasirinkti veiksmui tinkamą slenkstį; 0/1 klasė gaunama tik palyginus ją su slenksčiu.
+
+### Rodikliai ir rezultatai
+
+13. **Kodėl pagrindinis rodiklis AP?** Pirkimų klasė retesnė, o AP vertina teigiamų sesijų rangavimą per slenksčius. Vien accuracy gali atrodyti gera net neaptikus pirkimų.
+14. **Ar AP = 0,3411 yra 34,11 % accuracy?** Ne. AP apibendrina *precision–recall* rangavimą, o accuracy yra teisingų 0/1 sprendimų dalis prie vieno slenksčio.
+15. **Kodėl baseline tikimybė 0,1106, o testo AP 0,2066?** 0,1106 yra mokymo pirkimų dalis, grąžinama visoms sesijoms. Visi balai vienodi, todėl testo AP lygi testo pirkimų daliai – 0,2066.
+16. **Kodėl modelis parenkamas pagal AP, o slenkstis pagal F2?** AP parenka geriau ranguojantį kandidatą validacijoje; F2 tada parenka 0/1 sprendimo ribą tam kandidatui. Testas nė vieno pasirinkimo nenulemia.
+17. **Kodėl F2, o ne F1?** Šiame mokomajame scenarijuje svarbiau nepraleisti pirkėjo; F2 labiau akcentuoja *recall*. Be realių klaidų kainų tai nėra verslo optimumas.
+18. **Kas pasikeistų naudojant F1?** Tos pačios prognozės ir klaidų skaičiai savaime nesikeistų; pasikeistų balas. Iš naujo parenkant slenkstį validacijoje galėtų keistis ir 0/1 sprendimai.
+19. **Iš kur 0,03 slenkstis?** Validacijoje patikrintas 0,01–0,99 tinklelis kas 0,01; pasirinkto RF didžiausią F2 davė 0,03, prieš atveriant testą.
+20. **Kodėl *recall* ≈ 0,98, bet *precision* ≈ 0,24?** Žemas slenkstis aptiko 956 iš 976 pirkimų, bet kartu pažymėjo 3 004 nepirkusias sesijas.
+21. **Kas yra Brier score?** Prognozuotos tikimybės ir tikro 0/1 atsakymo kvadratinės klaidos vidurkis; mažesnis geresnis.
+22. **Kas yra kalibracija?** Palyginimas, ar tarp sesijų, kurioms duota, pavyzdžiui, apie 0,3 tikimybė, maždaug 30 % iš tiesų pirko. Ji skiriasi nuo gero rangavimo.
+23. **Kodėl trapecinis PR-AUC baseline gali klaidinti?** Pastovus balas sesijų neranguoja, bet trapecinis kreivės plotas dėl galinio taško čia yra 0,6033; jo AP yra tik 0,2066.
+24. **Ką reiškia bootstrap intervalas [−0,0113; 0,0284]?** Poromis perrinkus tas pačias testo eilutes abiem modeliams, toks gautas centrinis 95 % RF minus LR AP skirtumo intervalas šiai imčiai.
+25. **Kodėl svarbu, kad intervalas apima 0?** Turimi duomenys neleidžia tvirtai teigti, kad RF AP pranašumas prieš LR yra teigiamas.
+26. **Kodėl 500 pakartojimų?** Tai iš anksto pasirinktas skaičiavimo biudžetas, ne privalomas standartas; daugiau pakartojimų galėtų stabilizuoti intervalo galus.
+27. **Kodėl ΔAP riba 0,02?** Iš anksto pasirinkta mokomojo darbo praktiškai pastebimos persvaros riba, ne statistinio reikšmingumo ar pinigais pagrįsta norma.
+28. **Ką praktiškai daro `min_samples_leaf` ir `max_leaf_nodes`?** Pirmasis nustato mažiausią lapo imtį, antrasis – didžiausią lapų skaičių. Abu riboja medžio sudėtingumą.
+
+### Sąžiningas vertinimas ir ribos
+
+29. **Kodėl paruošimas mokomas tik iš train?** Kad validacijos ir testo mediana, kategorijos ar kitos reikšmės nepatektų į mokymą iš ateities.
+30. **Kas yra data leakage?** Kai modelis mokydamasis gauna informaciją, kurios tikros prognozės momentu dar neturėtų.
+31. **Kodėl `PageValues` įtartinas, bet neįrodytas leakage?** Jo skaičiavimo ir prieinamumo laikas CSV neaiškus. Didelis AP šuolis kelia klausimą, bet pats savaime neįrodo nutekėjimo.
+32. **Kam RF pipeline `StandardScaler`?** Medžiams mastelio keitimas nebūtinas. Bendras paruošimo žingsnis paliktas vienodai grandinei; scaler pritaikomas tik train ir RF skaidymų esmės nekeičia.
+33. **Kodėl train pirkimų dalis 11,06 %, o test 20,66 %?** Tai skirtingų mėnesių stebėti dažniai. Vėlesnė imtis turi kitą klasės dalį, todėl tikimybių kalibracija ir baseline AP gali skirtis.
+34. **Kas yra distribution shift?** Kai vėlesnių duomenų požymių ar atsakymų pasiskirstymas skiriasi nuo mokymo duomenų.
+35. **Kas yra *unseen test*?** Iki modelio ir slenksčio pasirinkimų neliesta imtis, skirta vienkartiniam galutiniam įvertinimui.
+36. **Kodėl tas pats testas po analizės nebėra naujas nepriklausomas įrodymas?** Tyrėjas jau matė jo klaidas, pogrupius ir rezultatus; vėlesni pakeitimai gali būti sąmoningai ar netyčia prie jo priderinti. Reikia naujos neliestos imties.
+37. **Kodėl modelis nepermokomas su train+validation?** Šiame eksperimente vertinama tiksliai ta grandinė, kurios parametrai išmokti train ir pasirinkimai padaryti validation; jungimas pakeistų modelį prieš testą.
+38. **Ką parodė 10 % trūkstamų reikšmių bandymas?** Atsitiktinai paslėpus 9,87 % skaitinių testo langelių, AP sumažėjo nedaug. Tai neįrodo atsparumo sisteminiam ar viso stulpelio trūkumui.
+39. **Kodėl seed = 42?** Atkuriamumui. Skaičius nepasirinktas modeliui pagerinti.
+40. **Ką iš tikrųjų parodėme?** Modeliai išmoko signalą: jų AP aukštesnė už pastovią atskaitą. RF turėjo didžiausią stebėtą AP, bet nepasiekė iš anksto reikalauto ≥0,02 pranašumo prieš LR, o bootstrap intervalas apima 0. Aukštas *recall* gautas mažo *precision* kaina. `PageValues` turi stiprų prognozavimo signalą, bet saugus prieinamumas neįrodytas. Tai *offline/post-session* tyrimas, ne patvirtintas realaus laiko sprendimas.

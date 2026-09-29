@@ -459,3 +459,14 @@ ribas. Turimi eksperimento rezultatai, modelių kodas ir duomenų skaidymas
 nepakeisti. Ataskaita atkurta iš `scripts/build_exam_report.py`, todėl MD,
 DOCX ir PDF turi tą patį turinį. PDF puslapiai peržiūrėti; pataisytas lentelės
 eilutės skilimas tarp puslapių. Papildomi AI agentai nenaudoti.
+
+## 2026-09-29 — abliacijos vykdymo tvarka ir gynimo atmintinė
+
+Vartotojo prašymu fiksuotų parametrų `PageValues` abliacijos iškvietimas
+perkeltas po pagrindinių modelių galutinio testo ir RF–LR AP palyginimo.
+Abliacijos funkcija ir išsaugoti rezultatai nekeisti. `GYNIMAS.md` papildytas
+40 trumpų klausimų bei atsakymų, neplečiant pagrindinės ataskaitos.
+Izoliuotame pakartotiniame paleidime `pagevalues_ablation.csv` sutapo baitas į
+baitą; `metrics.csv` skyrėsi tik vykdymo laiko `selection_seconds` laukai,
+visos modelių metrikos sutapo. Visi 8 automatiniai testai baigėsi `OK`.
+Papildomi AI agentai nenaudoti.

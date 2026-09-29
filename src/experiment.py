@@ -46,11 +46,6 @@ def run(config_path=ROOT / 'config.json', output=ROOT / 'results'):
 
     save_splits(parts, config, output)
 
-    # Papildoma fiksuotų RF parametrų abliacija nieko neparenka pagal testą.
-    evaluate_pagevalues_ablation(
-        train, validation, test, config['seed'], output,
-    )
-
     # 3. Pagrindiniai modeliai ir atskiras PageValues jautrumo bandymas.
     selection = []       # Visų kandidatų validacijos AP ir parametrai.
     table = []           # Viena metrikų eilutė kiekvienam modeliui ir scenarijui.
@@ -131,6 +126,11 @@ def run(config_path=ROOT / 'config.json', output=ROOT / 'results'):
     forest_ap = clean.loc['random_forest', 'average_precision']
     logistic_ap = clean.loc['logistic', 'average_precision']
     delta = float(forest_ap - logistic_ap)
+    # Papildoma tiriamoji analizė tik po pagrindinio testo ir RF–LR palyginimo.
+    # Fiksuotų RF parametrų abliacija nieko neparenka pagal testą.
+    evaluate_pagevalues_ablation(
+        train, validation, test, config['seed'], output,
+    )
     # 9. Išsaugome, kokiu kodu ir kokiomis sąlygomis gauti rezultatai.
     save_manifest(ROOT, config, data, formula_error, delta, interval,
                   missing_mask, started, output)
