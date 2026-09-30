@@ -101,4 +101,6 @@ Trumpi atsakymai yra atmintinė kalbėjimui, ne visas metodikos aprašas.
 44. **Ar Nov–Dec parenka laimėtoją?** Ne. Kode laimėtojas ir F2 slenkstis užfiksuojami prieš Nov–Dec prognozes; pakeitus dirbtinius test balus pasirinkimas nesikeičia.
 45. **Kodėl ir tada rezultatas tik tiriamasis?** Tyrėjas jau analizavo tą patį testą ankstesniuose etapuose. Naujam nepriklausomam patvirtinimui reikia iki tol neliesto būsimo laikotarpio.
 
-Konkretaus naujo laimėtojo ir jo skaičių šioje atmintinėje dar nėra: vartotojas pats paleis tyrimą. Atsakymus papildyti tik pagal `results/tuning/SUMMARY.md`, ne spėjimu.
+46. **Koks buvo išplėstinio tyrimo laimėtojas?** Pagal rugsėjo–spalio validacijos AP 0,3052 pasirinktas RF: 200 medžių, `entropy`, mažiausias lapas 2, mažiausias skaidymas 20, `sqrt` požymių poaibis. Slenkstis 0,01 parinktas pagal tos validacijos F2.
+47. **Ar 722 konfigūracijos pagerino pradinį RF?** Ne. Pasirinkto RF tiriamasis Nov–Dec AP 0,3325, o pirminio RF 0,3411; skirtumas −0,0087. Tai rodo, kad ši paieška neaptiko papildomo AP rezervo, bet neįrodo optimalių parametrų ar požymių trūkumo priežasties.
+48. **Kodėl XGBoost nepasirinktas, nors jo testo AP 0,3407?** Jo rugsėjo–spalio AP 0,2863 buvo mažesnė už RF 0,3052. Pasirinkti pagal jau žinomą Nov–Dec reikštų testu derinti modelį. Be to, XGBoost Brier 0,2196 rodo prastesnę tikimybių kokybę už pradinio RF 0,1555.

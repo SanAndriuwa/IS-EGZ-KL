@@ -1,0 +1,5 @@
+family,parameters,temporal_mean_ap,temporal_std_ap,validation_ap,validation_brier,validation_log_loss,threshold
+logistic,"{""C"": 0.3, ""class_weight"": null}",0.23968242412119328,0.06225089183863886,0.24641917549149245,0.16291716352367042,0.520882150913409,0.04
+random_forest,"{""class_weight"": null, ""criterion"": ""entropy"", ""max_depth"": null, ""max_features"": ""sqrt"", ""min_samples_leaf"": 2, ""min_samples_split"": 20, ""n_estimators"": 200}",0.28519749128793104,0.032572519203469166,0.30522128481738897,0.16115829562380118,0.5269631697320496,0.01
+gradient_boosting,"{""l2_regularization"": 10, ""learning_rate"": 0.05, ""max_iter"": 400, ""max_leaf_nodes"": 5, ""min_samples_leaf"": 40}",0.2875657807847153,0.021550606489643506,0.29202099718123353,0.16389395412379837,0.543714731343927,0.02
+xgboost,"{""colsample_bytree"": 0.7, ""learning_rate"": 0.05, ""max_depth"": 4, ""min_child_weight"": 10, ""n_estimators"": 200, ""reg_alpha"": 1, ""reg_lambda"": 3, ""scale_pos_weight"": ""train_ratio"", ""subsample"": 1.0}",0.2892140528084437,0.014940803035731738,0.2863400618131738,0.2568560540676117,0.7098301408245786,0.04

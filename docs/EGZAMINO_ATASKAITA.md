@@ -299,11 +299,34 @@ Brūkšnys reiškia, kad papildomame palyginime neparinkto kandidato testas nesk
 
 Pagal validaciją parinktas RF variantas teste neviršijo pradinio RF (0,3297 prieš 0,3411). XGBoost taip pat neviršijo jo (0,3324), o jo Brier ir log loss buvo blogesni. RF variantas šiek tiek pakeitė *precision*, *recall* ir F2 kompromisą, bet aiškaus rangavimo pagerėjimo nėra. Skirtingų šeimų negalima paskelbti laimėtojais renkantis pagal jau žinomą testą. Net jei naujas skaičius būtų didesnis, tai būtų tiriamoji, o ne nauja nepriklausoma generalizacijos patikra; jai reikia būsimo arba iki tol neliesto holdout laikotarpio.
 
+### 6.5. Išplėstinis hiperparametrų tyrimas
+
+Po pirminio eksperimento ir mažo literatūra grįsto bandymo ta pati komanda atliko platesnę post-test exploratory paiešką. Pagrindinis RF–LR rezultatas nepakeistas. Keturiuose didėjančiuose laiko folduose iki rugsėjo kiekvieno foldo paruošimas mokytas tik ankstesnių mėnesių train dalyje; Revenue, Month ir PageValues į modelių įvestį nepateko. Patikrintos 722 unikalios konfigūracijos: 22 LR, 250 RF, 200 histograminių GB ir 250 XGBoost; iš viso 3372 modelių mokymai. Kandidatai lyginti pagal vidutinę foldų AP. Dešimt geriausių kiekvienos šeimos variantų patikrinti dėl stabilumo; vienas šeimos variantas mokytas visu vasario–rugpjūčio rinkiniu ir vertintas rugsėjo–spalio validacijoje.
+
+**11 lentelė. Išplėstinio tyrimo šeimų rezultatai**
+
+| Šeima | Temporal AP ± SD | Sep–Oct AP | Nov–Dec AP* |
+|---|---|---|---|
+| Logistinė regresija | 0,2397 ± 0,0623 | 0,2464 | 0,3360 |
+| Atsitiktinis miškas | 0,2852 ± 0,0326 | 0,3052 | 0,3325 |
+| Histograminis GB | 0,2876 ± 0,0216 | 0,2920 | 0,3380 |
+| XGBoost | 0,2892 ± 0,0149 | 0,2863 | 0,3407 |
+
+Pastaba. Nov–Dec reikšmės apskaičiuotos tik po to, kai rugsėjo–spalio AP parinko bendrą laimėtoją. Kitų šeimų test rezultatai pateikti palyginimui, ne naujam pasirinkimui. Visos konfigūracijos ir stabilumo rodikliai išsaugoti results/tuning/ kataloge.
+
+![Išplėstinio tyrimo AP pagal vertinimo laikotarpį; Nov–Dec rodikliai tiriamieji](../results/tuning/family_comparison.png)
+
+*6 pav. Išplėstinio tyrimo AP pagal vertinimo laikotarpį; Nov–Dec rodikliai tiriamieji*
+
+Rugsėjo–spalio validacija pasirinko RF (AP 0,3052): 200 medžių, entropy kriterijus, min_samples_leaf = 2, min_samples_split = 20, max_features = sqrt, be gylio ribos ir klasės svorių. Toje pačioje validacijoje pagal F2 parinktas 0,01 slenkstis. Užfiksuoto RF Nov–Dec AP = 0,3325, Brier = 0,1563, *precision* = 0,2303, *recall* = 0,9908, F1 = 0,3737, F2 = 0,5967, log loss = 0,4838. Jis aptiko 967 iš 976 pirkimų, bet klaidingai pažymėjo 3232 nepirkusias sesijas.
+
+Pradinis RF turėjo AP 0,3411; naujai parinkto RF skirtumas −0,0087. Plati paieška šiame duomenų skaidyme neatskleidė paslėpto AP pagerėjimo, bet neįrodo, kad parametrai apskritai nesvarbūs. XGBoost Nov–Dec AP 0,3407 buvo didesnė už naujo RF 0,3325, tačiau Sep–Oct AP 0,2863 buvo mažesnė; perrinkimas pagal testą būtų neteisingas. XGBoost Brier 0,2196 taip pat blogesnis už pradinio RF 0,1555. Kadangi Nov–Dec jau buvo analizuotas ankstesniuose etapuose, ši plati paieška nėra naujas nepriklausomas patvirtinimas net ir parinkus modelį be testo rezultatų.
+
 ## 7. Klaidų ir nuoseklumo patikra
 
 Prieš rengiant šią ataskaitą rezultatai patikrinti nepriklausomai nuo suvestinio teksto. Visų keturių pagrindinių modelių sumaišties matricų elementai sudaro po 4 725 testines sesijas, o teigiamų klasių suma yra 976. Iš matricų perskaičiuoti *precision* ir *recall* sutampa su metrics.csv. Skaidymo lentelėje sesijų suma yra 12 330, o pirkimų – 1 908. Dubliuotų modelio ir scenarijaus rezultatų eilučių nėra.
 
-Paleisti 8 automatiniai testai; visi baigėsi sėkmingai. Jie tikrina laiko tvarką, imčių atskyrimą, neleistinų požymių pašalinimą, mokymo medianas, naujas kategorijas ir tuščias reikšmes, atsitiktinio miško formulę, AP savybę, slenkstį, blogą įvestį ir UTF‑8 rezultatų įrašymą. Eksperimento manifeste užfiksuotas 6,45 s vykdymo laikas autoriaus Windows aplinkoje. Ankstesniame ataskaitos juodraštyje buvo likę pasenę teiginiai apie 9,4 s ir 7 testus; šioje redakcijoje jie ištaisyti.
+Paleista 14 automatinių testų; visi baigėsi sėkmingai. Ankstesni aštuoni tikrina pirminio eksperimento skaidymą, požymius, paruošimą, RF formulę, AP, slenkstį ir rezultatų įrašymą. Šeši nauji tikrina didėjančius laiko foldus, paruošimą tik foldo train dalyje, 722 unikalių konfigūracijų atkuriamumą, draudžiamų požymių pašalinimą ir modelio pasirinkimo nepriklausomumą nuo pakeistų test balų. Pilnas naujas žurnalas yra results/test_log.txt. Istorinio pirminio eksperimento manifeste įrašytas 6,45 s laikas neapima 3372 vėlesnių mokymų.
 
 Duomenų SHA256 sutampa su naudotu CSV. manifest.json programos kontrolinės sumos aprašo pradinį pagrindinį paleidimą, o ne dabartinius src/ failus po papildomos abliacijos; atskirame pakartotiniame paleidime visi pagrindinių variantų AP tiksliai sutapo su išsaugotais rezultatais. Atsitiktinio miško medžių tikimybių vidurkio bei bibliotekos predict_proba išvesties didžiausias absoliutus skirtumas teste yra 0. Skaitinių prieštaravimų tarp manifest.json, metrics.csv, split_summary.csv ir šioje ataskaitoje pateiktų pagrindinių rezultatų nerasta.
 
@@ -311,7 +334,7 @@ Duomenų SHA256 sutampa su naudotu CSV. manifest.json programos kontrolinės sum
 
 UCI aprašymas nurodo, kad puslapių skaičius ir trukmė gali būti atnaujinami naršant, tačiau pateiktas CSV neturi tarpinių momentinių kopijų. Todėl galutinių sesijos suvestinės reikšmių prieinamumas konkrečiu realaus laiko prognozės momentu nėra įrodytas.
 
-**11 lentelė. Požymių prieinamumas prognozės momentu**
+**12 lentelė. Požymių prieinamumas prognozės momentu**
 
 | Požymis | Ką reiškia | Kada atsiranda | Tarpiniu momentu | Pabaigos rizika |
 |---|---|---|---|---|
@@ -331,7 +354,7 @@ Revenue nepatenka į įvestį, o PageValues pašalintas iš pagrindinio varianto
 - Duomenys apima vieną anoniminę parduotuvę ir vienų metų laikotarpį, todėl išvados automatiškai neperkeliamos kitoms parduotuvėms ar sezonams.
 - Mėnuo suteikia tik apytikslę laiko tvarką; nėra tikslių laiko žymų ir lankytojo identifikatoriaus.
 - Pirkimų dalis mokyme ir teste skiriasi beveik du kartus, todėl tikimybės vėlesniais mėnesiais yra prasčiau kalibruotos.
-- Mažas iš anksto nustatytas parametrų tinklas riboja skaičiavimo sąnaudas, bet neįrodo, kad rasta geriausia įmanoma kiekvieno metodo versija.
+- Pirminis mažas parametrų tinklas buvo vėliau papildytas 722 konfigūracijų tyrimu; nei vienas neįrodo, kad rasta geriausia įmanoma kiekvieno metodo versija.
 - PageValues, sesijos trukmės, BounceRates ir ExitRates prieinamumas prognozės momentu turi būti audituojamas prieš realaus laiko naudojimą.
 - Bootstrap intervalas aprašo šio testo ir jau išmokytų modelių neapibrėžtumą; jis neapima kitų mokymo pradžios reikšmių ar būsimų laikotarpių.
 
@@ -342,7 +365,8 @@ Revenue nepatenka į įvestį, o PageValues pašalintas iš pagrindinio varianto
 - Validacijoje parinktas 0,03 slenkstis aptiko 956 iš 976 pirkimų, bet sukūrė 3 004 klaidingus teigiamus atvejus. Aukštas recall gautas mažo precision kaina; prieš naudojimą reikia žinoti klaidų kainas arba veiksmų biudžetą.
 - PageValues suteikė stiprų prognozavimo signalą ir esant vienodam RF lapo dydžiui, tačiau jo laikinė kilmė nepatvirtinta, todėl jis neįtrauktas į pagrindinę išvadą.
 - Po pradinio testo atlikti RF parametrų ir literatūra motyvuoto XGBoost bandymai neparodė aiškaus AP pagerėjimo: parinktų variantų testo AP buvo 0,3297 ir 0,3324. Tai tiriamieji, o ne naujas nepriklausomas patvirtinimas.
-- Programa patikrinta 8 automatiniais testais. Rezultatai pagrindžia offline/post-session tyrimą; realaus laiko taikymui reikia požymių prieinamumo audito ir naujo būsimo laikotarpio testo.
+- Vėlesniame 722 konfigūracijų tyrime Sep–Oct validacija pasirinko RF, kurio tiriamasis Nov–Dec AP 0,3325 nesiekė pradinio RF 0,3411. Plati paieška neatskleidė papildomo AP rezervo šiame skaidyme.
+- Programa patikrinta 14 automatinių testų. Rezultatai pagrindžia offline/post-session tyrimą; realaus laiko taikymui reikia požymių prieinamumo audito ir naujo būsimo laikotarpio testo.
 
 ## 10. Šaltiniai
 

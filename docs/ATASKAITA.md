@@ -89,7 +89,7 @@ Lapkričio RF AP=0,3868, gruodžio=0,2900; pirkimų dalys atitinkamai 25,35 % ir
 
 Pagrindinis paleidimas truko apie 6,45 s autoriaus Windows CPU aplinkoje; kitame kompiuteryje trukmė skirsis. Priklausomybės fiksuotos, Python 3.12, sėkla 42, skaičiavimo srautų skaičius 1. Duomenys patikrinti SHA256. [manifest.json](../results/manifest.json) fiksuoja pradinio pagrindinio paleidimo aplinką, parametrus, to meto šaltinio kodo kontrolines sumas ir patikras; po papildomos abliacijos kodo pakeitimo šios sumos nebeturi sutapti su dabartiniais `src/` failais. Atskirame pakartotiniame paleidime visi pagrindinių variantų AP tiksliai sutapo su išsaugotais rezultatais. RF medžių tikimybių vidurkio ir bibliotekos išvesties didžiausias skirtumas visame teste buvo 0.
 
-Aštuoni automatiniai testai tikrina laiko tvarką, imčių atskyrimą, neleistinų požymių pašalinimą, mokymo medianas, naujas kategorijas ir tuščias reikšmes, RF formulę, AP savybę, slenkstį, blogą įvestį bei UTF-8 rezultatų įrašymą. Jie neįrodo visos sistemos nepriekaištingumo, bet tikrina svarbiausias šio tyrimo klaidų vietas.
+Keturiolika automatinių testų tikrina laiko tvarką, imčių atskyrimą, neleistinų požymių pašalinimą, mokymo medianas, naujas kategorijas ir tuščias reikšmes, RF formulę, AP savybę, slenkstį, blogą įvestį bei UTF-8 rezultatų įrašymą. Šeši iš jų papildomai tikrina išplėstinį laikinį derinimą. Testai neįrodo visos sistemos nepriekaištingumo, bet tikrina svarbiausias šio tyrimo klaidų vietas.
 
 ## Praktinis tinkamumas ir tolesnis darbas
 
@@ -112,8 +112,17 @@ Pateikta veikianti mokomoji sesijų klasifikavimo sistema. Realaus laiko diegimu
 
 Gyvas gynimas ir dėstytojo tikrai nematytas bandymas šiame darbe dar neįvyko. Jiems paruošta programa bei [gynimo instrukcija](GYNIMAS.md); šios dalies balų ar sėkmės negalima laikyti jau pasiektais.
 
-## Išplėstinis hiperparametrų tyrimas — vykdymas numatytas
+## Išplėstinis hiperparametrų tyrimas
 
-Vėliau pridėtas `src/tuning.py` automatiškai kviečiamas vienintele komanda `python -m src.experiment`, tik po pirminio eksperimento ir `PageValues` analizės. Tai atskiras **post-test exploratory** tyrimas, ne retrospektyvus pradinės H1 pakeitimas. Jis naudoja keturis didėjančius laiko foldus iki rugsėjo, tik pagrindinius 15 požymių, 722 unikalias LR/RF/HGB/XGBoost konfiguracijas ir validacijos AP. Kiekvieno foldo paruošimas mokomas tik iš to foldo ankstesnių mėnesių. Po top-10 stabilumo patikros vienas kiekvienos šeimos variantas mokomas vasario–rugpjūčio duomenimis; rugsėjo–spalio AP parenka bendrą laimėtoją, F2 — slenkstį. Tik po šių pasirinkimų skaičiuojamas lapkričio–gruodžio rezultatas.
+Viena komanda `python -m src.experiment` po pirminio eksperimento ir `PageValues` analizės atliko atskirą **post-test exploratory** paiešką. Keturi didėjantys laiko foldai tikrino vėlesnį mėnesį po ankstesnių: vasaris–kovas → gegužė, tada papildomai gegužė → birželis, papildomai birželis → liepa ir papildomai liepa → rugpjūtis. Kiekvieno foldo paruošimas mokytas tik jo train dalyje. `Revenue`, `Month` ir `PageValues` į įvestį nepateko. Patikrintos 722 unikalios konfigūracijos: 22 LR, 250 RF, 200 histograminių GB ir 250 XGBoost; atlikti 3372 modelių mokymai. Kandidatai lyginti pagal vidutinę keturių foldų AP, o 10 geriausių kiekvienos šeimos variantų papildomai vertinti dėl stabilumo. Po to po vieną variantą mokyta vasario–rugpjūčio duomenimis ir palyginta rugsėjo–spalio validacijoje.
 
-Šio pakeitimo rengėjas plataus bandymo **nepaleido vartotojo prašymu**, todėl čia nėra išgalvotų laimėtojo ar AP skaičių. Tikri skaičiai po studento paleidimo atsiras `results/tuning/SUMMARY.md` ir CSV; tada šį skyrių, egzamininę MD/DOCX/PDF ataskaitą ir išvadas reikia užbaigti pagal faktinius rezultatus. Ankstesnė Nov–Dec analizė reiškia, kad net validacija pagrįstas naujas laimėtojas tame pačiame teste nėra nepriklausomai patvirtintas.
+| Šeima | Temporal AP, vidurkis ± SD | Rugsėjo–spalio AP | Lapkričio–gruodžio AP, tiriamasis |
+|---|---:|---:|---:|
+| Logistinė regresija | 0,2397 ± 0,0623 | 0,2464 | 0,3360 |
+| Atsitiktinis miškas | 0,2852 ± 0,0326 | **0,3052** | 0,3325 |
+| Histograminis GB | 0,2876 ± 0,0216 | 0,2920 | 0,3380 |
+| XGBoost | 0,2892 ± 0,0149 | 0,2863 | 0,3407 |
+
+Rugsėjo–spalio AP pasirinko atsitiktinį mišką: 200 medžių, `criterion=entropy`, `min_samples_leaf=2`, `min_samples_split=20`, `max_features=sqrt`, be gylio ribos ir klasės svorių. Jo F2 slenkstis 0,01 nustatytas toje pačioje validacijoje. Po užfiksuoto pasirinkimo Nov–Dec AP buvo 0,3325, Brier 0,1563, precision 0,2303, recall 0,9908 ir F2 0,5967. Pradinio RF AP 0,3411 buvo didesnė 0,0087. Išplėstinė paieška neparodė paslėpto AP pagerėjimo; tai leidžia svarstyti duomenų ir požymių ribas, bet neįrodo jų priežastinio poveikio.
+
+XGBoost Nov–Dec AP 0,3407 buvo aukštesnė už naujai parinkto RF 0,3325, tačiau jo rugsėjo–spalio AP buvo tik 0,2863. Testo rezultatu perrinkti šeimą būtų neteisinga. Be to, XGBoost Brier 0,2196 ir log loss 0,6149 buvo blogesni už pradinio RF 0,1555 ir 0,4781. Visos konfigūracijos, stabilumo rezultatai, pasirinkimai ir grafikai pateikti [`results/tuning/`](../results/tuning/SUMMARY.md). Nov–Dec jau buvo analizuotas ankstesniuose darbo etapuose, todėl net be testu grindžiamo pasirinkimo naujas vertinimas nėra nepriklausomas patvirtinimas; jam reikėtų būsimo arba iki tol neliesto laikotarpio.

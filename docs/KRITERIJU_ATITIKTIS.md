@@ -16,10 +16,10 @@
 
 | Kriterijus | Kur įgyvendinta | Patikrinamas rezultatas | Kas liko |
 |---|---|---|---|
-| Baseline, duomenų grandinė ir atkuriamumas | `src/data.py`, `src/experiment.py`, `results/metrics.csv`, `results/test_log.txt` | Baseline test AP 0.2066; pagrindinis paleidimas ir 8 testai dokumentuoti. | Originalaus `manifest.json` kontrolinės sumos yra istorinio paleidimo, ne dabartinio papildyto kodo. |
+| Baseline, duomenų grandinė ir atkuriamumas | `src/data.py`, `src/experiment.py`, `results/metrics.csv`, `results/test_log.txt` | Baseline test AP 0.2066; pagrindinis paleidimas ir 14 testų dokumentuoti. | Originalaus `manifest.json` kontrolinės sumos yra istorinio paleidimo, ne dabartinio papildyto kodo. |
 | Bent du intelektualieji metodai | `src/models.py`, `src/improvement.py` | Įgyvendinti LR, RF, GB; atskirai XGBoost. | Nėra. |
 | Korektiškas eksperimentas ir vienodos sąlygos | `PROTOKOLAS.md`, `src/training.py`, `src/improvement.py` | Vienodas temporal split; fit tik train; AP pasirinkimas ir F2 slenkstis validation. | Nauji test rezultatai tik tiriamieji, nes testas jau žinomas. |
-| Rezultatai, abliacija, atsparumas, klaidos | `EGZAMINO_ATASKAITA.md`, `results/pagevalues_ablation.csv`, `results/improvement_experiments.csv` | Parodyti ir neigiami bandymai, PageValues jautrumas, 10 % missing-values bandymas ir klaidų analizė. | Realaus laiko požymių momentinės reikšmės nepateiktos. |
+| Rezultatai, abliacija, atsparumas, klaidos | `EGZAMINO_ATASKAITA.md`, `results/pagevalues_ablation.csv`, `results/improvement_experiments.csv`, `results/tuning/SUMMARY.md` | Parodyti ir neigiami bandymai, 722 konfigūracijų tyrimas, PageValues jautrumas, 10 % missing-values bandymas ir klaidų analizė. | Realaus laiko požymių momentinės reikšmės nepateiktos. |
 | Ribos, rizikos ir tinkamumas | `ATASKAITA.md`, `EGZAMINO_ATASKAITA.md`, `GYNIMAS.md` | Nurodyti temporal leakage, distribution shift, calibration ir pakartotinio testo ribotumai. | Production real-time tinkamumas nepatvirtintas. |
 | AI auditas | `AI_ZURNALAS.md`, `NAUJA_LITERATURA.md` | Matyti literatūros patikra, pasirinkimo motyvai, skaičiavimo patikra. | Studentas turi patvirtinti, kad supranta sprendimus. |
 | Gyvas gynimas, nematytas testas, nedidelis pakeitimas | `GYNIMAS.md` | Yra pasiruošimo atmintinė. | **Neuždaryta:** gyvą demonstraciją, dėstytojo nematytą testą ir pakeitimą turi atlikti studentas. |
