@@ -1,5 +1,4 @@
 """Post-test exploratory improvements; never changes the preregistered models."""
-import argparse
 import json
 from pathlib import Path
 
@@ -7,15 +6,10 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from sklearn.metrics import average_precision_score
 from sklearn.pipeline import Pipeline
-from threadpoolctl import threadpool_limits
-
-from .data import load_and_split, prepare_features
+from .data import prepare_features
 from .evaluation import metrics, select_threshold
 from .models import build_model
 from .preprocessing import build_preprocessing
-
-ROOT = Path(__file__).resolve().parents[1]
-
 
 def run_improvements(train, validation, test, seed, main_results, output):
     """Select each small, fixed grid on validation; test selected variants once."""
@@ -125,16 +119,3 @@ def run_improvements(train, validation, test, seed, main_results, output):
     fig.savefig(output / 'improvement_comparison.png', dpi=180)
     plt.close(fig)
     return pd.DataFrame(rows)
-
-
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--output', type=Path, default=ROOT / 'results')
-    args = parser.parse_args()
-    config = json.loads((ROOT / 'config.json').read_text(encoding='utf-8'))
-    _, parts = load_and_split(ROOT / 'data/online_shoppers_intention.csv', config)
-    main_results = pd.read_csv(ROOT / 'results/metrics.csv')
-    args.output.mkdir(parents=True, exist_ok=True)
-    with threadpool_limits(limits=1):
-        run_improvements(parts['train'], parts['validation'], parts['test'],
-                         config['seed'], main_results, args.output)

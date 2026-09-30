@@ -1,4 +1,4 @@
-"""Pagrindinė eiga: python -m src.experiment. Skaitykite run() nuo viršaus.
+"""Vienintelė eksperimento eiga: python -m src.experiment.
 
 Modelių mokymas → training.py; papildomi bandymai → analysis.py;
 grafikai → plots.py; rezultatų failai → reporting.py.
@@ -14,6 +14,7 @@ from .training import train_and_select
 from .evaluation import metrics
 from .analysis import evaluate_missing, evaluate_pagevalues_ablation, analyze_forest
 from .improvement import run_improvements
+from .tuning import run_extended_tuning
 from .plots import save_plots
 from .reporting import save_splits, save_tables, save_manifest, save_summary
 
@@ -24,7 +25,7 @@ PRIMARY_MODELS = ['purchase_rate', 'logistic', 'random_forest', 'gradient_boosti
 
 
 def run(config_path=ROOT / 'config.json', output=ROOT / 'results'):
-    """Nuosekliai atlieka 10 eksperimento etapų ir išsaugo rezultatus.
+    """Nuosekliai atlieka pirminį ir vėlesnius tiriamuosius bandymus.
 
     config_path – JSON kelias; output – lentelių bei grafikų katalogas.
     Modeliai visada rašomi į ROOT/models, net jei pakeistas output.
@@ -140,6 +141,9 @@ def run(config_path=ROOT / 'config.json', output=ROOT / 'results'):
     # 11. Tik po užbaigto pagrindinio testo: literatūra grįsti tiriamieji bandymai.
     # Jų validacijos parinkimas nekeičia ankstesnės RF–LR hipotezės ar lentelių.
     run_improvements(train, validation, test, config['seed'], result, output)
+    # 12. Platesnė laikinė paieška vyksta tik po pradinės analizės.
+    # Ji rašo tik į results/tuning, nekeisdama pirminio RF–LR rezultato.
+    run_extended_tuning(train, validation, test, config['seed'], output)
     print('Experiment complete:', output, flush=True)
 
 

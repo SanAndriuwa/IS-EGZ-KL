@@ -92,3 +92,13 @@ Trumpi atsakymai yra atmintinė kalbėjimui, ne visas metodikos aprašas.
 38. **Ką parodė 10 % trūkstamų reikšmių bandymas?** Atsitiktinai paslėpus 9,87 % skaitinių testo langelių, AP sumažėjo nedaug. Tai neįrodo atsparumo sisteminiam ar viso stulpelio trūkumui.
 39. **Kodėl seed = 42?** Atkuriamumui. Skaičius nepasirinktas modeliui pagerinti.
 40. **Ką iš tikrųjų parodėme?** Modeliai išmoko signalą: jų AP aukštesnė už pastovią atskaitą. RF turėjo didžiausią stebėtą AP, bet nepasiekė iš anksto reikalauto ≥0,02 pranašumo prieš LR, o bootstrap intervalas apima 0. Aukštas *recall* gautas mažo *precision* kaina. `PageValues` turi stiprų prognozavimo signalą, bet saugus prieinamumas neįrodytas. Tai *offline/post-session* tyrimas, ne patvirtintas realaus laiko sprendimas.
+
+### Išplėstinio tyrimo klausimai po jo paleidimo
+
+41. **Kodėl naujas tyrimas atskiras nuo H1?** Jis sumanytas jau pamačius pradinio Nov–Dec testo rezultatus; negalima jo pavadinti iš anksto registruota RF–LR hipoteze.
+42. **Kodėl keturi didėjantys laiko foldai?** Kiekviename modelis mokomas tik ankstesniais mėnesiais ir tikrinamas vėlesniu; atsitiktinis maišymas šį laiko santykį sugriautų.
+43. **Kaip parenkami parametrai ir šeima?** Konfigūracijos lyginamos pagal vidutinę keturių foldų AP; artimi top variantai tikrinami dėl stabilumo. Po to vienas kiekvienos šeimos kandidatas įvertinamas Sep–Oct, ir didžiausia šios validacijos AP parenka bendrą laimėtoją.
+44. **Ar Nov–Dec parenka laimėtoją?** Ne. Kode laimėtojas ir F2 slenkstis užfiksuojami prieš Nov–Dec prognozes; pakeitus dirbtinius test balus pasirinkimas nesikeičia.
+45. **Kodėl ir tada rezultatas tik tiriamasis?** Tyrėjas jau analizavo tą patį testą ankstesniuose etapuose. Naujam nepriklausomam patvirtinimui reikia iki tol neliesto būsimo laikotarpio.
+
+Konkretaus naujo laimėtojo ir jo skaičių šioje atmintinėje dar nėra: vartotojas pats paleis tyrimą. Atsakymus papildyti tik pagal `results/tuning/SUMMARY.md`, ne spėjimu.

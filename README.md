@@ -128,7 +128,8 @@ iš DOCX naudojant dokumentų renderinimo scenarijų.
 - `src/reporting.py` – lentelių, santraukos ir vykdymo aprašo įrašymas.
 - `src/evaluation.py` – AP, PR-AUC, precision, recall, kalibracijos nuostoliai, slenkstis ir bootstrap.
 - `src/experiment.py` – nuosekli eiga, iškviečianti atskirų modulių funkcijas.
-- `src/improvement.py` – atskiras literatūra grįstas ir RF pagerinimo post-test bandymas.
+- `src/improvement.py` – atskiras literatūra grįstas ir RF pagerinimo post-test bandymas, automatiškai kviečiamas iš `experiment.py`.
+- `src/tuning.py` – platus laikinis hiperparametrų tyrimas, automatiškai kviečiamas iš `experiment.py`.
 - `src/predict.py` – naujų sesijų prognozė.
 - `config.json` – mėnesiai, sėkla, atsparumo kaukė ir bootstrap kiekis.
 - `results/` – tikrai įvykdyto eksperimento lentelės, prognozės, grafikai ir vykdymo aprašas.
@@ -141,4 +142,4 @@ C. Sakar ir Y. Kastro (2018), *Online Shoppers Purchasing Intention Dataset*, UC
 
 Darbas parengtas su AI pagalba. Gyvas gynimas ir dėstytojo nematytas bandymas dar turi būti atlikti studento.
 
-Papildomus tiriamuosius bandymus galima atkurti komanda `python -m src.improvement` (įdiegus `requirements.txt`). Ji nekeičia pagrindinio `metrics.csv`: išsaugo visus aštuonis validacijos kandidatus `results/improvement_experiments.csv` ir AP grafiką `results/improvement_comparison.png`. Šio darbo Nov–Dec testas jau buvo analizuotas, todėl šie vėlesni rezultatai nėra naujas nepriklausomas patvirtinimas.
+Vienintelė viso tyrimo komanda yra `python -m src.experiment`. Ji po pirminio eksperimento automatiškai vykdo 8 kandidatų literatūrinį pagerinimo bandymą ir išplėstinį laikinį hiperparametrų tyrimą. Pirminis `metrics.csv` naujais modeliais neperrašomas. Pastarasis tyrimas apima 22 LR, 250 RF, 200 HGB ir 250 XGBoost konfiguracijų keturiuose didėjančiuose laiko folduose; todėl visas vykdymas gali trukti gerokai ilgiau nei ankstesnės ~6 s. Eiga rodoma terminale, o pilni rezultatai automatiškai atsiras `results/tuning/` (`all_candidates.csv`, `top_candidates.csv`, `stability_results.csv`, `family_winners.csv`, `final_test_results.csv`, `best_configuration.json`, `SUMMARY.md` ir trys grafikai). Šiame repozitorijos pakeitime plataus tyrimo skaičiai dar nepateikti: paleidimą ir testus atliks studentas. Nov–Dec jau buvo analizuotas, todėl vėlesni bandymai nėra naujas nepriklausomas patvirtinimas.
