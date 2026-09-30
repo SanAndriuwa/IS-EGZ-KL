@@ -368,7 +368,29 @@ Revenue nepatenka į įvestį, o PageValues pašalintas iš pagrindinio varianto
 - Vėlesniame 722 konfigūracijų tyrime Sep–Oct validacija pasirinko RF, kurio tiriamasis Nov–Dec AP 0,3325 nesiekė pradinio RF 0,3411. Plati paieška neatskleidė papildomo AP rezervo šiame skaidyme.
 - Programa patikrinta 14 automatinių testų. Rezultatai pagrindžia offline/post-session tyrimą; realaus laiko taikymui reikia požymių prieinamumo audito ir naujo būsimo laikotarpio testo.
 
-## 10. Šaltiniai
+## 10. AI naudojimo auditas
+
+Darbas parengtas su ChatGPT Codex pagalba. AI padėjo rengti eksperimento kodą, dokumentaciją ir rezultatų patikras. Studentas pats paleido išplėstinį eksperimentą savo kompiuteryje; AI vėliau patikrino išsaugotus rezultatus. Gyvas gynimas ir dėstytojo nematytas bandymas dar neatlikti. Šiame skyriuje pateikiama audito santrauka, o pilna užklausų ir pakeitimų istorija saugoma docs/AI_ZURNALAS.md.
+
+### 10.1. Svarbiausios užklausos ir sprendimai
+
+Pagrindinės užklausos buvo įgyvendinti užduotį ir įkelti kodą bei dokumentaciją į GitHub; patikrinti testų įrodymus ir požymių prieinamumą laike; pridėti fiksuotų parametrų PageValues abliaciją; pagal dėstytojo pastabas atlikti papildomą metodų ir hiperparametrų tyrimą; prieš pateikimą sutikrinti rezultatus ir ataskaitą.
+
+Priimti AI pasiūlymai: laikinis skaidymas pagal mėnesius, mokymo imtyje išmokstamas Pipeline, pirkimų dažnio baseline, RF ir gradientinis stiprinimas. PageValues pagrindiniame variante pašalintas, nes jo saugus prieinamumas prognozės momentu nepatvirtintas. Papildomas CPU XGBoost bandymas pasirinktas kaip literatūra motyvuotas palyginimas.
+
+Atmesti pasiūlymai ar prielaidos: skelbti sudėtingesnį modelį savaime geresniu, rinktis slenkstį pagal testą ir vadinti rezultatą įrodyta realaus laiko sistema. SMOTE su požymių atranka ir stacking netaikyti, nes keistų daugiau eksperimento grandžių ir apsunkintų paaiškinimą. RF pranašumo teiginį pakeitė faktinė išvada: AP skirtumas tik 0,0076, o bootstrap intervalas apima 0.
+
+### 10.2. Aptiktos AI klaidos ir nepatikrintos prielaidos
+
+- Pradžioje AI nepatikrinęs nurodė scipy==1.16.3. Faktinės aplinkos scipy.__version__ patikra parodė 1.17.0; requirements.txt pataisytas. Tai priklausomybių aprašo klaida, ne rezultatų pasikeitimas.
+- Buvo rizika sutapatinti AP su trapeciniu PR-AUC. Pastovaus modelio trapecinis plotas 0,6033 atrodė didelis, nors modelis sesijų neranguoja. Perskaičiavus AP gauta 0,2066; metrikos atskirtos, o test_constant_score_ap_equals_prevalence tikrina šią savybę.
+- PageValues laikyti saugiu arba tikru nutekėjimu vien pagal jo pavadinimą būtų nepatikrinta prielaida. Tikrintas UCI aprašymas ir fiksuotų parametrų abliacija. Stiprus signalas išliko, tačiau CSV neturi tarpinių laiko kopijų, todėl saugus prieinamumas ir faktinis nutekėjimas neįrodyti.
+
+### 10.3. Patikros ir atsakomybės ribos
+
+AI pasiūlymai tikrinti vykdant kodą: 14 unit testų baigėsi OK, RF formulės ir bibliotekos tikimybių skirtumas buvo 0. Metrikos ir porinis bootstrap perskaičiuoti iš išsaugotų prognozių, sutikrintos duomenų SHA256 ir skaidymo eilutės. Konfigūracijų pasirinkimas tikrintas pakeičiant dirbtinius test balus; validacijos pasirinkimas nesikeitė. Ataskaitos MD, DOCX ir PDF sutikrinti su rezultatų failais. Šios patikros nepakeičia studento pareigos suprasti kodą, paaiškinti sprendimus ir savarankiškai atlikti gyvą bandymą.
+
+## 11. Šaltiniai
 
 1. Abdullah-All-Tanvir, Khandokar, I. A., Islam, A. K. M. M., Islam, S., Shatabda, S. (2023). A gradient boosting classifier for purchase intention prediction of online shoppers. Heliyon, 9(4), e15163. https://doi.org/10.1016/j.heliyon.2023.e15163
 2. Breiman, L. (2001). Random Forests. Machine Learning, 45, 5–32. https://doi.org/10.1023/A:1010933404324

@@ -606,7 +606,22 @@ def build() -> None:
         "Programa patikrinta 14 automatinių testų. Rezultatai pagrindžia offline/post-session tyrimą; realaus laiko taikymui reikia požymių prieinamumo audito ir naujo būsimo laikotarpio testo.",
     ])
 
-    r.heading("10. Šaltiniai")
+    r.heading("10. AI naudojimo auditas")
+    r.p("Darbas parengtas su ChatGPT Codex pagalba. AI padėjo rengti eksperimento kodą, dokumentaciją ir rezultatų patikras. Studentas pats paleido išplėstinį eksperimentą savo kompiuteryje; AI vėliau patikrino išsaugotus rezultatus. Gyvas gynimas ir dėstytojo nematytas bandymas dar neatlikti. Šiame skyriuje pateikiama audito santrauka, o pilna užklausų ir pakeitimų istorija saugoma docs/AI_ZURNALAS.md.")
+    r.heading("10.1. Svarbiausios užklausos ir sprendimai", 2)
+    r.p("Pagrindinės užklausos buvo įgyvendinti užduotį ir įkelti kodą bei dokumentaciją į GitHub; patikrinti testų įrodymus ir požymių prieinamumą laike; pridėti fiksuotų parametrų PageValues abliaciją; pagal dėstytojo pastabas atlikti papildomą metodų ir hiperparametrų tyrimą; prieš pateikimą sutikrinti rezultatus ir ataskaitą.")
+    r.p("Priimti AI pasiūlymai: laikinis skaidymas pagal mėnesius, mokymo imtyje išmokstamas Pipeline, pirkimų dažnio baseline, RF ir gradientinis stiprinimas. PageValues pagrindiniame variante pašalintas, nes jo saugus prieinamumas prognozės momentu nepatvirtintas. Papildomas CPU XGBoost bandymas pasirinktas kaip literatūra motyvuotas palyginimas.")
+    r.p("Atmesti pasiūlymai ar prielaidos: skelbti sudėtingesnį modelį savaime geresniu, rinktis slenkstį pagal testą ir vadinti rezultatą įrodyta realaus laiko sistema. SMOTE su požymių atranka ir stacking netaikyti, nes keistų daugiau eksperimento grandžių ir apsunkintų paaiškinimą. RF pranašumo teiginį pakeitė faktinė išvada: AP skirtumas tik 0,0076, o bootstrap intervalas apima 0.")
+    r.heading("10.2. Aptiktos AI klaidos ir nepatikrintos prielaidos", 2)
+    r.bullets([
+        "Pradžioje AI nepatikrinęs nurodė scipy==1.16.3. Faktinės aplinkos scipy.__version__ patikra parodė 1.17.0; requirements.txt pataisytas. Tai priklausomybių aprašo klaida, ne rezultatų pasikeitimas.",
+        "Buvo rizika sutapatinti AP su trapeciniu PR-AUC. Pastovaus modelio trapecinis plotas 0,6033 atrodė didelis, nors modelis sesijų neranguoja. Perskaičiavus AP gauta 0,2066; metrikos atskirtos, o test_constant_score_ap_equals_prevalence tikrina šią savybę.",
+        "PageValues laikyti saugiu arba tikru nutekėjimu vien pagal jo pavadinimą būtų nepatikrinta prielaida. Tikrintas UCI aprašymas ir fiksuotų parametrų abliacija. Stiprus signalas išliko, tačiau CSV neturi tarpinių laiko kopijų, todėl saugus prieinamumas ir faktinis nutekėjimas neįrodyti.",
+    ])
+    r.heading("10.3. Patikros ir atsakomybės ribos", 2)
+    r.p("AI pasiūlymai tikrinti vykdant kodą: 14 unit testų baigėsi OK, RF formulės ir bibliotekos tikimybių skirtumas buvo 0. Metrikos ir porinis bootstrap perskaičiuoti iš išsaugotų prognozių, sutikrintos duomenų SHA256 ir skaidymo eilutės. Konfigūracijų pasirinkimas tikrintas pakeičiant dirbtinius test balus; validacijos pasirinkimas nesikeitė. Ataskaitos MD, DOCX ir PDF sutikrinti su rezultatų failais. Šios patikros nepakeičia studento pareigos suprasti kodą, paaiškinti sprendimus ir savarankiškai atlikti gyvą bandymą.")
+
+    r.heading("11. Šaltiniai")
     sources = [
         "Abdullah-All-Tanvir, Khandokar, I. A., Islam, A. K. M. M., Islam, S., Shatabda, S. (2023). A gradient boosting classifier for purchase intention prediction of online shoppers. Heliyon, 9(4), e15163. https://doi.org/10.1016/j.heliyon.2023.e15163",
         "Breiman, L. (2001). Random Forests. Machine Learning, 45, 5–32. https://doi.org/10.1023/A:1010933404324",
@@ -632,7 +647,9 @@ def build() -> None:
         p.alignment = WD_ALIGN_PARAGRAPH.LEFT
         p.paragraph_format.left_indent = Mm(8)
         p.paragraph_format.first_line_indent = Mm(-8)
-        p.add_run(f"{i}. {source}")
+        p.paragraph_format.line_spacing = 1.15
+        p.paragraph_format.space_after = Pt(6)
+        p.add_run(f"{i}. {source}").font.size = Pt(11)
         r.md.append(f"{i}. {source}")
     r.md.append("")
     r.save()

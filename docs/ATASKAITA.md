@@ -126,3 +126,17 @@ Viena komanda `python -m src.experiment` po pirminio eksperimento ir `PageValues
 Rugsėjo–spalio AP pasirinko atsitiktinį mišką: 200 medžių, `criterion=entropy`, `min_samples_leaf=2`, `min_samples_split=20`, `max_features=sqrt`, be gylio ribos ir klasės svorių. Jo F2 slenkstis 0,01 nustatytas toje pačioje validacijoje. Po užfiksuoto pasirinkimo Nov–Dec AP buvo 0,3325, Brier 0,1563, precision 0,2303, recall 0,9908 ir F2 0,5967. Pradinio RF AP 0,3411 buvo didesnė 0,0087. Išplėstinė paieška neparodė paslėpto AP pagerėjimo; tai leidžia svarstyti duomenų ir požymių ribas, bet neįrodo jų priežastinio poveikio.
 
 XGBoost Nov–Dec AP 0,3407 buvo aukštesnė už naujai parinkto RF 0,3325, tačiau jo rugsėjo–spalio AP buvo tik 0,2863. Testo rezultatu perrinkti šeimą būtų neteisinga. Be to, XGBoost Brier 0,2196 ir log loss 0,6149 buvo blogesni už pradinio RF 0,1555 ir 0,4781. Visos konfigūracijos, stabilumo rezultatai, pasirinkimai ir grafikai pateikti [`results/tuning/`](../results/tuning/SUMMARY.md). Nov–Dec jau buvo analizuotas ankstesniuose darbo etapuose, todėl net be testu grindžiamo pasirinkimo naujas vertinimas nėra nepriklausomas patvirtinimas; jam reikėtų būsimo arba iki tol neliesto laikotarpio.
+
+## AI naudojimo auditas
+
+ChatGPT Codex padėjo įgyvendinti kodą, rengti dokumentaciją ir tikrinti rezultatus. Svarbiausios užklausos apėmė pradinį sprendimą, požymių laikinį auditą, PageValues abliaciją, papildomą metodų bei parametrų tyrimą ir galutinę patikrą. Studentas pats paleido išplėstinį eksperimentą savo kompiuteryje; AI patikrino išsaugotus rezultatus.
+
+Priimti pasiūlymai: laikinis skaidymas, tik train išmokstamas Pipeline, baseline, RF ir gradientinis stiprinimas, atskiras XGBoost bandymas. Atmestos prielaidos, kad sudėtingesnis modelis būtinai geresnis, kad slenkstį galima rinktis pagal testą ir kad sesijų suvestinių rezultatas įrodo realaus laiko tinkamumą. SMOTE su atranka ir stacking netaikyti dėl papildomo sudėtingumo.
+
+Aptiktos AI klaidos ir prielaidos bei jų patikra:
+
+- Iš pradžių nepatikrinus nurodyta SciPy 1.16.3. Faktinės aplinkos versija buvo 1.17.0; priklausomybių sąrašas pataisytas.
+- AP ir trapecinio PR-AUC sutapatinimas būtų klaida: baseline trapecinis plotas 0,6033, bet AP 0,2066. Skaičiai perskaičiuoti, metrikos atskirtos ir pridėtas konstantinių prognozių AP testas.
+- PageValues saugumas ar nutekėjimas neįrodomas vien pavadinimu. Tikrinti UCI aprašymas ir fiksuotų parametrų abliacija; laikinė kilmė iš CSV liko nepatvirtinta.
+
+14 unit testų baigėsi OK; RF formulės skirtumas nuo bibliotekos išvesties buvo 0. Pagrindinės metrikos ir bootstrap sutikrinti su išsaugotomis prognozėmis. Išsamūs įrašai pateikti [AI žurnale](AI_ZURNALAS.md). Gyvas gynimas, dėstytojo nematytas bandymas ir savarankiškas pakeitimas lieka studentui.
