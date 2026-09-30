@@ -57,9 +57,7 @@ Miško 200 medžių ir stiprinimo 150 iteracijų bei mokymosi žingsnis 0,05 buv
 
 Visi keturi metodai grąžina įvertį intervale [0; 1], bet skiriasi būdu, kuriuo jį gauna. x žymi vienos sesijos pradinius požymius, o z – tą pačią sesiją po mokymo imtyje nustatyto paruošimo. Šios formulės aprašo prognozavimą jau išmokytu modeliu, o ne visą jo mokymo procedūrą.
 
-![Keturių metodų principinė struktūra; medžių ir požymių vidus supaprastintas](assets/exam_model_mechanisms.png)
-
-*2 pav. Keturių metodų principinė struktūra; medžių ir požymių vidus supaprastintas*
+Toliau pateiktos AI sukurtos principinės iliustracijos paaiškina metodų veikimą; jose esančios skaidymo ribos, lapų reikšmės ir tikimybės yra sąlyginiai pavyzdžiai, ne išmokytų modelių ar eksperimento rezultatai. Paveiksluose X reiškia modeliui perduodamus jau paruoštus požymius; formulėse jie žymimi z.
 
 Pastovus mokymo pirkimų dažnis (angl. baseline) ignoruoja z ir visoms sesijoms priskiria vienodą mokymo pirkimų dalį (scikit-learn developers, n.d.-b):
 
@@ -73,7 +71,11 @@ $$ \hat p_{\mathrm{LR}}(x)=\frac{1}{1+\exp[-(w^{\mathsf T}z+a)]} \tag{2} $$
 
 w yra iš mokymo duomenų išmoktas požymių svorių vektorius, a – poslinkis; skliaustuose esantis wᵀz + a yra pradinis įvertis. Didesnis C reiškia silpnesnį koeficientų apribojimą; validacija pasirinko C = 1. Tai dvejetainio LogisticRegression predict_proba taisyklė (scikit-learn developers, n.d.-c).
 
-Tai primena vieną neuroną su sigmoidės aktyvavimo funkcija, tačiau paslėptų sluoksnių nėra. Įvestis šiame darbe nėra keturi skaičiai: naudojami 9 skaitiniai ir 6 kategoriniai pradiniai požymiai, o kategorijas užkodavus vektorius z turi daugiau komponentų. 4 įėjimų piešinys būtų tik mokomasis pavyzdys, ne šios programos architektūra.
+Paslėptų sluoksnių nėra. Naudojami 9 skaitiniai ir 6 kategoriniai pradiniai požymiai; po kodavimo komponentų daugiau. Logistinės regresijos paveiksle z žymi vieną svertinės sumos skaičių, o (2) formulėje z yra paruoštų požymių vektorius. Tai skirtingi to paties simbolio žymėjimai.
+
+![Logistinės regresijos principas: svertinė suma, sigmoidė ir sprendimo slenkstis](assets/logistic_regression.png)
+
+*2 pav. Logistinės regresijos principas: svertinė suma, sigmoidė ir sprendimo slenkstis*
 
 Atsitiktinis miškas kiekvieną paruoštą sesiją nuveda į kiekvieno medžio lapą; iš ten gautos teigiamos klasės tikimybės suvidurkinamos:
 
@@ -81,7 +83,11 @@ $$ \hat p_{\mathrm{RF}}(x)=\frac{1}{T}\sum_{t=1}^{T}p_t(z) \tag{3} $$
 
 T = 200 – medžių skaičius, pₜ(z) – t-ojo medžio pasiekto lapo mokymo pavyzdžių pirkimų dalis. Tai tikimybių vidurkis, ne balsavimas pagal kiekvieno medžio 0/1 klasę (scikit-learn developers, n.d.-d).
 
-1 pav. rodo viso eksperimento duomenų eigą, o 2 pav. – supaprastintus modelių principus. Miško eilutėje nupiešti žodžiai „200 medžių“ nereiškia vieno konkretaus medžio struktūros: kiekviename iš 200 realių medžių yra daug vidinių skaidymų ir lapų. Todėl schemoje matomas tik medžių lygiagretumas ir jų išvesčių vidurkinimas.
+![Atsitiktinio miško principas: atskirų medžių lapų tikimybių vidurkis; skaičiai iliustraciniai](assets/random_forest.png)
+
+*3 pav. Atsitiktinio miško principas: atskirų medžių lapų tikimybių vidurkis; skaičiai iliustraciniai*
+
+Schemoje parodyti tik keli iš 200 medžių ir sąlyginiai jų lapai. Ji nevaizduoja tikrų šio darbo medžių skaidymų. Mokant su pavyzdžių ar klasių svoriais, lapo klasės dalis skaičiuojama atsižvelgiant į tuos svorius.
 
 Histograminis gradientinis stiprinimas (angl. histogram-based gradient boosting) iš pradinio įverčio nuosekliai prideda medžių taisymus logaritminių šansų skalėje. Tikimybė gaunama pritaikius sigmoidę:
 
@@ -92,6 +98,12 @@ F₀ yra mokyme nustatytas pradinis įvertis, hₘ(z) – m-ojo medžio indėlis
 Skirtingą medžių skaičių lemia jų vaidmuo: miško 200 medžių išmokstami atskirai ir jų prognozės vidurkinamos, o stiprinimo 150 medžių kuriami paeiliui, po vieną mažą taisymą su η = 0,05. Skaičiai 200 ir 150 buvo iš anksto pasirinkti ribotam skaičiavimo biudžetui, o ne kaip vienodo sudėtingumo ar įrodyto optimalaus tikslumo reikšmės. Todėl vien medžių skaičius neleidžia spręsti, kuris modelis geresnis; tai parodo tik atskirtos imties metrikos.
 
 Visiems metodams dvejetainė išvestis gaunama palyginus jų grąžintą pirkimo tikimybę su tos metodų šeimos validacijoje parinktu slenksčiu τ: jei p ≥ τ, prognozė yra 1, kitu atveju – 0. Pastovus modelis slenksčio tinklelyje visus testo įrašus priskyrė teigiamai klasei.
+
+![Gradientinio stiprinimo mokymo ir prognozavimo principas; skaičiai iliustraciniai](assets/gradient_boosting.png)
+
+*4 pav. Gradientinio stiprinimo mokymo ir prognozavimo principas; skaičiai iliustraciniai*
+
+Stiprinimo paveiksle fₘ(x) žymi jau mokymosi žingsniu sumažintą medžio indėlį: fₘ(x) = ηhₘ(z). Todėl paveikslo sumoje η nebekartojamas. Pavaizduota 0,73 tikimybė yra tik sąlyginis pavyzdys; ji nėra konkrečios mūsų duomenų sesijos prognozė. Visų modelių tikimybė į 0/1 klasę paverčiama pagal validacijoje parinktą slenkstį.
 
 ### 3.2. Vertinimo rodikliai
 
@@ -188,7 +200,7 @@ AP yra rodiklis nuo maždaug 0 iki 1: didesnis reiškia geresnį rangavimą, ta�
 
 ![Pagrindinių modelių AP ir Brier palyginimas](assets/exam_model_comparison.png)
 
-*3 pav. Pagrindinių modelių AP ir Brier palyginimas*
+*5 pav. Pagrindinių modelių AP ir Brier palyginimas*
 
 $$ \Delta AP=AP_{RF}-AP_{LR}=0.3411-0.3336=0.0076 \tag{9} $$
 
@@ -217,7 +229,7 @@ Prie šio užfiksuoto slenksčio *precision* = 956 / (956 + 3 004) = 0,2414, *re
 
 ![Precision–recall ir tikimybių kalibracijos kreivės](../results/evaluation.png)
 
-*4 pav. Precision–recall ir tikimybių kalibracijos kreivės*
+*6 pav. Precision–recall ir tikimybių kalibracijos kreivės*
 
 Atsitiktinis miškas dažniausiai nuvertina pirkimo tikimybę. Pavyzdžiui, vienoje tikimybių grupėje vidutinė prognozė yra 0,183, o tikroji pirkimų dalis – 0,325; aukščiausioje grupėje atitinkamai 0,300 ir 0,379. Tai dera su tuo, kad testiniu laikotarpiu pirkimų dalis buvo didesnė negu mokymo laikotarpiu, tačiau vien šis sutapimas neįrodo priežasties.
 
@@ -295,7 +307,7 @@ Brūkšnys reiškia, kad papildomame palyginime neparinkto kandidato testas nesk
 
 ![Pagrindinių ir tiriamųjų variantų testo AP; nauji variantai nėra nepriklausomai patvirtinti](../results/improvement_comparison.png)
 
-*5 pav. Pagrindinių ir tiriamųjų variantų testo AP; nauji variantai nėra nepriklausomai patvirtinti*
+*7 pav. Pagrindinių ir tiriamųjų variantų testo AP; nauji variantai nėra nepriklausomai patvirtinti*
 
 Pagal validaciją parinktas RF variantas teste neviršijo pradinio RF (0,3297 prieš 0,3411). XGBoost taip pat neviršijo jo (0,3324), o jo Brier ir log loss buvo blogesni. RF variantas šiek tiek pakeitė *precision*, *recall* ir F2 kompromisą, bet aiškaus rangavimo pagerėjimo nėra. Skirtingų šeimų negalima paskelbti laimėtojais renkantis pagal jau žinomą testą. Net jei naujas skaičius būtų didesnis, tai būtų tiriamoji, o ne nauja nepriklausoma generalizacijos patikra; jai reikia būsimo arba iki tol neliesto holdout laikotarpio.
 
@@ -316,7 +328,7 @@ Pastaba. Nov–Dec reikšmės apskaičiuotos tik po to, kai rugsėjo–spalio AP
 
 ![Išplėstinio tyrimo AP pagal vertinimo laikotarpį; Nov–Dec rodikliai tiriamieji](../results/tuning/family_comparison.png)
 
-*6 pav. Išplėstinio tyrimo AP pagal vertinimo laikotarpį; Nov–Dec rodikliai tiriamieji*
+*8 pav. Išplėstinio tyrimo AP pagal vertinimo laikotarpį; Nov–Dec rodikliai tiriamieji*
 
 Rugsėjo–spalio validacija pasirinko RF (AP 0,3052): 200 medžių, entropy kriterijus, min_samples_leaf = 2, min_samples_split = 20, max_features = sqrt, be gylio ribos ir klasės svorių. Toje pačioje validacijoje pagal F2 parinktas 0,01 slenkstis. Užfiksuoto RF Nov–Dec AP = 0,3325, Brier = 0,1563, *precision* = 0,2303, *recall* = 0,9908, F1 = 0,3737, F2 = 0,5967, log loss = 0,4838. Jis aptiko 967 iš 976 pirkimų, bet klaidingai pažymėjo 3232 nepirkusias sesijas.
 
@@ -387,6 +399,8 @@ Atmesti pasiūlymai ar prielaidos: skelbti sudėtingesnį modelį savaime geresn
 - PageValues laikyti saugiu arba tikru nutekėjimu vien pagal jo pavadinimą būtų nepatikrinta prielaida. Tikrintas UCI aprašymas ir fiksuotų parametrų abliacija. Stiprus signalas išliko, tačiau CSV neturi tarpinių laiko kopijų, todėl saugus prieinamumas ir faktinis nutekėjimas neįrodyti.
 
 ### 10.3. Patikros ir atsakomybės ribos
+
+Vartotojui paprašius vaizdinių paaiškinimų, AI vaizdų generavimo įrankiu sukurtos trys modelių principo iliustracijos. Priimtas jų naudojimas mokymosi ir gynimo paaiškinimui. Formulės, tikimybių vidurkinimas ir stiprinimo indėlių suma sutikrinti su modelių kodu; iliustraciniai skaičiai aiškiai atskirti nuo eksperimento rezultatų. Paveikslai nepakeičia tikro modelio patikros.
 
 AI pasiūlymai tikrinti vykdant kodą: 14 unit testų baigėsi OK, RF formulės ir bibliotekos tikimybių skirtumas buvo 0. Metrikos ir porinis bootstrap perskaičiuoti iš išsaugotų prognozių, sutikrintos duomenų SHA256 ir skaidymo eilutės. Konfigūracijų pasirinkimas tikrintas pakeičiant dirbtinius test balus; validacijos pasirinkimas nesikeitė. Ataskaitos MD, DOCX ir PDF sutikrinti su rezultatų failais. Šios patikros nepakeičia studento pareigos suprasti kodą, paaiškinti sprendimus ir savarankiškai atlikti gyvą bandymą.
 
